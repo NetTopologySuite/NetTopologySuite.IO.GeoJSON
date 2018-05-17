@@ -42,7 +42,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             AttributesTable attributes = new AttributesTable();
             attributes.Add("test1", "value1");
             IFeature value = new Feature(new Point(23, 56), attributes);
-            JsonSerializer serializer = new GeoJsonSerializer {NullValueHandling = NullValueHandling.Ignore};
+            JsonSerializer serializer = GeoJsonSerializer.Create(
+                new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore},
+                GeometryFactory.Default);
             target.WriteJson(writer, value, serializer);
             writer.Flush();
             
@@ -62,7 +64,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             AttributesTable attributes = new AttributesTable();
             attributes.Add("test1", new [] { "value1", "value2" });
             IFeature value = new Feature(new Point(23, 56), attributes);
-            JsonSerializer serializer = new GeoJsonSerializer {NullValueHandling = NullValueHandling.Ignore};
+            JsonSerializer serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, GeometryFactory.Default);
             target.WriteJson(writer, value, serializer);
             writer.Flush();
             Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56.0]},\"properties\":{\"test1\":[\"value1\",\"value2\"]}}", sb.ToString());

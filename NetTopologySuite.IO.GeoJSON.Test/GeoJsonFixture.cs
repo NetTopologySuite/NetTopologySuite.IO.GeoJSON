@@ -32,7 +32,7 @@
                     json = r.ReadToEnd();
             }
 
-            var gjs = new GeoJsonSerializer();
+            var gjs = GeoJsonSerializer.CreateDefault();
 
             var j = (JObject) gjs.Deserialize(new JsonTextReader(new StringReader(json)));
             switch (j.Value<string>("type"))

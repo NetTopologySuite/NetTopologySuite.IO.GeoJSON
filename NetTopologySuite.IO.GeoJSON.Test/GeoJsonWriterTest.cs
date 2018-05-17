@@ -77,7 +77,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             AttributesTable attributes = new AttributesTable();
             DateTime Date = new DateTime(2012, 8, 8).Date;
 
-            JsonSerializer g = new GeoJsonSerializer { NullValueHandling = NullValueHandling.Ignore };
+            JsonSerializer g = GeoJsonSerializer.CreateDefault();
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, Date);

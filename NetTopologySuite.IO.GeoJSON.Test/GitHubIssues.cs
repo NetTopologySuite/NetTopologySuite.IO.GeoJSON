@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -66,7 +65,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 }
 ";
 
-            GeoJsonSerializer serializer = new GeoJsonSerializer();
+            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
             Feature feat = null;
             Assert.DoesNotThrow(() =>
             {
@@ -107,7 +106,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 }
 ";
 
-            GeoJsonSerializer serializer = new GeoJsonSerializer();
+            JsonSerializer serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             Feature feat = null;
             Assert.DoesNotThrow(() =>
             {
@@ -141,7 +140,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 }
 ";
 
-            GeoJsonSerializer serializer = new GeoJsonSerializer();
+            JsonSerializer serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             Feature feat = null;
             Assert.DoesNotThrow(() =>
             {
@@ -373,7 +372,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
         private static IFeature SandD(IFeature input)
         {
-            var s = new GeoJsonSerializer {NullValueHandling = NullValueHandling.Ignore, FloatFormatHandling = FloatFormatHandling.DefaultValue, FloatParseHandling = FloatParseHandling.Double};
+            var s = GeoJsonSerializer.Create(
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    FloatFormatHandling = FloatFormatHandling.DefaultValue,
+                    FloatParseHandling = FloatParseHandling.Double
+                }, input.Geometry.Factory ?? GeometryFactory.Default);
             var sb = new StringBuilder();
             s.Serialize(new JsonTextWriter(new StringWriter(sb)), input, typeof(IFeature));
             return (IFeature)s.Deserialize<IFeature>(new JsonTextReader(new StringReader(sb.ToString())));

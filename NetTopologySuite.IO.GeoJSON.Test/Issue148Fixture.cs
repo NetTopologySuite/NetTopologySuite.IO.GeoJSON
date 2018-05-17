@@ -37,7 +37,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             StringBuilder sb = new StringBuilder();
             JsonTextWriter writer = new JsonTextWriter(new StringWriter(sb));
-            JsonSerializer serializer = new GeoJsonSerializer(factory);
+            JsonSerializer serializer = GeoJsonSerializer.Create(new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore}, factory);
             serializer.Serialize(writer, geometries);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -49,7 +49,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             StringBuilder sb = new StringBuilder();
             JsonTextWriter writer = new JsonTextWriter(new StringWriter(sb));
-            JsonSerializer serializer = new GeoJsonSerializer(factory);
+            JsonSerializer serializer = GeoJsonSerializer.Create();
             serializer.Serialize(writer, collection);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -60,7 +60,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void deserialize_a_json_fragment_should_throws_an_error()
         {
             JsonTextReader reader = new JsonTextReader(new StringReader(serializedGeometries));
-            JsonSerializer serializer = new GeoJsonSerializer(factory);
+            JsonSerializer serializer = GeoJsonSerializer.Create(factory);
             Assert.Throws<JsonReaderException>(() => serializer.Deserialize<IGeometry[]>(reader));
         }
 
@@ -68,7 +68,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void deserialize_a_valid_json_should_return_a_geometrycollection()
         {
             JsonTextReader reader = new JsonTextReader(new StringReader(serializedCollection));
-            JsonSerializer serializer = new GeoJsonSerializer(factory);
+            JsonSerializer serializer = GeoJsonSerializer.Create(factory);
             IGeometryCollection actual = serializer.Deserialize<GeometryCollection>(reader);
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual.EqualsExact(collection), Is.True);
