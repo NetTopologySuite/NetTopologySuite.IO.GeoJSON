@@ -7,7 +7,7 @@
 		<authors>NetTopologySuite - Team</authors>
 		<owners>NetTopologySuite - Team</owners>
 		<licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
-		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite</projectUrl>
+		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>
       This package contains the GeoJSON IO library.
