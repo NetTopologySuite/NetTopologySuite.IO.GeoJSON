@@ -11,23 +11,49 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoJsonSerializer : JsonSerializer
     {
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>Calls <see cref="GeoJsonSerializer.CreateDefault()"/> internally</remarks>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
         public new static JsonSerializer Create()
         {
             return CreateDefault();
         }
 
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>
+        /// Creates a serializer using <see cref="JsonSerializer.CreateDefault()"/> internally
+        /// and adds the GeoJSON specific converters to it.</remarks>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
         public new static JsonSerializer CreateDefault()
         {
             var s = JsonSerializer.CreateDefault();
+            s.NullValueHandling = NullValueHandling.Ignore;
+
             AddGeoJsonConverters(s, GeometryFactory.Default);
             return s;
         }        
 
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>
+        /// Creates a serializer using <see cref="GeoJsonSerializer.Create(JsonSerializerSettings,IGeometryFactory)"/> internally.
+        /// <see cref="GeometryFactory.Default"/> is used.</remarks>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(IGeometryFactory factory)
         {
             return Create(new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore}, factory);
         }
 
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer using the provider serializer settings and geometry factory
+        /// </summary>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, IGeometryFactory factory)
         {
             var s = JsonSerializer.Create(settings);
@@ -53,7 +79,7 @@ namespace NetTopologySuite.IO
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.
         /// </summary>
         [Obsolete("Use GeoJsonSerializer.Create...() functions")]
-        public GeoJsonSerializer() :this(GeometryFactory.Default) { }
+        public GeoJsonSerializer() : this(GeometryFactory.Default) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.

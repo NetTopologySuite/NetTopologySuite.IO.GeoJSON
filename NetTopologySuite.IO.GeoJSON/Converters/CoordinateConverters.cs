@@ -1,15 +1,24 @@
-﻿namespace NetTopologySuite.IO.Converters
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
+using GeoAPI.Geometries;
+
+using Newtonsoft.Json;
+
+namespace NetTopologySuite.IO.Converters
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-
-    using GeoAPI.Geometries;
-
-    using Newtonsoft.Json;
-
+    /// <summary>
+    /// Convertes a <see cref="Coordinate"/> to and from JSON
+    /// </summary>
     public class CoordinateConverter : JsonConverter
     {
+        /// <summary>
+        /// Writes a coordinate, a coordinate sequence or an enumeration of coordinates to JSON
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="value">The coordinate</param>
+        /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             if (value == null)
@@ -41,26 +50,29 @@
 
             Coordinate coordinate = value as Coordinate;
             if (coordinate != null)
-            {
                 WriteJsonCoordinate(writer, coordinate, serializer);
-                return;
-            }
 
         }
 
+        /// <summary>
+        /// Writes a single coordinate to JSON
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="coordinate">The coordinate</param>
+        /// <param name="serializer">The serializer</param>
         protected void WriteJsonCoordinate(JsonWriter writer, Coordinate coordinate, JsonSerializer serializer)
         {
             writer.WriteStartArray();
 
             writer.WriteValue(coordinate.X);
             writer.WriteValue(coordinate.Y);
-            if (!Double.IsNaN(coordinate.Z))
+            if (!double.IsNaN(coordinate.Z))
                 writer.WriteValue(coordinate.Z);
             
             writer.WriteEndArray();
         }
 
-        protected void WriteJsonCoordinates(JsonWriter writer, IEnumerable<Coordinate> coordinates, JsonSerializer serializer)
+        private void WriteJsonCoordinates(JsonWriter writer, IEnumerable<Coordinate> coordinates, JsonSerializer serializer)
         {
             writer.WriteStartArray();
             foreach (Coordinate coordinate in coordinates)
@@ -68,7 +80,7 @@
             writer.WriteEndArray();
         }
 
-        protected void WriteJsonCoordinatesEnumerable(JsonWriter writer, IEnumerable<Coordinate[]> coordinates, JsonSerializer serializer)
+        private void WriteJsonCoordinatesEnumerable(JsonWriter writer, IEnumerable<Coordinate[]> coordinates, JsonSerializer serializer)
         {
             writer.WriteStartArray();
             foreach (Coordinate[] coordinate in coordinates)
@@ -84,6 +96,14 @@
             writer.WriteEndArray();
         }
 
+        /// <summary>
+        /// Reads a coordinate, a coordinate sequence or an enumeration of coordinates from JSON
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="objectType"></param>
+        /// <param name="existingValue"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             reader.Read();
@@ -180,6 +200,11 @@
             return coordinates;
         }
 
+        /// <summary>
+        /// Predicate function to check if an instance of <paramref name="objectType"/> can be converted using this converter.
+        /// </summary>
+        /// <param name="objectType">The type of the object to convert</param>
+        /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(Coordinate) || 

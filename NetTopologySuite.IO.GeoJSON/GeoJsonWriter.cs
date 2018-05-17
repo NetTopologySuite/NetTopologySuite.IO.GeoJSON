@@ -14,19 +14,25 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoJsonWriter
     {
+        /// <summary>
+        /// Creates an instance of this class
+        /// </summary>
         public GeoJsonWriter()
         {
             SerializerSettings = new JsonSerializerSettings();
             SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
         }
 
+        /// <summary>
+        /// Gets or sets a value that is used to create and configure the underlying <see cref="GeoJsonSerializer"/>.
+        /// </summary>
         public JsonSerializerSettings SerializerSettings { get; set; }
 
         /// <summary>
         /// Writes the specified geometry.
         /// </summary>
         /// <param name="geometry">The geometry.</param>
-        /// <returns></returns>
+        /// <returns>A string representing the geometry's JSON representation</returns>
         public string Write(IGeometry geometry)
         {
             if (geometry == null) 
@@ -44,10 +50,10 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature.
         /// </summary>
         /// <param name="feature">The feature.</param>
-        /// <returns></returns>
+        /// <returns>A string representing the feature's JSON representation</returns>
         public string Write(IFeature feature)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, feature.Geometry.Factory); ;
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, feature.Geometry.Factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, feature);
@@ -58,10 +64,10 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature collection.
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
-        /// <returns></returns>
+        /// <returns>A string representing the feature collection's JSON representation</returns>
         public string Write(FeatureCollection featureCollection)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, featureCollection.Features[0].Geometry.Factory); ;
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, featureCollection.Features[0].Geometry.Factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, featureCollection);
@@ -72,10 +78,10 @@ namespace NetTopologySuite.IO
         /// Writes any specified object.
         /// </summary>
         /// <param name="value">Any object.</param>
-        /// <returns></returns>
+        /// <returns>A string representing the object's JSON representation</returns>
         public string Write(object value)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeometryFactory.Default); ;
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeometryFactory.Default);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, value);

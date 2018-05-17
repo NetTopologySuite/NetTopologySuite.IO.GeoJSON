@@ -6,10 +6,16 @@ using Newtonsoft.Json;
 namespace NetTopologySuite.IO.Converters
 {
     /// <summary>
-    /// Converts ICRSObject object to its JSON representation.
+    /// Converts <see cref="ICRSObject"/> objects to its JSON representation.
     /// </summary>
     public class ICRSObjectConverter : JsonConverter
     {
+        /// <summary>
+        /// Writes a coordinate reference system to its JSON representation
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="value">The coordinate reference system</param>
+        /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             if (writer == null)
@@ -37,6 +43,14 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteEndObject();
         }
 
+        /// <summary>
+        /// Reads a coordinate reference system from its JSON representation
+        /// </summary>
+        /// <param name="reader">The reader</param>
+        /// <param name="objectType">The actual object type</param>
+        /// <param name="existingValue">The existing value</param>
+        /// <param name="serializer">The serializer</param>
+        /// <returns>A coordinate reference system</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
@@ -83,6 +97,11 @@ namespace NetTopologySuite.IO.Converters
             return result;
         }
 
+        /// <summary>
+        /// Predicate function to check if an instance of <paramref name="objectType"/> can be converted using this converter.
+        /// </summary>
+        /// <param name="objectType">The type of the object to convert</param>
+        /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
             return typeof(ICRSObject).IsAssignableFrom(objectType);

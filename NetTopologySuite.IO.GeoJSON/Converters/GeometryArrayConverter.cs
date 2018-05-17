@@ -7,17 +7,33 @@ using Newtonsoft.Json.Linq;
 
 namespace NetTopologySuite.IO.Converters
 {
+    /// <summary>
+    /// Converts an array of <see cref="IGeometry"/>s to and from JSON
+    /// </summary>
     public class GeometryArrayConverter : JsonConverter
     {
         private readonly IGeometryFactory _factory;
 
+        /// <summary>
+        /// Creates an instance of this class using <see cref="GeometryFactory.Default"/>
+        /// </summary>
         public GeometryArrayConverter() : this(GeometryFactory.Default) { }
 
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/>
+        /// </summary>
+        /// <param name="factory">The factory</param>
         public GeometryArrayConverter(IGeometryFactory factory)
         {
             _factory = factory;
         }
 
+        /// <summary>
+        /// Writes an array of <see cref="IGeometry"/>s to JSON
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="value">The geometry</param>
+        /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             writer.WritePropertyName("geometries");
@@ -32,6 +48,14 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteEndArray();
         }
 
+        /// <summary>
+        /// Reads an array of <see cref="IGeometry"/>s from JSON
+        /// </summary>
+        /// <param name="reader">The reader</param>
+        /// <param name="objectType">The object type</param>
+        /// <param name="existingValue">The existing value</param>
+        /// <param name="serializer">The serializer</param>
+        /// <returns>The geometry array read</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             reader.Read();
@@ -77,6 +101,11 @@ namespace NetTopologySuite.IO.Converters
             return geoms;
         }
 
+        /// <summary>
+        /// Predicate function to check if an instance of <paramref name="objectType"/> can be converted using this converter.
+        /// </summary>
+        /// <param name="objectType">The type of the object to convert</param>
+        /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
             return typeof(IEnumerable<IGeometry>).IsAssignableFrom(objectType);
@@ -115,21 +144,21 @@ namespace NetTopologySuite.IO.Converters
             return c;
         }
 
-        public static Coordinate[] ToCoordinates(JArray array)
+        private static Coordinate[] ToCoordinates(JArray array)
         {
             Coordinate[] c = new Coordinate[array.Count];
             for (int i = 0; i < array.Count; i++)
                 c[i] = ToCoordinate((JArray) array[i]);
             return c;
         }
-        public static List<Coordinate[]> ToListOfCoordinates(JArray array)
+        private static List<Coordinate[]> ToListOfCoordinates(JArray array)
         {
             List<Coordinate[]> c = new List<Coordinate[]>();
             for (int i = 0; i < array.Count; i++)
                 c.Add(ToCoordinates((JArray)array[i]));
             return c;
         }
-        public static List<List<Coordinate[]>> ToListOfListOfCoordinates(JArray array)
+        private static List<List<Coordinate[]>> ToListOfListOfCoordinates(JArray array)
         {
             List<List<Coordinate[]>> c = new List<List<Coordinate[]>>();
             for (int i = 0; i < array.Count; i++)

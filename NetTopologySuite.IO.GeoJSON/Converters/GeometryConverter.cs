@@ -5,21 +5,36 @@ using System.Diagnostics;
 using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace NetTopologySuite.IO.Converters
 {
+    /// <summary>
+    /// Converts a <see cref="IGeometry"/> to and from its JSON representation
+    /// </summary>
     public class GeometryConverter : JsonConverter
     {
         private readonly IGeometryFactory _factory;
 
+        /// <summary>
+        /// Creates an instance of this class using <see cref="GeometryFactory.Default"/> to create geometries.
+        /// </summary>
         public GeometryConverter() : this(GeometryFactory.Default) { }
 
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/> to create geometries.
+        /// </summary>
+        /// <param name="geometryFactory">The geometry factory.</param>
         public GeometryConverter(IGeometryFactory geometryFactory)
         {
             _factory = geometryFactory;
         }
 
+        /// <summary>
+        /// Writes a geometry to its JSON representation
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="value">The value</param>
+        /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             IGeometry geom = value as IGeometry;
@@ -68,8 +83,8 @@ namespace NetTopologySuite.IO.Converters
                     IMultiPolygon mpoly = geom as IMultiPolygon;
                     Debug.Assert(mpoly != null);
                     var list = new List<List<Coordinate[]>>();
-                    foreach (IPolygon mempoly in mpoly.Geometries)
-                        list.Add(PolygonCoordinates(mempoly));
+                    for (var i = 0; i < mpoly.NumGeometries; i++)
+                        list.Add(PolygonCoordinates((IPolygon)mpoly.GetGeometryN(i)));
                     if (serializer.NullValueHandling == NullValueHandling.Include || list.Count > 0)
                     {
                         writer.WritePropertyName("coordinates");
@@ -257,12 +272,12 @@ namespace NetTopologySuite.IO.Converters
                             break;
                         case "bbox":
                             // Read, but can't do anything with it, assigning Envelopes is impossible without reflection
-                            var bbox = serializer.Deserialize<Envelope>(reader);
+                            /*var bbox = */serializer.Deserialize<Envelope>(reader);
                             break;
 
                         default:
                             reader.Read();
-                            var item = serializer.Deserialize(reader);
+                            /*var item = */serializer.Deserialize(reader);
                             reader.Read();
                             break;
 
@@ -308,6 +323,14 @@ namespace NetTopologySuite.IO.Converters
             return null;
         }
 
+        /// <summary>
+        /// Reads a geometry from its JSON representation.
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="objectType"></param>
+        /// <param name="existingValue"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             return ParseGeometry(reader, serializer);
@@ -331,6 +354,11 @@ namespace NetTopologySuite.IO.Converters
             return _factory.CreatePolygon(shell, rings.ToArray());
         }
 
+        /// <summary>
+        /// Predicate function to check if an instance of <paramref name="objectType"/> can be converted using this converter.
+        /// </summary>
+        /// <param name="objectType">The type of the object to convert</param>
+        /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
             return typeof(IGeometry).IsAssignableFrom(objectType);

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using GeoAPI.Geometries;
 using NetTopologySuite.CoordinateSystems;
 using NetTopologySuite.Features;
@@ -12,6 +11,12 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     public class FeatureCollectionConverter : JsonConverter
     {
+        /// <summary>
+        /// Writes a feature collection in its JSON representation
+        /// </summary>
+        /// <param name="writer">The writer</param>
+        /// <param name="value">The value</param>
+        /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             if (writer == null)
@@ -48,6 +53,14 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteEndObject();
         }
 
+        /// <summary>
+        /// Reads a feature collection from its JSON representation
+        /// </summary>
+        /// <param name="reader">The reader</param>
+        /// <param name="objectType">The object type</param>
+        /// <param name="existingValue">The existing value</param>
+        /// <param name="serializer">The serializer</param>
+        /// <returns></returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null)
@@ -62,7 +75,7 @@ namespace NetTopologySuite.IO.Converters
                 {
                     case "features":
                         // move to begin of array
-                        read = reader.Read();
+                        /*read = */reader.Read();
                         if (reader.TokenType != JsonToken.StartArray)
                             throw new ArgumentException("Expected token '[' not found.");
 
@@ -76,7 +89,7 @@ namespace NetTopologySuite.IO.Converters
                         read = reader.Read();
                         break;
                     case "type":
-                        read = reader.Read();
+                        /*read = */reader.Read();
                         if (reader.TokenType != JsonToken.String && (string)reader.Value != "FeatureCollection")
                             throw new ArgumentException("Expected value 'FeatureCollection' not found.");
                         read = reader.Read();
@@ -122,6 +135,11 @@ namespace NetTopologySuite.IO.Converters
             return fc;
         }
 
+        /// <summary>
+        /// Predicate function to check if an instance of <paramref name="objectType"/> can be converted using this converter.
+        /// </summary>
+        /// <param name="objectType">The type of the object to convert</param>
+        /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
             return typeof(FeatureCollection).IsAssignableFrom(objectType);
