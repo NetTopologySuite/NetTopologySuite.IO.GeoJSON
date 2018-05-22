@@ -20,7 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="1.15.0-pre074" />
+    <PackageReference Include="NetTopologySuite" Version="1.15.0-pre075" />
+    <PackageReference Include="NetTopologySuite.Features" Version="1.15.0-pre002" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
 </Project>

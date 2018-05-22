@@ -20,7 +20,8 @@
 			<frameworkAssembly assemblyName="System.Core" targetFramework="net35-client,net40-client,net403-client,net45" />
 		</frameworkAssemblies>
 		<dependencies>
-			<dependency id="NetTopologySuite" version="1.15.0-pre074" />
+			<dependency id="NetTopologySuite" version="1.15.0-pre075" />
+		  <dependency id="NetTopologySuite.Features" version="1.15.0-pre002" />
 			<dependency id="Newtonsoft.Json" version="9.0.1" />
 		</dependencies>
 	</metadata>
