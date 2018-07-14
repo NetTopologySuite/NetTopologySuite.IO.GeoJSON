@@ -26,7 +26,8 @@
 	</metadata>
 	<files>
 		<file src="NetTopologySuite.Common.props" target="src" />
-		<file src="NetTopologySuite.IO\NetTopologySuite.IO.GeoJSON\**" exclude="NetTopologySuite.IO\NetTopologySuite.IO.GeoJSON\obj\**" target="src\NetTopologySuite.IO\NetTopologySuite.IO.GeoJSON" />
+		<file src="SharedAssemblyVersion.cs" target="src" />
+		<file src="NetTopologySuite.IO.GeoJSON\**" exclude="NetTopologySuite.IO.GeoJSON\obj\**" target="src\NetTopologySuite.IO.GeoJSON" />
 
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoJSON.deps.json" target="lib" />
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoJSON.dll" target="lib" />
