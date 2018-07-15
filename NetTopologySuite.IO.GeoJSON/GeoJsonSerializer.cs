@@ -36,7 +36,7 @@ namespace NetTopologySuite.IO
 
             AddGeoJsonConverters(s, GeometryFactory.Default);
             return s;
-        }        
+        }
 
         /// <summary>
         /// Factory method to create a (Geo)JsonSerializer
@@ -47,7 +47,7 @@ namespace NetTopologySuite.IO
         /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(IGeometryFactory factory)
         {
-            return Create(new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore}, factory);
+            return Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
         }
 
         /// <summary>

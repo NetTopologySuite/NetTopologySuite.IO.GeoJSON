@@ -172,27 +172,27 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 reader.Read();
                 AttributesTable result =
                     (AttributesTable)
-                        target.ReadJson(reader, typeof (AttributesTable), new AttributesTable(), serializer);
+                        target.ReadJson(reader, typeof(AttributesTable), new AttributesTable(), serializer);
                 Assert.IsNotNull(result);
                 Assert.AreEqual(2, result.Count);
                 Assert.AreEqual("value1", result["test1"]);
                 Assert.IsNotNull(result["test2"]);
                 Assert.IsInstanceOf<IList<object>>(result["test2"]);
-                IList<object> list = (IList<object>) result["test2"];
+                IList<object> list = (IList<object>)result["test2"];
                 Assert.IsNotEmpty(list);
                 Assert.AreEqual(2, list.Count);
                 Assert.IsInstanceOf<IAttributesTable>(list[0]);
                 Assert.IsInstanceOf<IList<object>>(list[1]);
-                IAttributesTable first = (IAttributesTable) list[0];
+                IAttributesTable first = (IAttributesTable)list[0];
                 Assert.AreEqual(1, first.Count);
                 Assert.IsTrue(first.Exists("innertest1"));
                 Assert.AreEqual("innervalue1", first["innertest1"]);
-                IList<object> innerList = (IList<object>) list[1];
+                IList<object> innerList = (IList<object>)list[1];
                 Assert.IsNotNull(innerList);
                 Assert.IsNotEmpty(innerList);
                 Assert.AreEqual(1, innerList.Count);
                 Assert.IsInstanceOf<IAttributesTable>(innerList[0]);
-                IAttributesTable inner = (IAttributesTable) innerList[0];
+                IAttributesTable inner = (IAttributesTable)innerList[0];
                 Assert.AreEqual(2, inner.Count);
                 Assert.IsTrue(inner.Exists("innertest2"));
                 Assert.AreEqual("innervalue2", inner["innertest2"]);

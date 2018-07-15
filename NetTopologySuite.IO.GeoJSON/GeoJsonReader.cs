@@ -18,7 +18,7 @@ namespace NetTopologySuite.IO
         /// Creates an instance of this class
         /// </summary>
         public GeoJsonReader()
-        :this(GeometryFactory.Default, new JsonSerializerSettings())
+        : this(GeometryFactory.Default, new JsonSerializerSettings())
         {
         }
 

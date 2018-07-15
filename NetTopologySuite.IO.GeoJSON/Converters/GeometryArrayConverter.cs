@@ -59,7 +59,7 @@ namespace NetTopologySuite.IO.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             reader.Read();
-            if (!(reader.TokenType == JsonToken.PropertyName && (string) reader.Value == "geometries"))
+            if (!(reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "geometries"))
                 throw new Exception();
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray)
@@ -148,7 +148,7 @@ namespace NetTopologySuite.IO.Converters
         {
             Coordinate[] c = new Coordinate[array.Count];
             for (int i = 0; i < array.Count; i++)
-                c[i] = ToCoordinate((JArray) array[i]);
+                c[i] = ToCoordinate((JArray)array[i]);
             return c;
         }
         private static List<Coordinate[]> ToListOfCoordinates(JArray array)

@@ -89,10 +89,10 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             AppSettingsReader asr = new AppSettingsReader();
             SRID = (int)asr.GetValue("Srid", typeof(int));
-            string pm = (string) asr.GetValue("PrecisionModel", typeof (string));
+            string pm = (string)asr.GetValue("PrecisionModel", typeof(string));
             int scale;
-            PrecisionModel = int.TryParse(pm, out scale) 
-                ? new PrecisionModel(scale) 
+            PrecisionModel = int.TryParse(pm, out scale)
+                ? new PrecisionModel(scale)
                 : new PrecisionModel((PrecisionModels)Enum.Parse(typeof(PrecisionModels), pm));
             MinX = (double)asr.GetValue("MinX", typeof(double));
             MaxX = (double)asr.GetValue("MaxX", typeof(double));
@@ -146,7 +146,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 ICoordinateSequenceFactory oldFactory = factory != null
                                      ? factory.CoordinateSequenceFactory
                                      : CoordinateArraySequenceFactory.Instance;
-                
+
                 if (RandomGeometryHelper.Factory is OgcCompliantGeometryFactory)
                     RandomGeometryHelper.Factory = new OgcCompliantGeometryFactory(value, oldSrid, oldFactory);
                 else
@@ -195,7 +195,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
         public void PerformTest(IGeometry gIn)
         {
-            WKTWriter writer = new WKTWriter(2) {EmitSRID = true, MaxCoordinatesPerLine = 3,};
+            WKTWriter writer = new WKTWriter(2) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
             byte[] b = null;
             Assert.DoesNotThrow(() => b = Write(gIn), "Threw exception during write:\n{0}", writer.WriteFormatted(gIn));
 
@@ -259,6 +259,6 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             for (int i = 0; i < 5; i++)
                 PerformTest(RandomGeometryHelper.GeometryCollection);
-        }        
+        }
     }
 }

@@ -44,5 +44,5 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 }
             }
         }
-	}
+    }
 }

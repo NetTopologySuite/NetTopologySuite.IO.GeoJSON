@@ -16,7 +16,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     ///</summary>
     [TestFixture]
     public class GeoJsonWriterTest
-    {       
+    {
         ///<summary>
         ///    A test for GeoJsonWriter Write method
         ///</summary>

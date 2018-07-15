@@ -171,7 +171,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 var mp = Factory.CreateMultiPolygon(polys);
                 var mpUnion = mp.Union();
                 var multiPolygon = mpUnion as IMultiPolygon;
-                return multiPolygon ?? Factory.CreateMultiPolygon(new[] { (IPolygon)mpUnion} );
+                return multiPolygon ?? Factory.CreateMultiPolygon(new[] { (IPolygon)mpUnion });
             }
         }
 

@@ -31,17 +31,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             collection = factory.CreateGeometryCollection(geometries);
             serializedCollection = "{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]}";
         }
-        
+
         [Test]
         public void serialize_an_array_of_geometries_should_return_a_json_fragment()
         {
             StringBuilder sb = new StringBuilder();
             JsonTextWriter writer = new JsonTextWriter(new StringWriter(sb));
-            JsonSerializer serializer = GeoJsonSerializer.Create(new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore}, factory);
+            JsonSerializer serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
             serializer.Serialize(writer, geometries);
             string actual = sb.ToString();
             Console.WriteLine(actual);
-            Assert.That(actual, Is.EqualTo(serializedGeometries));            
+            Assert.That(actual, Is.EqualTo(serializedGeometries));
         }
 
         [Test]
@@ -83,13 +83,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.That(actual, Is.EqualTo(serializedCollection));
         }
 
-         [Test]
-         public void howto_deserialize_geometries()
-         {
-             GeoJsonReader reader = new GeoJsonReader();
-             IGeometry actual = reader.Read<GeometryCollection>(serializedCollection);
-             Assert.That(actual, Is.Not.Null);
-             Assert.That(actual.EqualsExact(collection), Is.True);
-         }
+        [Test]
+        public void howto_deserialize_geometries()
+        {
+            GeoJsonReader reader = new GeoJsonReader();
+            IGeometry actual = reader.Read<GeometryCollection>(serializedCollection);
+            Assert.That(actual, Is.Not.Null);
+            Assert.That(actual.EqualsExact(collection), Is.True);
+        }
     }
 }

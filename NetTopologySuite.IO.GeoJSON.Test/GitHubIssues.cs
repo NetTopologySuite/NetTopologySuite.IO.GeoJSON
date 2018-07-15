@@ -350,7 +350,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var t2 = SandD(t1);
             DoCheck(t1, t2);
 
-            string jsonWithoutProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]}}";            
+            string jsonWithoutProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]}}";
             DoCheck(jsonWithoutProps);
             string jsonWithValidProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]},\"properties\":{\"aaa\":1,\"bbb\":2}}";
             DoCheck(jsonWithValidProps, false);
@@ -443,7 +443,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 Item1 = true;
                 Item2 = "The quick brown fox jumped over the fence.";
                 Item3 = double.Epsilon;
-                Item4 = new[] {1, 2, 3, 4};
+                Item4 = new[] { 1, 2, 3, 4 };
             }
 
             public IAttributesTable Attributes
@@ -457,7 +457,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             public Envelope BoundingBox
             {
                 get { return Geometry != null ? Geometry.EnvelopeInternal : null; }
-                set { throw new NotSupportedException();}
+                set { throw new NotSupportedException(); }
             }
 
             public bool Item1 { get; set; }
@@ -479,7 +479,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                     switch (attributeName.ToLowerInvariant())
                     {
                         case "item1":
-                            _feature.Item1 = (bool) value;
+                            _feature.Item1 = (bool)value;
                             break;
                         case "item2":
                             _feature.Item2 = (string)value;
@@ -553,7 +553,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 public int Count { get { return 4; } }
                 public string[] GetNames()
                 {
-                    return new[] {"Item1", "Item2", "Item3", "Item4"};
+                    return new[] { "Item1", "Item2", "Item3", "Item4" };
                 }
 
                 public object[] GetValues()
@@ -564,7 +564,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             }
         }
 
-        [Test(Description = "Parsing GeoJSON issue related to Bounding Box #178"), Category( "GitHub Issue")]
+        [Test(Description = "Parsing GeoJSON issue related to Bounding Box #178"), Category("GitHub Issue")]
         public void ParsingCollectionWithBoundingBox()
         {
             /*
@@ -592,5 +592,5 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         }
     }
 
-   
+
 }
