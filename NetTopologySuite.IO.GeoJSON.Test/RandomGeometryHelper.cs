@@ -107,7 +107,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             get
             {
-                return Factory.CreateMultiPoint(RandomCoordinates);
+                return Factory.CreateMultiPointFromCoords(RandomCoordinates);
             }
         }
 

@@ -304,7 +304,7 @@ namespace NetTopologySuite.IO.Converters
                 case GeoJsonObjectType.Polygon:
                     return CreatePolygon(GetPolygonCoordinates(coords));
                 case GeoJsonObjectType.MultiPoint:
-                    return _factory.CreateMultiPoint(GetLineStringCoordinates(coords));
+                    return _factory.CreateMultiPointFromCoords(GetLineStringCoordinates(coords));
                 case GeoJsonObjectType.MultiLineString:
                     List<ILineString> strings = new List<ILineString>();
                     foreach (Coordinate[] multiLineStringCoordinate in GetPolygonCoordinates(coords))

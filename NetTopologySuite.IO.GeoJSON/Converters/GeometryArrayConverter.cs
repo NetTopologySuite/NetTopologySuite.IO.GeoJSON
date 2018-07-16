@@ -84,7 +84,7 @@ namespace NetTopologySuite.IO.Converters
                         geoms.Add(CreatePolygon(ToListOfCoordinates(obj.Value<JArray>("coordinates"))));
                         break;
                     case GeoJsonObjectType.MultiPoint:
-                        geoms.Add(_factory.CreateMultiPoint(ToCoordinates(obj.Value<JArray>("coordinates"))));
+                        geoms.Add(_factory.CreateMultiPointFromCoords(ToCoordinates(obj.Value<JArray>("coordinates"))));
                         break;
                     case GeoJsonObjectType.MultiLineString:
                         geoms.Add(CreateMultiLineString(ToListOfCoordinates(obj.Value<JArray>("coordinates"))));
