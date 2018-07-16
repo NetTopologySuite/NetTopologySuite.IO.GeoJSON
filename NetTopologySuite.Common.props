@@ -5,6 +5,7 @@
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GeoAPIPackageReferenceVersion>1.7.5</GeoAPIPackageReferenceVersion>
+    <NTSPackageReferenceVersion>1.15.0</NTSPackageReferenceVersion>
   </PropertyGroup>
   <!-- Client Profile frameworks don't have built-in shortcuts, so we need to specify these. -->
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net35-client' ">
