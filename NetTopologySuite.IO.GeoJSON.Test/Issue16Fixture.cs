@@ -33,7 +33,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 	]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();            
+            GeoJsonReader reader = new GeoJsonReader();
             FeatureCollection coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));

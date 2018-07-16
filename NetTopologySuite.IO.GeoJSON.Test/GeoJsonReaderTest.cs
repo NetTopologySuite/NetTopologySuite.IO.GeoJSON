@@ -219,7 +219,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(0, multiPoint.Coordinates[0].Y);
             Assert.AreEqual(101, multiPoint.Coordinates[1].X);
             Assert.AreEqual(1, multiPoint.Coordinates[1].Y);
-            
+
         }
 
         ///<summary>
@@ -244,7 +244,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(2, multiLineString.Coordinates[2].Y);
             Assert.AreEqual(103, multiLineString.Coordinates[3].X);
             Assert.AreEqual(3, multiLineString.Coordinates[3].Y);
-            
+
         }
 
         ///<summary>
@@ -272,7 +272,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(3, multiPolygon.Geometries[0].Coordinates[3].Y);
             Assert.AreEqual(102, multiPolygon.Geometries[0].Coordinates[4].X);
             Assert.AreEqual(2, multiPolygon.Geometries[0].Coordinates[4].Y);
-            var poly1 = (Polygon) multiPolygon.Geometries[0];
+            var poly1 = (Polygon)multiPolygon.Geometries[0];
             Assert.AreEqual(0, poly1.NumInteriorRings);
 
 
@@ -309,7 +309,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void GeoJsonReaderReadGeometryCollectionTest()
         {
-            const string json ="{\"type\": \"GeometryCollection\", \"geometries\": [{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]}, { \"type\": \"LineString\", \"coordinates\": [ [101.0, 0.0], [102.0, 1.0]]}] }";
+            const string json = "{\"type\": \"GeometryCollection\", \"geometries\": [{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]}, { \"type\": \"LineString\", \"coordinates\": [ [101.0, 0.0], [102.0, 1.0]]}] }";
             Geometry result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
@@ -329,6 +329,6 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(0, lineString.Coordinates[0].Y);
             Assert.AreEqual(102, lineString.Coordinates[1].X);
             Assert.AreEqual(1, lineString.Coordinates[1].Y);
-        }        
+        }
     }
 }

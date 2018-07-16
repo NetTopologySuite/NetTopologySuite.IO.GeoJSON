@@ -34,7 +34,7 @@
 
             var gjs = GeoJsonSerializer.CreateDefault();
 
-            var j = (JObject) gjs.Deserialize(new JsonTextReader(new StringReader(json)));
+            var j = (JObject)gjs.Deserialize(new JsonTextReader(new StringReader(json)));
             switch (j.Value<string>("type"))
             {
                 case "Point":

@@ -132,7 +132,7 @@ namespace NetTopologySuite.IO.Converters
                 attributesTable = new AttributesTable();
                 while (reader.TokenType == JsonToken.PropertyName)
                 {
-                    string attributeName = (string) reader.Value;
+                    string attributeName = (string)reader.Value;
                     reader.Read();
                     object attributeValue;
                     if (reader.TokenType == JsonToken.StartObject)

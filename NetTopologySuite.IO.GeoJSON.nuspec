@@ -16,12 +16,11 @@
 		<tags>NTS GeoJSON</tags>
 		<language>en-US</language>
 		<frameworkAssemblies>
-			<frameworkAssembly assemblyName="System" targetFramework="net35-client,net40-client,net403-client,net45" />
-			<frameworkAssembly assemblyName="System.Core" targetFramework="net35-client,net40-client,net403-client,net45" />
+			<frameworkAssembly assemblyName="System" />
+			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
-			<dependency id="NetTopologySuite" version="1.15.0-pre075" />
-		  <dependency id="NetTopologySuite.Features" version="1.15.0-pre002" />
+			<dependency id="NetTopologySuite.Features" version="$version$" />
 			<dependency id="Newtonsoft.Json" version="9.0.1" />
 		</dependencies>
 	</metadata>

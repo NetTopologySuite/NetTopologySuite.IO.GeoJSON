@@ -272,12 +272,14 @@ namespace NetTopologySuite.IO.Converters
                             break;
                         case "bbox":
                             // Read, but can't do anything with it, assigning Envelopes is impossible without reflection
-                            /*var bbox = */serializer.Deserialize<Envelope>(reader);
+                            /*var bbox = */
+                            serializer.Deserialize<Envelope>(reader);
                             break;
 
                         default:
                             reader.Read();
-                            /*var item = */serializer.Deserialize(reader);
+                            /*var item = */
+                            serializer.Deserialize(reader);
                             reader.Read();
                             break;
 

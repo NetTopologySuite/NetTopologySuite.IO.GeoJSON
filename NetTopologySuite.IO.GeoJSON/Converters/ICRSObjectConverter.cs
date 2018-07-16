@@ -29,10 +29,10 @@ namespace NetTopologySuite.IO.Converters
                 writer.WriteToken(JsonToken.Null);
                 return;
             }
-                
+
             writer.WriteStartObject();
             writer.WritePropertyName("type");
-            string type = Enum.GetName(typeof(CRSTypes), crs.Type);        
+            string type = Enum.GetName(typeof(CRSTypes), crs.Type);
             writer.WriteValue(type.ToLowerInvariant());
             CRSBase crsb = value as CRSBase;
             if (crsb != null)
@@ -62,14 +62,14 @@ namespace NetTopologySuite.IO.Converters
             if (reader.TokenType != JsonToken.StartObject)
                 throw new ArgumentException("Expected token '{' not found.");
             reader.Read();
-            if (!(reader.TokenType == JsonToken.PropertyName && (string) reader.Value == "type"))
+            if (!(reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "type"))
                 throw new ArgumentException("Expected token 'type' not found.");
             reader.Read();
             if (reader.TokenType != JsonToken.String)
                 throw new ArgumentException("Expected string value not found.");
             string crsType = (string)reader.Value;
             reader.Read();
-            if (!(reader.TokenType == JsonToken.PropertyName && (string) reader.Value == "properties"))
+            if (!(reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "properties"))
                 throw new ArgumentException("Expected token 'properties' not found.");
             reader.Read();
             if (reader.TokenType != JsonToken.StartObject)

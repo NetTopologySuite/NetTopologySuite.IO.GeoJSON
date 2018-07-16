@@ -75,7 +75,8 @@ namespace NetTopologySuite.IO.Converters
                 {
                     case "features":
                         // move to begin of array
-                        /*read = */reader.Read();
+                        /*read = */
+                        reader.Read();
                         if (reader.TokenType != JsonToken.StartArray)
                             throw new ArgumentException("Expected token '[' not found.");
 
@@ -89,7 +90,8 @@ namespace NetTopologySuite.IO.Converters
                         read = reader.Read();
                         break;
                     case "type":
-                        /*read = */reader.Read();
+                        /*read = */
+                        reader.Read();
                         if (reader.TokenType != JsonToken.String && (string)reader.Value != "FeatureCollection")
                             throw new ArgumentException("Expected value 'FeatureCollection' not found.");
                         read = reader.Read();

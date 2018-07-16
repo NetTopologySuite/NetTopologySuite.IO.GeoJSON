@@ -68,7 +68,7 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteValue(coordinate.Y);
             if (!double.IsNaN(coordinate.Z))
                 writer.WriteValue(coordinate.Z);
-            
+
             writer.WriteEndArray();
         }
 
@@ -112,13 +112,13 @@ namespace NetTopologySuite.IO.Converters
             Debug.Assert((string)reader.Value == "coordinates");
 
             object result;
-            if (objectType == typeof (Coordinate))
+            if (objectType == typeof(Coordinate))
                 result = ReadJsonCoordinate(reader);
-            else if (typeof (IEnumerable<Coordinate>).IsAssignableFrom(objectType))
+            else if (typeof(IEnumerable<Coordinate>).IsAssignableFrom(objectType))
                 result = ReadJsonCoordinates(reader);
-            else if (typeof (List<Coordinate[]>).IsAssignableFrom(objectType))
+            else if (typeof(List<Coordinate[]>).IsAssignableFrom(objectType))
                 result = ReadJsonCoordinatesEnumerable(reader);
-            else if (typeof (List<List<Coordinate[]>>).IsAssignableFrom(objectType))
+            else if (typeof(List<List<Coordinate[]>>).IsAssignableFrom(objectType))
                 result = ReadJsonCoordinatesEnumerable2(reader);
             else throw new ArgumentException("unmanaged type: " + objectType);
             reader.Read();
@@ -129,7 +129,7 @@ namespace NetTopologySuite.IO.Converters
         private static Coordinate ReadJsonCoordinate(JsonReader reader)
         {
             reader.Read();
-            if (reader.TokenType != JsonToken.StartArray) 
+            if (reader.TokenType != JsonToken.StartArray)
                 return null;
 
             Coordinate c = new Coordinate();
@@ -141,7 +141,7 @@ namespace NetTopologySuite.IO.Converters
             reader.Read();
             Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
             c.Y = Convert.ToDouble(reader.Value);
-            
+
             reader.Read();
             if (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer)
             {
@@ -177,7 +177,7 @@ namespace NetTopologySuite.IO.Converters
             while (true)
             {
                 Coordinate[] res = ReadJsonCoordinates(reader);
-                if (res == null)break;
+                if (res == null) break;
                 coordinates.Add(res);
             }
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
@@ -207,7 +207,7 @@ namespace NetTopologySuite.IO.Converters
         /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(Coordinate) || 
+            return objectType == typeof(Coordinate) ||
                    objectType == typeof(Coordinate[]) ||
                    objectType == typeof(List<Coordinate[]>) ||
                    objectType == typeof(List<List<Coordinate[]>>) ||

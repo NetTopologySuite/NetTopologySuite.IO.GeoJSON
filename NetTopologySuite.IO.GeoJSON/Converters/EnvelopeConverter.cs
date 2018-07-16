@@ -55,10 +55,10 @@ namespace NetTopologySuite.IO.Converters
                 JArray envelope = serializer.Deserialize<JArray>(reader);
                 Debug.Assert(envelope.Count == 4);
 
-                double minX = double.Parse((string) envelope[0], NumberFormatInfo.InvariantInfo);
-                double minY = double.Parse((string) envelope[1], NumberFormatInfo.InvariantInfo);
-                double maxX = double.Parse((string) envelope[2], NumberFormatInfo.InvariantInfo);
-                double maxY = double.Parse((string) envelope[3], NumberFormatInfo.InvariantInfo);
+                double minX = double.Parse((string)envelope[0], NumberFormatInfo.InvariantInfo);
+                double minY = double.Parse((string)envelope[1], NumberFormatInfo.InvariantInfo);
+                double maxX = double.Parse((string)envelope[2], NumberFormatInfo.InvariantInfo);
+                double maxY = double.Parse((string)envelope[3], NumberFormatInfo.InvariantInfo);
 
                 Debug.Assert(minX <= maxX);
                 Debug.Assert(minY <= maxY);

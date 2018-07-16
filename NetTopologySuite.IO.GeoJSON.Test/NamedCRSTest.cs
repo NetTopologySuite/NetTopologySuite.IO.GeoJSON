@@ -9,7 +9,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     ///</summary>
     [TestFixture]
     public class NamedCRSTest
-    {      
+    {
         ///<summary>
         ///    A test for NamedCRS Constructor
         ///</summary>

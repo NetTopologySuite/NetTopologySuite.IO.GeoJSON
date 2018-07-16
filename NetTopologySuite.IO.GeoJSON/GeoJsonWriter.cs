@@ -35,7 +35,7 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the geometry's JSON representation</returns>
         public string Write(IGeometry geometry)
         {
-            if (geometry == null) 
+            if (geometry == null)
                 throw new ArgumentNullException("geometry");
 
             JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);

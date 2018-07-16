@@ -10,7 +10,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     ///</summary>
     [TestFixture]
     public class FeatureCollectionTest
-    {      
+    {
         ///<summary>
         ///    A test for FeatureCollection Constructor
         ///</summary>
@@ -27,7 +27,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void FeatureCollectionConstructorTest1()
         {
-            Collection<IFeature> features = new Collection<IFeature> {new Feature()};
+            Collection<IFeature> features = new Collection<IFeature> { new Feature() };
             FeatureCollection target = new FeatureCollection(features);
             Assert.IsInstanceOf<FeatureCollection>(target);
             Assert.AreEqual(features, target.Features);
@@ -39,7 +39,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void AddTest()
         {
-            FeatureCollection target = new FeatureCollection(); 
+            FeatureCollection target = new FeatureCollection();
             IFeature feature = new Feature();
             target.Add(feature);
             Assert.AreEqual(feature, target.Features[0]);
@@ -52,7 +52,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void RemoveTest()
         {
             IFeature feature = new Feature();
-            FeatureCollection target = new FeatureCollection(new Collection<IFeature> { feature }); 
+            FeatureCollection target = new FeatureCollection(new Collection<IFeature> { feature });
             const bool expected = true;
             bool actual = target.Remove(feature);
             Assert.AreEqual(expected, actual);
@@ -66,7 +66,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void RemoveAtTest()
         {
             IFeature feature = new Feature();
-            FeatureCollection target = new FeatureCollection(new Collection<IFeature> { feature }); 
+            FeatureCollection target = new FeatureCollection(new Collection<IFeature> { feature });
             const int index = 0;
             target.RemoveAt(index);
             Assert.AreEqual(0, target.Count);
