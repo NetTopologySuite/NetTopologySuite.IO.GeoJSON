@@ -590,6 +590,19 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
 
         }
+
+        [Test(Description = "Testcase for 'Cannot serialize GeometryCollection with GeometryConverter' (https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON/issues/12)")]
+        public void Issue12()
+        {
+            string wkt = "GEOMETRYCOLLECTION(POINT(543651.38 6360876.03 18.14),POINT(543653.18 6360875.57 18.11))";
+            var reader = new WKTReader();
+            var geometry = reader.Read(wkt);
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                Converters = { new GeometryConverter() }
+            };
+            JsonConvert.SerializeObject(geometry);
+        }
     }
 
 
