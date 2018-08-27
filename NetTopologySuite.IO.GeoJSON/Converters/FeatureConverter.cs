@@ -88,7 +88,7 @@ namespace NetTopologySuite.IO.Converters
             Feature feature = new Feature();
             while (reader.TokenType == JsonToken.PropertyName)
             {
-                string prop = (string)reader.Value;
+                string prop = (string)reader.Path;
                 switch (prop)
                 {
                     case "type":

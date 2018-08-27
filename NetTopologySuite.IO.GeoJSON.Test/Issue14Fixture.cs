@@ -56,5 +56,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.True(feature.Attributes["name"].Equals("urn:ogc:def:crs:OGC:1.3:CRS84"));
             Assert.True(feature.Attributes["prop1"].Equals((long)1));
         }
+
+        [Test]
+        public void deserialize_geojson_with_object_with_unmanaged_attribute_should_be_ignored()
+        {
+            string input = "{\"type\":\"Feature\", \"properties\":{\"type\": \"string\"}, \"unmanaged\":{\"type\":\"unmanaged\"}, \"geometry\":{\"type\":\"Polygon\", \"coordinates\":[[[2.329444885254, 48.849334716797], [2.3412895202638, 48.84916305542], [2.340431213379, 48.841953277588], [2.3278999328614, 48.841953277588], [2.329444885254, 48.849334716797]]]}, \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"urn:ogc:def:crs:OGC:1.3:CRS84\"}}}";
+            var feature = geoJsonReader.Read<Feature>(input);
+            Assert.True(feature.Attributes.Count == 2);
+            Assert.True(feature.Attributes.Exists("name"));
+            Assert.True(feature.Attributes.Exists("type"));
+            Assert.True(feature.Attributes["name"].Equals("urn:ogc:def:crs:OGC:1.3:CRS84"));
+            Assert.True(feature.Attributes["type"].Equals("string"));
+        }
     }
 }
