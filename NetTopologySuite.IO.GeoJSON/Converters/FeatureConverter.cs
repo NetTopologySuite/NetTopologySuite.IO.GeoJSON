@@ -88,8 +88,7 @@ namespace NetTopologySuite.IO.Converters
             Feature feature = new Feature();
             while (reader.TokenType == JsonToken.PropertyName)
             {
-                //use path instead of value to get ensure we don't take another same attribute's name in json
-                string prop = (string)reader.Path;
+                string prop = (string)reader.Value;
                 switch (prop)
                 {
                     case "type":
@@ -152,8 +151,11 @@ namespace NetTopologySuite.IO.Converters
                     default:
                         read = reader.Read(); // move next                        
                         // jump to next property
-                        while (read && reader.TokenType != JsonToken.PropertyName)
-                            read = reader.Read();
+                        if (read)
+                        {
+                            reader.Skip();
+                        }
+                        read = reader.Read();
                         break;
                 }
             }
