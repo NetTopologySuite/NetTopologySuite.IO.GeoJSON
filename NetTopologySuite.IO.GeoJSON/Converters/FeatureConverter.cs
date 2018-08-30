@@ -84,7 +84,6 @@ namespace NetTopologySuite.IO.Converters
 
             bool read = reader.Read();
             object featureId = null;
-            CRSBase crs = null;
             Feature feature = new Feature();
             while (reader.TokenType == JsonToken.PropertyName)
             {
@@ -136,18 +135,7 @@ namespace NetTopologySuite.IO.Converters
                         }
                         read = reader.Read();
                         break;
-                    case "crs":
-                        read = reader.Read();
-                        if (reader.TokenType != JsonToken.Null)
-                        {
-                            // #120: ensure "properties" isn't "null"
-                            if (reader.TokenType != JsonToken.StartObject)
-                                throw new ArgumentException("Expected token '{' not found.");
-                            crs = serializer.Deserialize<CRSBase>(reader);
-                            if (reader.TokenType != JsonToken.EndObject)
-                                throw new ArgumentException("Expected token '}' not found.");
-                        }
-                        break;
+                
                     default:
                         read = reader.Read(); // move next                        
                         // jump to next property
@@ -164,17 +152,6 @@ namespace NetTopologySuite.IO.Converters
                 throw new ArgumentException("Expected token '}' not found.");
 
             //read = reader.Read(); // move next
-
-            if(crs != null)
-            {
-                if (feature.Attributes == null) 
-                    feature.Attributes = new AttributesTable(crs.Properties);
-                else
-                {
-                    foreach(var crsProperty in crs.Properties)
-                        feature.Attributes.AddAttribute(crsProperty.Key, crsProperty.Value);
-                }
-            }
 
             IAttributesTable attributes = feature.Attributes;
             if (attributes != null)
