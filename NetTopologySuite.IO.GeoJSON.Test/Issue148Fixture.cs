@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [NtsIssueNumber(148)]
+    [Category("GitHub Issue")]
     [TestFixture]
     public class Issue148Fixture
     {

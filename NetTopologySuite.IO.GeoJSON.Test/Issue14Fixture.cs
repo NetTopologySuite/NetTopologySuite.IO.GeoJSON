@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [GeoJsonIssueNumber(14)]
+    [Category("GitHub Issue")]
     [TestFixture]
     public class Issue14Fixture
     {

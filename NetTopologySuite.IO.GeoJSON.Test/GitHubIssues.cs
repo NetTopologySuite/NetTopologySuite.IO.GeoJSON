@@ -15,6 +15,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     [TestFixture]
     public class GitHubIssues
     {
+        [NtsIssueNumber(83)]
         [Test(Description = "Testcase for Issue 83")]
         public void TestIssue83()
         {
@@ -50,6 +51,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         }
 
 
+        [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88WithoutAdditionalProperties()
         {
@@ -86,6 +88,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(DateTime.Parse("2016-02-16T00:00:00", CultureInfo.InvariantCulture), attributes["date 1"]);
         }
 
+        [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88WithFlatProperties()
         {
@@ -118,6 +121,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.IsNull(feat.Geometry);
         }
 
+        [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88()
         {
@@ -165,7 +169,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             _feature = new Feature(geometry, new AttributesTable());
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenArrayOfJsonObjectArraysPropertyInGeoJsonThenReadable()
         {
@@ -197,7 +201,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(1, featureCollection.Count);
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenArrayOfJsonObjectArraysPropertyInGeoJsonThenWriteable()
         {
@@ -230,7 +234,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.IsTrue(written.Contains("FeatureCollection"));
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenArrayOfIntArraysPropertyInFeatureThenWritable()
         {
@@ -242,7 +246,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.IsTrue(written.Contains("Feature"));
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenArrayOfIntArraysPropertyInGeoJsonThenReadable()
         {
@@ -260,7 +264,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             CompareJson(geojsonString, _writer.Write(featureCollection));
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenPopulatedIntArrayPropertyInGeoJsonThenReadable()
         {
@@ -285,7 +289,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(1, featureCollection.Count);
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(93)]
         [Test(Description = "Testcase for GitHub Issue 93")]
         public void WhenEmptyArrayPropertyInGeoJsonThenReadable()
         {
@@ -310,7 +314,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(1, featureCollection.Count);
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(95)]
         [Test(Description = "Testcase for GitHub Issue 95, FeatureCollection having \"bbox\" property")]
         public void TestWhenFeatureCollectionHasBBox()
         {
@@ -337,7 +341,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             CompareJson(geoJsonString, res);
         }
 
-        [Category("GitHub Issue")]
+        [NtsIssueNumber(120)]
         [Test(Description = "Testcase for GitHub Issue 120, Feature having null properties")]
         public void TestRoundtripSerializingDeserializingFeature()
         {
@@ -564,7 +568,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             }
         }
 
-        [Test(Description = "Parsing GeoJSON issue related to Bounding Box #178"), Category("GitHub Issue")]
+        [NtsIssueNumber(178)]
+        [Test(Description = "Parsing GeoJSON issue related to Bounding Box #178")]
         public void ParsingCollectionWithBoundingBox()
         {
             /*

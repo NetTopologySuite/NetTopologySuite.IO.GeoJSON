@@ -6,9 +6,11 @@ using System.Text;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [NtsIssueNumber(174)]
+    [Category("GitHub Issue")]
     class Issue174
     {
-        [Test, Category("Issue174")]
+        [Test]
         public void ensure_NetTopologySuite_IO_GeoJSON_assembly_is_strongly_named()
         {
             AssertStronglyNamedAssembly(typeof(GeoJsonSerializer));

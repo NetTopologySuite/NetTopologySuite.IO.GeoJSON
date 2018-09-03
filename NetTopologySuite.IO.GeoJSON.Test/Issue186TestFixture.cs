@@ -8,10 +8,12 @@ using System.Text;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [NtsIssueNumber(186)]
+    [Category("GitHub Issue")]
     [TestFixture]
     public class Issue186TestFixture
     {
-        [Test, Category("Issue186")]
+        [Test]
         public void feature_collection_is_serialized_as_geojson_when_type_is_placed_as_last_property()
         {
             const string data = @"{ ""features"": [], ""type"": ""FeatureCollection"" }";
@@ -22,7 +24,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.That(fc.Count, Is.EqualTo(0));
         }
 
-        [Test, Category("Issue186")]
+        [Test]
         public void feature_collection_is_serialized_as_geojson_when_type_is_placed_as_first_property()
         {
             const string data = @"{ ""type"": ""FeatureCollection"", ""features"": [] }";
@@ -33,7 +35,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.That(fc.Count, Is.EqualTo(0));
         }
 
-        [Test, Category("Issue186")]
+        [Test]
         public void feature_collection_with_crs_is_serialized_as_geojson()
         {
             const string data = @"
@@ -49,7 +51,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.That(fc.Count, Is.EqualTo(0));
         }
 
-        [Test, Category("Issue186")]
+        [Test]
         public void feature_collection_with_arbitrary_properties_is_serialized_as_geojson()
         {
             const string data = @"

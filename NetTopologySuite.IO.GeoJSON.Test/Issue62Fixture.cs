@@ -7,6 +7,8 @@ using System.Text;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [NtsIssueNumber(62)]
+    [Category("GitHub Issue")]
     [TestFixture]
     public class Issue62Fixture
     {

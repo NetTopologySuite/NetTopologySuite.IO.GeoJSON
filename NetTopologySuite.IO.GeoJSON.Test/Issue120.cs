@@ -10,6 +10,8 @@ using System.Text;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
+    [NtsIssueNumber(120)]
+    [Category("GitHub Issue")]
     class Issue120
     {
         [Test(Description = "GitHub Issue #120")]

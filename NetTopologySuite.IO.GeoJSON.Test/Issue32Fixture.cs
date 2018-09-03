@@ -6,6 +6,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     /// <summary>
     /// see: https://github.com/NetTopologySuite/NetTopologySuite/issues/32
     /// </summary>
+    [NtsIssueNumber(32)]
+    [Category("GitHub Issue")]
     [TestFixture]
     public class Issue32Fixture
     {
