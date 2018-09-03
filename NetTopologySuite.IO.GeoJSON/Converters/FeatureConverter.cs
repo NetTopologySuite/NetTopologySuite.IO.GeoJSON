@@ -1,5 +1,6 @@
 ﻿using System;
 using GeoAPI.Geometries;
+using NetTopologySuite.CoordinateSystems;
 using NetTopologySuite.Features;
 using Newtonsoft.Json;
 
@@ -134,11 +135,15 @@ namespace NetTopologySuite.IO.Converters
                         }
                         read = reader.Read();
                         break;
+                
                     default:
                         read = reader.Read(); // move next                        
                         // jump to next property
-                        while (read && reader.TokenType != JsonToken.PropertyName)
-                            read = reader.Read();
+                        if (read)
+                        {
+                            reader.Skip();
+                        }
+                        read = reader.Read();
                         break;
                 }
             }
@@ -154,6 +159,7 @@ namespace NetTopologySuite.IO.Converters
                 if (featureId != null && !attributes.Exists("id"))
                     attributes.AddAttribute("id", featureId);
             }
+
             return feature;
         }
 
