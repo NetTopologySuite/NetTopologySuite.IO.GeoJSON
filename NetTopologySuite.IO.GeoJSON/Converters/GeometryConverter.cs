@@ -238,6 +238,11 @@ namespace NetTopologySuite.IO.Converters
 
         private IGeometry ParseGeometry(JsonReader reader, JsonSerializer serializer)
         {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                return null;
+            }
+
             if (reader.TokenType != JsonToken.StartObject)
                 throw new JsonReaderException("Expected Start object '{' Token");
 
