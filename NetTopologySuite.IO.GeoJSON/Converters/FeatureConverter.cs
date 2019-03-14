@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using GeoAPI.Geometries;
 using NetTopologySuite.CoordinateSystems;
 using NetTopologySuite.Features;
@@ -99,6 +101,16 @@ namespace NetTopologySuite.IO.Converters
                     case "id":
                         read = reader.Read();
                         featureId = reader.Value;
+                        if (feature.Attributes == null)
+                            feature.Attributes = new AttributesTable(new[]
+                                {new KeyValuePair<string, object>("id", featureId),});
+                        else
+                        {
+                            if (feature.Attributes.Exists("id"))
+                                feature.Attributes["id"] = featureId;
+                            else
+                                feature.Attributes.AddAttribute("id", featureId);
+                        }
                         read = reader.Read();
                         break;
                     case "bbox":
@@ -129,7 +141,15 @@ namespace NetTopologySuite.IO.Converters
                             // #120: ensure "properties" isn't "null"
                             if (reader.TokenType != JsonToken.StartObject)
                                 throw new ArgumentException("Expected token '{' not found.");
+#if NETSTANDARD1_0 || NETSTANDARD1_3
+                            var attributes = serializer.Deserialize<AttributesTable>(reader);
+                            ((AttributesTable) feature.Attributes).MergeWith(attributes);
+#else
+                            var context = serializer.Context;
+                            serializer.Context = new StreamingContext(serializer.Context.State, feature);
                             feature.Attributes = serializer.Deserialize<AttributesTable>(reader);
+                            serializer.Context = context;
+#endif
                             if (reader.TokenType != JsonToken.EndObject)
                                 throw new ArgumentException("Expected token '}' not found.");
                         }
@@ -146,19 +166,14 @@ namespace NetTopologySuite.IO.Converters
                         read = reader.Read();
                         break;
                 }
+
+                // Skip comments
+                while (reader.TokenType == JsonToken.Comment)
+                    read = reader.Read();
             }
 
             if (read && reader.TokenType != JsonToken.EndObject)
                 throw new ArgumentException("Expected token '}' not found.");
-
-            //read = reader.Read(); // move next
-
-            IAttributesTable attributes = feature.Attributes;
-            if (attributes != null)
-            {
-                if (featureId != null && !attributes.Exists("id"))
-                    attributes.AddAttribute("id", featureId);
-            }
 
             return feature;
         }

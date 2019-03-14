@@ -1,8 +1,8 @@
-﻿using NetTopologySuite.Features;
+﻿using System.Linq;
+using NetTopologySuite.Features;
 using NUnit.Framework;
-using System.Linq;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     [GeoJsonIssueNumber(14)]
     [Category("GitHub Issue")]

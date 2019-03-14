@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     [Category("GitHub Issue")]
     [TestFixture]
@@ -337,6 +337,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 }";
             var featureCollection = new GeoJsonReader().Read<FeatureCollection>(geoJsonString);
             Assert.AreEqual(1, featureCollection.Count);
+            Assert.That(FeatureExtensions.HasID(featureCollection[0]));
             var res = new GeoJsonWriter().Write(featureCollection);
             CompareJson(geoJsonString, res);
         }

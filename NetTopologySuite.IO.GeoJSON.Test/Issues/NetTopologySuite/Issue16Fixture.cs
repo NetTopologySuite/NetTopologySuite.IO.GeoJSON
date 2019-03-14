@@ -1,7 +1,7 @@
 ﻿using NetTopologySuite.Features;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     /// <summary>
     /// see: https://github.com/NetTopologySuite/NetTopologySuite/issues/16

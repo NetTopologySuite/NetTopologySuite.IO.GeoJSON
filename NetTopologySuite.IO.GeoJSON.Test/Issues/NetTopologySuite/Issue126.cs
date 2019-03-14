@@ -1,15 +1,13 @@
-﻿using NetTopologySuite.Features;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Operation.Valid;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     [NtsIssueNumber(126)]
     [Category("GitHub Issue")]
@@ -19,7 +17,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void TestIssue126_1()
         {
-            var geoJson = @"{
+            const string geoJson = @"{
   ""type"": ""FeatureCollection"",
   ""generator"": ""overpass-turbo"",
   ""copyright"": ""The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."",
@@ -6736,7 +6734,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var f = fc.Features[0];
             Debug.WriteLine(fc.Count);
 
-            var isValidOp = new NetTopologySuite.Operation.Valid.IsValidOp(f.Geometry);
+            var isValidOp = new global::NetTopologySuite.Operation.Valid.IsValidOp(f.Geometry);
             if (!isValidOp.IsValid)
             {
                 Debug.WriteLine(isValidOp.ValidationError.Message);

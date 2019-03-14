@@ -12,6 +12,11 @@ namespace NetTopologySuite.IO.Converters
     public class AttributesTableConverter : JsonConverter
     {
         /// <summary>
+        /// Gets or sets a value indicating that a feature's id property should be written to the properties block as well
+        /// </summary>
+        public static bool WriteIdToProperties { get; set; } = false;
+
+        /// <summary>
         /// Writes the JSON representation of the object.
         /// </summary>
         /// <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param>
@@ -20,9 +25,9 @@ namespace NetTopologySuite.IO.Converters
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             if (writer == null)
-                throw new ArgumentNullException("writer");
+                throw new ArgumentNullException(nameof(writer));
 
-            IAttributesTable attributes = value as IAttributesTable;
+            var attributes = value as IAttributesTable;
             if (attributes == null)
             {
                 writer.WriteNull();
@@ -34,7 +39,7 @@ namespace NetTopologySuite.IO.Converters
             foreach (string name in names)
             {
                 // skip id
-                if (name == "id") continue;
+                if (name == "id" && !WriteIdToProperties) continue;
 
                 writer.WritePropertyName(name);
                 object val = attributes[name];
@@ -126,10 +131,16 @@ namespace NetTopologySuite.IO.Converters
             // Advance reader
             reader.Read();
 
-            AttributesTable attributesTable = null;
+            IAttributesTable attributesTable = null;
+#if !(NETSTANDARD1_0 || NETSTANDARD1_3)
+            var feature = serializer.Context.Context as IFeature;
+            attributesTable = feature?.Attributes;
+#endif
             if (reader.TokenType != JsonToken.Null)
             {
-                attributesTable = new AttributesTable();
+                if (attributesTable == null)
+                    attributesTable = new AttributesTable();
+
                 while (reader.TokenType == JsonToken.PropertyName)
                 {
                     string attributeName = (string)reader.Value;
@@ -162,7 +173,9 @@ namespace NetTopologySuite.IO.Converters
                         attributeValue = reader.Value;
                         reader.Read();
                     }
-                    attributesTable.Add(attributeName, attributeValue);
+
+                    if (!attributesTable.Exists(attributeName))
+                        attributesTable.AddAttribute(attributeName, attributeValue);
                 }
             }
             // TODO: refactor to remove check when reading TopoJSON

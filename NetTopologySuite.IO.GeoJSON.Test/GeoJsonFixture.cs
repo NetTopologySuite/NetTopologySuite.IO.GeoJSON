@@ -1,4 +1,6 @@
-﻿namespace NetTopologySuite.IO.GeoJSON.Test
+﻿using NetTopologySuite.Geometries;
+
+namespace NetTopologySuite.IO.GeoJSON.Test
 {
     using System;
     using System.Configuration;
@@ -7,8 +9,6 @@
     using GeoAPI.Geometries;
 
     using NUnit.Framework;
-
-    using NetTopologySuite.Geometries;
 
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;

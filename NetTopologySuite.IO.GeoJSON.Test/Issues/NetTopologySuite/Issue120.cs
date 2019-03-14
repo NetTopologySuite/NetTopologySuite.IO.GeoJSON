@@ -1,14 +1,12 @@
-﻿using NetTopologySuite.Features;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Text;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     [NtsIssueNumber(120)]
     [Category("GitHub Issue")]
@@ -18,7 +16,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void Roundtrip_serialization_of_a_feature_with_null_properties_fails()
         {
             // Arrange
-            var f = new Feature(new NetTopologySuite.Geometries.Point(1, 1), null);
+            var f = new Feature(new global::NetTopologySuite.Geometries.Point(1, 1), null);
             var s = GeoJsonSerializer.Create(new GeometryFactory());
 
             // Act

@@ -5,7 +5,7 @@ using NetTopologySuite.Features;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test
+namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 {
     /// <summary>
     /// https://github.com/NetTopologySuite/NetTopologySuite/issues/145
