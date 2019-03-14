@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -75,6 +76,34 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(FeatureExtensions.ID(f), Is.EqualTo("0a3f507a-b2e6-32b8-e044-0003ba298018"));
         }
 
+        [NtsIssueNumber(16)]
+        [Test]
+        public void TestDefaultSridOfDeserializedGeometryIs4326()
+        {
+            const string geojson =
+@"{
+  ""id"": ""featureID"",
+  ""type"": ""Feature"",
+  ""geometry"": {
+    ""type"": ""Point"",
+    ""coordinates"": [42, 42]
+  }
+  // no ""properties"" here!!
+ }";
+
+            Feature f = null;
+            Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Geometry, Is.Not.Null);
+            Assert.That(f.Geometry.SRID, Is.EqualTo(4326));
+
+            f = null;
+            var gf = new GeometryFactory(new PrecisionModel(), 10010);
+            Assert.That(() => f = new GeoJsonReader(gf, new JsonSerializerSettings()).Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Geometry, Is.Not.Null);
+            Assert.That(f.Geometry.SRID, Is.EqualTo(10010));
+        }
 
         [NtsIssueNumber(18)]
         [Test]
@@ -96,6 +125,31 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             [Newtonsoft.Json.JsonProperty(PropertyName = "geometry",
                 ItemConverterType = typeof(global::NetTopologySuite.IO.Converters.GeometryConverter))]
             public Point Point {get; set;} // it can be null
+        }
+
+        [NtsIssueNumber(19)]
+        [Test]
+        public void TestGeoJsonWriterWritesEmptyFeatureCollection()
+        {
+            var w = new GeoJsonWriter();
+            var r = new GeoJsonReader();
+
+            var fc = new FeatureCollection();
+
+            string geoJson = null;
+            Assert.That(() => geoJson = w.Write(fc), Throws.Nothing);
+            Assert.That(geoJson, Is.Not.Null.Or.Empty);
+            fc = null;
+            Assert.That(() => fc = r.Read<FeatureCollection>(geoJson), Throws.Nothing);
+            Assert.That(fc, Is.Not.Null);
+
+            var f = new Feature();
+            Assert.That(() => geoJson = w.Write(f), Throws.Nothing);
+            Assert.That(geoJson, Is.Not.Null.Or.Empty);
+            f = null;
+            Assert.That(() => f = r.Read<Feature>(geoJson), Throws.Nothing);
+            Assert.That(f, Is.Not.Null);
+
         }
 
         [NtsIssueNumber(23)]

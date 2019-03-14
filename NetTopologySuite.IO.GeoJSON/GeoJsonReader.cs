@@ -11,6 +11,11 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoJsonReader
     {
+        /// <summary>
+        /// Gets a default GeometryFactory
+        /// </summary>
+        public static IGeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
+
         private readonly IGeometryFactory _factory;
         private readonly JsonSerializerSettings _serializerSettings;
 
@@ -18,7 +23,7 @@ namespace NetTopologySuite.IO
         /// Creates an instance of this class
         /// </summary>
         public GeoJsonReader()
-        : this(GeometryFactory.Default, new JsonSerializerSettings())
+        : this(Wgs84Factory, new JsonSerializerSettings())
         {
         }
 
@@ -33,7 +38,6 @@ namespace NetTopologySuite.IO
             _factory = factory;
             _serializerSettings = serializerSettings;
         }
-
 
         /// <summary>
         /// Reads the specified json.

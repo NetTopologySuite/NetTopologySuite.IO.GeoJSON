@@ -36,7 +36,7 @@ namespace NetTopologySuite.IO
         public string Write(IGeometry geometry)
         {
             if (geometry == null)
-                throw new ArgumentNullException("geometry");
+                throw new ArgumentNullException(nameof(geometry));
 
             JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);
 
@@ -53,7 +53,11 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature's JSON representation</returns>
         public string Write(IFeature feature)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, feature.Geometry.Factory);
+            if (feature == null)
+                throw new ArgumentNullException(nameof(feature));
+
+            var factory = feature.Geometry?.Factory ?? GeoJsonReader.Wgs84Factory;
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, feature);
@@ -67,7 +71,11 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature collection's JSON representation</returns>
         public string Write(FeatureCollection featureCollection)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, featureCollection.Features[0].Geometry.Factory);
+            var factory = GeoJsonReader.Wgs84Factory;
+            if (featureCollection != null && featureCollection.Count > 0)
+                factory = featureCollection.Features[0].Geometry.Factory;
+
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, featureCollection);
@@ -81,7 +89,7 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the object's JSON representation</returns>
         public string Write(object value)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeometryFactory.Default);
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonReader.Wgs84Factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, value);
