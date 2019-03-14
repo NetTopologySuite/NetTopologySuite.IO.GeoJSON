@@ -71,15 +71,25 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature collection's JSON representation</returns>
         public string Write(FeatureCollection featureCollection)
         {
-            var factory = GeoJsonReader.Wgs84Factory;
-            if (featureCollection != null && featureCollection.Count > 0)
-                factory = featureCollection.Features[0].Geometry.Factory;
-
+            var factory = SearchForFactory(featureCollection) ?? GeoJsonReader.Wgs84Factory;
             JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, featureCollection);
             return sb.ToString();
+        }
+
+        private static IGeometryFactory SearchForFactory(FeatureCollection features)
+        {
+            if (features == null)
+                return null;
+
+            foreach (var feature in features.Features)
+            {
+                if (feature.Geometry != null)
+                    return feature.Geometry.Factory;
+            }
+            return null;
         }
 
         /// <summary>

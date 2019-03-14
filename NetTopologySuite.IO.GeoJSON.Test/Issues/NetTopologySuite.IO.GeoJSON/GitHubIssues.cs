@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Text;
 using GeoAPI.Geometries;
 using NetTopologySuite.Features;
@@ -150,6 +152,43 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(() => f = r.Read<Feature>(geoJson), Throws.Nothing);
             Assert.That(f, Is.Not.Null);
 
+        }
+
+        [NtsIssueNumber(20)]
+        [Test]
+        public void TestWriteFeatureCollectionWithFirstFeatureGeometryNull()
+        {
+            // Setup
+            var geoJsonWriter = new GeoJsonWriter();
+
+            var featureJson = "{\"type\": \"Feature\",\"geometry\": {\"type\": \"LineString\",\"coordinates\": [[0,0],[2,2],[3,2]]},\"properties\": {\"key\": \"value\"}}";
+            var notNullGeometryFeature = new GeoJsonReader().Read<Feature>(featureJson);
+
+            var attributesTable = new AttributesTable { { "key", "value" } };
+            IGeometry geometry = null;
+            var nullGeometryFeature = new Feature(geometry, attributesTable);
+
+            var features_notNullFirst = new Collection<IFeature>
+            {
+                notNullGeometryFeature,
+                nullGeometryFeature
+            };
+
+            var features_nullFirst = new Collection<IFeature>
+            {
+                nullGeometryFeature,
+                notNullGeometryFeature
+            };
+
+            var featureCollection_notNullFirst = new FeatureCollection(features_notNullFirst);
+            var featureCollection_nullFirst = new FeatureCollection(features_nullFirst);
+
+            // Act
+            TestDelegate write_notNullFirst = () => geoJsonWriter.Write(featureCollection_notNullFirst);
+            TestDelegate write_nullFirst = () => geoJsonWriter.Write(featureCollection_nullFirst);
+
+            Assert.That(write_notNullFirst, Throws.Nothing);
+            Assert.That(write_nullFirst, Throws.Nothing);
         }
 
         [NtsIssueNumber(23)]
