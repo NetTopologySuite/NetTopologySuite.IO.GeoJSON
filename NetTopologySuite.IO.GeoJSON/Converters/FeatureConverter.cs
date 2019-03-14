@@ -85,6 +85,8 @@ namespace NetTopologySuite.IO.Converters
                 throw new JsonReaderException("Expected Start object '{' Token");
 
             bool read = reader.Read();
+            Utility.SkipComments(reader);
+
             object featureId = null;
             Feature feature = new Feature();
             while (reader.TokenType == JsonToken.PropertyName)
@@ -167,9 +169,7 @@ namespace NetTopologySuite.IO.Converters
                         break;
                 }
 
-                // Skip comments
-                while (reader.TokenType == JsonToken.Comment)
-                    read = reader.Read();
+                Utility.SkipComments(reader);
             }
 
             if (read && reader.TokenType != JsonToken.EndObject)

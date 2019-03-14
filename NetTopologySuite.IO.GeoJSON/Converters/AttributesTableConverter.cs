@@ -70,6 +70,7 @@ namespace NetTopologySuite.IO.Converters
 
             // advance
             reader.Read();
+            Utility.SkipComments(reader);
 
             // create result object
             var res = new List<object>();
@@ -101,6 +102,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         break;
                 }
+                Utility.SkipComments(reader);
             }
             // Read past end array
             reader.Read();
@@ -130,6 +132,7 @@ namespace NetTopologySuite.IO.Converters
 
             // Advance reader
             reader.Read();
+            Utility.SkipComments(reader);
 
             IAttributesTable attributesTable = null;
 #if !(NETSTANDARD1_0 || NETSTANDARD1_3)
@@ -177,7 +180,10 @@ namespace NetTopologySuite.IO.Converters
                     if (!attributesTable.Exists(attributeName))
                         attributesTable.AddAttribute(attributeName, attributeValue);
                 }
+
+                Utility.SkipComments(reader);
             }
+
             // TODO: refactor to remove check when reading TopoJSON
             if (reader.TokenType != JsonToken.EndObject)
                 throw new ArgumentException("Expected token '}' not found.");

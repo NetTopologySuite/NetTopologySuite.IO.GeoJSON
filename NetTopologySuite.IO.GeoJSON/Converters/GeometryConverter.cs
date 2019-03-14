@@ -249,6 +249,8 @@ namespace NetTopologySuite.IO.Converters
             // advance
             var read = reader.Read();
 
+            Utility.SkipComments(reader);
+
             GeoJsonObjectType? geometryType = null;
             List<object> coords = null;
             while (reader.TokenType == JsonToken.PropertyName)
@@ -290,6 +292,8 @@ namespace NetTopologySuite.IO.Converters
 
                     }
                 }
+                Utility.SkipComments(reader);
+
             }
 
             if (read && reader.TokenType != JsonToken.EndObject)
