@@ -31,10 +31,10 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
         }
     }
 
-
     public class MyModelItem
     {
-        [Newtonsoft.Json.JsonConverter(typeof(global::NetTopologySuite.IO.Converters.GeometryConverter))]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "geometry",
+            ItemConverterType = typeof(NetTopologySuite.IO.Converters.GeometryConverter))]
         public global::NetTopologySuite.Geometries.MultiLineString Geom { get; set; }
     }
 }
