@@ -14,7 +14,7 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Gets a default GeometryFactory
         /// </summary>
-        internal static IGeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
+        public static IGeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
 
         private readonly IGeometryFactory _factory;
         private readonly JsonSerializerSettings _serializerSettings;

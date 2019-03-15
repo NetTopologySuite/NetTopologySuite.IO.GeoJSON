@@ -6,7 +6,7 @@
 		<title>NTS - Topology Suite - IO Library for GeoJSON</title>
 		<authors>NetTopologySuite - Team</authors>
 		<owners>NetTopologySuite - Team</owners>
-		<licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <license type="expression">LGPL-2.1-or-later</license>
 		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -21,8 +21,8 @@
 			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
-		  <dependency id="NetTopologySuite.Core" version="$version$" />
-			<dependency id="NetTopologySuite.Features" version="$version$" />
+		  <dependency id="NetTopologySuite.Core" version="$ntsversion$" />
+			<dependency id="NetTopologySuite.Features" version="$ntsfeaturesversion$" />
 			<dependency id="Newtonsoft.Json" version="9.0.1" />
 		</dependencies>
 	</metadata>
