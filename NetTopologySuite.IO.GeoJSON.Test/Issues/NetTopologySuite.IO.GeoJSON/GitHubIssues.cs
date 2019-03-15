@@ -105,6 +105,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(f, Is.Not.Null);
             Assert.That(f.Geometry, Is.Not.Null);
             Assert.That(f.Geometry.SRID, Is.EqualTo(10010));
+
+            f = null;
+            var s = GeoJsonSerializer.CreateDefault();
+            f = s.Deserialize<Feature>(new JsonTextReader(new StringReader(geojson)));
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Geometry, Is.Not.Null);
+            Assert.That(f.Geometry.SRID, Is.EqualTo(4326));
         }
 
         [NtsIssueNumber(18)]

@@ -16,9 +16,9 @@ namespace NetTopologySuite.IO.Converters
         private readonly IGeometryFactory _factory;
 
         /// <summary>
-        /// Creates an instance of this class using <see cref="GeometryFactory.Default"/> to create geometries.
+        /// Creates an instance of this class using <see cref="GeoJsonReader.Wgs84Factory"/> to create geometries.
         /// </summary>
-        public GeometryConverter() : this(GeometryFactory.Default) { }
+        public GeometryConverter() : this(GeoJsonReader.Wgs84Factory) { }
 
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/> to create geometries.

@@ -34,7 +34,7 @@ namespace NetTopologySuite.IO
             var s = JsonSerializer.CreateDefault();
             s.NullValueHandling = NullValueHandling.Ignore;
 
-            AddGeoJsonConverters(s, GeometryFactory.Default);
+            AddGeoJsonConverters(s, GeoJsonReader.Wgs84Factory);
             return s;
         }
 
@@ -43,7 +43,7 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <remarks>
         /// Creates a serializer using <see cref="GeoJsonSerializer.Create(JsonSerializerSettings,IGeometryFactory)"/> internally.
-        /// <see cref="GeometryFactory.Default"/> is used.</remarks>
+        /// <see cref="GeoJsonReader.Wgs84Factory"/> is used.</remarks>
         /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(IGeometryFactory factory)
         {
@@ -79,7 +79,7 @@ namespace NetTopologySuite.IO
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.
         /// </summary>
         [Obsolete("Use GeoJsonSerializer.Create...() functions")]
-        public GeoJsonSerializer() : this(GeometryFactory.Default) { }
+        public GeoJsonSerializer() : this(GeoJsonReader.Wgs84Factory) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.
