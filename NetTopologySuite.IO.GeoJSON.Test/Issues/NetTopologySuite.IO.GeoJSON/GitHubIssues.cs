@@ -83,7 +83,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         public void TestDefaultSridOfDeserializedGeometryIs4326()
         {
             const string geojson =
-@"{
+                @"{
   ""id"": ""featureID"",
   ""type"": ""Feature"",
   ""geometry"": {
@@ -101,7 +101,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
 
             f = null;
             var gf = new GeometryFactory(new PrecisionModel(), 10010);
-            Assert.That(() => f = new GeoJsonReader(gf, new JsonSerializerSettings()).Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(() => f = new GeoJsonReader(gf, new JsonSerializerSettings()).Read<Feature>(geojson),
+                Throws.Nothing);
             Assert.That(f, Is.Not.Null);
             Assert.That(f.Geometry, Is.Not.Null);
             Assert.That(f.Geometry.SRID, Is.EqualTo(10010));
@@ -123,17 +124,19 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             var sb = new StringBuilder();
             s.Serialize(new StringWriter(sb), fooS);
             Foo fooD = null;
-            Assert.That(() => fooD = s.Deserialize<Foo>(new JsonTextReader(new StringReader(sb.ToString()))), Throws.Nothing);
+            Assert.That(() => fooD = s.Deserialize<Foo>(new JsonTextReader(new StringReader(sb.ToString()))),
+                Throws.Nothing);
             Assert.That(fooD, Is.Not.Null);
             Assert.That(fooD.Name, Is.EqualTo("fooS"));
         }
+
         class Foo
         {
             public string Name { get; set; }
 
             [Newtonsoft.Json.JsonProperty(PropertyName = "geometry",
                 ItemConverterType = typeof(global::NetTopologySuite.IO.Converters.GeometryConverter))]
-            public Point Point {get; set;} // it can be null
+            public Point Point { get; set; } // it can be null
         }
 
         [NtsIssueNumber(19)]
@@ -168,10 +171,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             // Setup
             var geoJsonWriter = new GeoJsonWriter();
 
-            var featureJson = "{\"type\": \"Feature\",\"geometry\": {\"type\": \"LineString\",\"coordinates\": [[0,0],[2,2],[3,2]]},\"properties\": {\"key\": \"value\"}}";
+            var featureJson =
+                "{\"type\": \"Feature\",\"geometry\": {\"type\": \"LineString\",\"coordinates\": [[0,0],[2,2],[3,2]]},\"properties\": {\"key\": \"value\"}}";
             var notNullGeometryFeature = new GeoJsonReader().Read<Feature>(featureJson);
 
-            var attributesTable = new AttributesTable { { "key", "value" } };
+            var attributesTable = new AttributesTable {{"key", "value"}};
             IGeometry geometry = null;
             var nullGeometryFeature = new Feature(geometry, attributesTable);
 
@@ -230,6 +234,30 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Feature f = null;
             Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
             Assert.That(f, Is.Not.Null);
+        }
+
+        [NtsIssueNumber(20)]
+        [Test]
+        public void TestCoordinatesWithNullOrdinates()
+        {
+            const string json0 = "{ \"type\":\"Point\",\"coordinates\":[null,null]} }";
+            const string json1 = "{ \"type\":\"Point\",\"coordinates\":[null,1]} }";
+            const string json2 = "{ \"type\":\"Point\",\"coordinates\":[2,null]} }";
+            const string json3 = "{ \"type\":\"Point\",\"coordinates\":[2,1,null]} }";
+
+            IGeometry g = null;
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json0), Throws.Nothing, "null, null");
+            Assert.That(g is IPoint);
+            Assert.That(g.IsEmpty);
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json1), Throws.Nothing, "null, 1");
+            Assert.That(g is IPoint);
+            Assert.That(!g.IsEmpty);
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json2), Throws.Nothing, "2, null");
+            Assert.That(g is IPoint);
+            Assert.That(!g.IsEmpty);
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json3), Throws.Nothing, "2, 1, null");
+            Assert.That(g is IPoint);
+            Assert.That(!g.IsEmpty);
         }
     }
 }
