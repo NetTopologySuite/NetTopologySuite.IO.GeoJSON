@@ -140,12 +140,31 @@ namespace NetTopologySuite.IO.Converters
 
         private static List<object> ReadCoordinates(JsonReader reader)
         {
-            var coords = new List<object>();
+            var coords = new List<object>(3);
             bool startArray = reader.TokenType == JsonToken.StartArray;
             reader.Read();
 
             while (reader.TokenType != JsonToken.EndArray)
             {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.StartArray:
+                        coords.Add(ReadCoordinates(reader));
+                        break;
+                    case JsonToken.Integer:
+                    case JsonToken.Float:
+                        coords.Add(reader.Value);
+                        reader.Read();
+                        break;
+                    case JsonToken.Null:
+                        coords.Add(Coordinate.NullOrdinate);
+                        reader.Read();
+                        break;
+                    default:
+                        reader.Read();
+                        break;
+                }
+                /*
                 if (reader.TokenType == JsonToken.StartArray)
                 {
                     coords.Add(ReadCoordinates(reader));
@@ -160,7 +179,7 @@ namespace NetTopologySuite.IO.Converters
                 else
                 {
                     reader.Read();
-                }
+                }*/
             }
 
             if (startArray)
@@ -192,19 +211,20 @@ namespace NetTopologySuite.IO.Converters
             return geometries;
         }
 
-        private static Coordinate GetPointCoordinate(IList list)
+        private Coordinate GetPointCoordinate(IList list)
         {
             var c = new Coordinate();
-            if (list[0] == null && list[1] == null) return null;
+            if (double.IsNaN(Convert.ToDouble(list[0])) && double.IsNaN(Convert.ToDouble(list[1])))
+                return null;
 
-            c.X = Convert.ToDouble(list[0] ?? Coordinate.NullOrdinate);
-            c.Y = Convert.ToDouble(list[1] ?? Coordinate.NullOrdinate);
+            c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(list[0]));
+            c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(list[1]));
             if (list.Count > 2)
-                c.Z = Convert.ToDouble(list[2] ?? Coordinate.NullOrdinate);
+                c.Z = Convert.ToDouble(list[2]);
             return c;
         }
 
-        private static Coordinate[] GetLineStringCoordinates(IEnumerable list)
+        private Coordinate[] GetLineStringCoordinates(IEnumerable list)
         {
             var coordinates = new List<Coordinate>();
             foreach (List<object> coord in list)
