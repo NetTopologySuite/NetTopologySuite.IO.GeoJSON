@@ -3,6 +3,11 @@ using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
+#if (NETSTANDARD1_0 || NETSTANDARD1_3)
+using Trace = System.Diagnostics.Debug;
+#else
+using Trace = System.Diagnostics.Trace;
+#endif
 
 namespace NetTopologySuite.IO
 {
@@ -117,8 +122,13 @@ namespace NetTopologySuite.IO
 
         private static void AddGeoJsonConverters(JsonSerializer s, IGeometryFactory factory, int dimension)
         {
+            if (factory.SRID != 4326)
+                Trace.WriteLine($"Factory with SRID of unsupported coordinate reference system.");
+
             var c = s.Converters;
+#pragma warning disable 618
             c.Add(new ICRSObjectConverter());
+#pragma warning restore 618
             c.Add(new FeatureCollectionConverter());
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());

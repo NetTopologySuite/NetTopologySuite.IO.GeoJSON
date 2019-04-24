@@ -8,6 +8,7 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts <see cref="ICRSObject"/> objects to its JSON representation.
     /// </summary>
+    [Obsolete("No longer part of the GeoJSON format specification")]
     public class ICRSObjectConverter : JsonConverter
     {
         /// <summary>
@@ -23,7 +24,7 @@ namespace NetTopologySuite.IO.Converters
             if (serializer == null)
                 throw new ArgumentNullException("serializer");
 
-            ICRSObject crs = value as ICRSObject;
+            var crs = value as ICRSObject;
             if (crs == null)
             {
                 writer.WriteToken(JsonToken.Null);
@@ -34,7 +35,7 @@ namespace NetTopologySuite.IO.Converters
             writer.WritePropertyName("type");
             string type = Enum.GetName(typeof(CRSTypes), crs.Type);
             writer.WriteValue(type.ToLowerInvariant());
-            CRSBase crsb = value as CRSBase;
+            var crsb = value as CRSBase;
             if (crsb != null)
             {
                 writer.WritePropertyName("properties");
@@ -74,7 +75,7 @@ namespace NetTopologySuite.IO.Converters
             reader.Read();
             if (reader.TokenType != JsonToken.StartObject)
                 throw new ArgumentException("Expected token '{' not found.");
-            Dictionary<string, object> dictionary = serializer.Deserialize<Dictionary<string, object>>(reader);
+            var dictionary = serializer.Deserialize<Dictionary<string, object>>(reader);
             CRSBase result = null;
             switch (crsType)
             {
