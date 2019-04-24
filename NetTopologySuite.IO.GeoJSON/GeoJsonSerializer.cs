@@ -51,6 +51,19 @@ namespace NetTopologySuite.IO
         /// Factory method to create a (Geo)JsonSerializer
         /// </summary>
         /// <remarks>
+        /// <see cref="GeoJsonSerializer.Wgs84Factory"/> is used.</remarks>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
+        public new static JsonSerializer CreateDefault(JsonSerializerSettings settings)
+        {
+            var s = JsonSerializer.Create(settings);
+            AddGeoJsonConverters(s, GeoJsonSerializer.Wgs84Factory, DefaultDimension);
+
+            return s;
+        }
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>
         /// Creates a serializer using <see cref="GeoJsonSerializer.Create(IGeometryFactory,int)"/> internally.
         /// </remarks>
         /// <param name="factory">A factory to use when creating geometries. The factories <see cref="PrecisionModel"/>
@@ -88,11 +101,17 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Factory method to create a (Geo)JsonSerializer using the provider serializer settings and geometry factory
         /// </summary>
+        /// <param name="settings">Serializer settings</param>
+        /// <param name="factory">The factory to use when creating a new geometry</param>
+        /// <param name="dimension">The number of ordinates to handle</param>
         /// <returns>A <see cref="JsonSerializer"/></returns>
-        public static JsonSerializer Create(JsonSerializerSettings settings, IGeometryFactory factory, int outputDimension)
+        public static JsonSerializer Create(JsonSerializerSettings settings, IGeometryFactory factory, int dimension)
         {
+            if (dimension < 2 || dimension > 3)
+                throw new ArgumentException("Invalid number of ordinates. Must be in range [2,3]", nameof(dimension));
+
             var s = JsonSerializer.Create(settings);
-            AddGeoJsonConverters(s, factory, outputDimension);
+            AddGeoJsonConverters(s, factory, dimension);
             return s;
         }
 
@@ -104,7 +123,7 @@ namespace NetTopologySuite.IO
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
             c.Add(new GeometryConverter(factory, dimension));
-            c.Add(new GeometryArrayConverter());
+            c.Add(new GeometryArrayConverter(factory, dimension));
             c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter());
 
@@ -128,8 +147,8 @@ namespace NetTopologySuite.IO
             base.Converters.Add(new FeatureConverter());
             base.Converters.Add(new AttributesTableConverter());
             base.Converters.Add(new GeometryConverter(geometryFactory));
-            base.Converters.Add(new GeometryArrayConverter());
-            base.Converters.Add(new CoordinateConverter());
+            base.Converters.Add(new GeometryArrayConverter(geometryFactory));
+            base.Converters.Add(new CoordinateConverter(geometryFactory.PrecisionModel));
             base.Converters.Add(new EnvelopeConverter());
         }
     }

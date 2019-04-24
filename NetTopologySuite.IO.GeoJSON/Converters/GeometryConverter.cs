@@ -103,6 +103,7 @@ namespace NetTopologySuite.IO.Converters
                 case GeoJsonObjectType.GeometryCollection:
                     var gc = geom as IGeometryCollection;
                     Debug.Assert(gc != null);
+                    writer.WritePropertyName("geometries");
                     serializer.Serialize(writer, gc.Geometries);
                     break;
                 default:

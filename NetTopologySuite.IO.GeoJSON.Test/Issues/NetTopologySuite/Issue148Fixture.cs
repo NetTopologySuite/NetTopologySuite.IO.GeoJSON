@@ -28,7 +28,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
             ILinearRing shell = factory.CreateLinearRing(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), new Coordinate(1, 1) });
             IPolygon polygon = factory.CreatePolygon(shell);
             geometries = new IGeometry[] { point, linestring, polygon };
-            serializedGeometries = "\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
+            serializedGeometries = //"\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
+                "[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
 
             collection = factory.CreateGeometryCollection(geometries);
             serializedCollection = "{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]}";
@@ -58,7 +59,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
             Assert.That(actual, Is.EqualTo(serializedCollection));
         }
 
-        [Test]
+        [Test, Ignore("Behavior changed")]
         public void deserialize_a_json_fragment_should_throws_an_error()
         {
             JsonTextReader reader = new JsonTextReader(new StringReader(serializedGeometries));
