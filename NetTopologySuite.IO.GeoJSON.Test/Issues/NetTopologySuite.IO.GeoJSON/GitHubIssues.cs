@@ -171,7 +171,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             // Setup
             var geoJsonWriter = new GeoJsonWriter();
 
-            var featureJson =
+            string featureJson =
                 "{\"type\": \"Feature\",\"geometry\": {\"type\": \"LineString\",\"coordinates\": [[0,0],[2,2],[3,2]]},\"properties\": {\"key\": \"value\"}}";
             var notNullGeometryFeature = new GeoJsonReader().Read<Feature>(featureJson);
 
@@ -258,6 +258,109 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json3), Throws.Nothing, "2, 1, null");
             Assert.That(g is IPoint);
             Assert.That(!g.IsEmpty);
+        }
+
+        [NtsIssueNumber(27)]
+        [Test]
+        public void TestOutputPrecision()
+        {
+            var coords = new[]
+            {
+                new Coordinate(0.001, 0.001),
+                new Coordinate(10.1, 0.002),
+                new Coordinate(10, 10.1),
+                new Coordinate(0.05, 9.999),
+                new Coordinate(0.001, 0.001)
+            };
+
+            // Create a factory with scale = 10
+            var factory = new GeometryFactory(new PrecisionModel(10), 4326);
+
+            // Creating the polygon with the above factory
+            var polygon = factory.CreatePolygon(coords);
+
+            var serializer = GeoJsonSerializer.Create(factory);
+            var writer = new StringWriter();
+            serializer.Serialize(writer, polygon);
+
+            string json = writer.ToString();
+            Assert.That(json, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.1,0.0],[10.0,10.1],[0.1,10.0],[0.0,0.0]]]}"));
+
+            var gjWriter = new GeoJsonWriter();
+            string json2 = gjWriter.Write(polygon);
+            Assert.That(json2, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.1,0.0],[10.0,10.1],[0.1,10.0],[0.0,0.0]]]}"));
+        }
+
+        [Test]
+        public void TestOutputDimension()
+        {
+            var coords = new[]
+            {
+                new Coordinate(0.001, 0.001, 3),
+                new Coordinate(10.1, 0.002, 3),
+                new Coordinate(10, 10.1, 3),
+                new Coordinate(0.05, 9.999, 3),
+                new Coordinate(0.001, 0.001, 3)
+            };
+
+            // Create a factory with scale = 10
+            var factory = new GeometryFactory(new PrecisionModel(10), 4326);
+
+            // Creating the polygon with the above factory
+            var polygon = factory.CreatePolygon(coords);
+
+            var serializer2 = GeoJsonSerializer.Create(factory, 2);
+            var serializer3 = GeoJsonSerializer.Create(factory, 3);
+            var writer = new StringWriter();
+            serializer2.Serialize(writer, polygon);
+
+            string json2 = writer.ToString();
+            Assert.That(json2, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.1,0.0],[10.0,10.1],[0.1,10.0],[0.0,0.0]]]}"));
+
+            writer = new StringWriter();
+            serializer3.Serialize(writer, polygon);
+            string json3 = writer.ToString();
+            Assert.That(json3, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0,3.0],[10.1,0.0,3.0],[10.0,10.1,3.0],[0.1,10.0,3.0],[0.0,0.0,3.0]]]}"));
+        }
+
+        [NtsIssueNumber(27)]
+        [Test]
+        public void TestInputPrecision()
+        {
+            // Create a factory with scale = 10
+            var factory = new GeometryFactory(new PrecisionModel(10), 4326);
+
+            var serializer = GeoJsonSerializer.Create(factory);
+            var reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001],[10.1,0.002],[10.0,10.1],[0.05,9.999],[0.001,0.001]]]}"));
+            var geom = serializer.Deserialize<IGeometry>(reader);
+            Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
+        }
+
+        [NtsIssueNumber(27)]
+        [Test]
+        public void TestInputDimension()
+        {
+            var coords = new[]
+            {
+                new Coordinate(0.001, 0.001),
+                new Coordinate(10.1, 0.002),
+                new Coordinate(10, 10.1),
+                new Coordinate(0.05, 9.999),
+                new Coordinate(0.001, 0.001)
+            };
+
+            // Create a factory with scale = 10
+            var factory = new GeometryFactory(new PrecisionModel(10), 4326);
+
+            var serializer3 = GeoJsonSerializer.Create(factory, 3);
+            var reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001,3.0],[10.1,0.002,3.0],[10.0,10.1,3.0],[0.05,9.999,3.0],[0.001,0.001,3.0]]]}"));
+            var geom = serializer3.Deserialize<IGeometry>(reader);
+            Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0 3, 10.1 0 3, 10 10.1 3, 0.1 10 3, 0 0 3))"));
+
+            var serializer2 = GeoJsonSerializer.Create(factory, 2);
+            reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001,3.0],[10.1,0.002,3.0],[10.0,10.1,3.0],[0.05,9.999,3.0],[0.001,0.001,3.0]]]}"));
+            geom = serializer2.Deserialize<IGeometry>(reader);
+            Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
         }
     }
 }

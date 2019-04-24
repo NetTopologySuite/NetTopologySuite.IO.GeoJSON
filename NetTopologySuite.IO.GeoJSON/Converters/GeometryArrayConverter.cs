@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using GeoAPI.Geometries;
-using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,9 +14,9 @@ namespace NetTopologySuite.IO.Converters
         private readonly IGeometryFactory _factory;
 
         /// <summary>
-        /// Creates an instance of this class using <see cref="GeoJsonReader.Wgs84Factory"/>
+        /// Creates an instance of this class using <see cref="GeoJsonSerializer.Wgs84Factory"/>
         /// </summary>
-        public GeometryArrayConverter() : this(GeoJsonReader.Wgs84Factory) { }
+        public GeometryArrayConverter() : this(GeoJsonSerializer.Wgs84Factory) { }
 
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/>

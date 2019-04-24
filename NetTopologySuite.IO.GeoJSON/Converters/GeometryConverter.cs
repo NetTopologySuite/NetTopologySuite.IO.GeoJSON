@@ -14,19 +14,27 @@ namespace NetTopologySuite.IO.Converters
     public class GeometryConverter : JsonConverter
     {
         private readonly IGeometryFactory _factory;
-
+        private readonly int _dimension;
         /// <summary>
-        /// Creates an instance of this class using <see cref="GeoJsonReader.Wgs84Factory"/> to create geometries.
+        /// Creates an instance of this class using <see cref="GeoJsonSerializer.Wgs84Factory"/> to create geometries.
         /// </summary>
-        public GeometryConverter() : this(GeoJsonReader.Wgs84Factory) { }
+        public GeometryConverter() : this(GeoJsonSerializer.Wgs84Factory) { }
 
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/> to create geometries.
         /// </summary>
         /// <param name="geometryFactory">The geometry factory.</param>
-        public GeometryConverter(IGeometryFactory geometryFactory)
+        public GeometryConverter(IGeometryFactory geometryFactory) : this(geometryFactory, GeoJsonSerializer.DefaultDimension) { }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/> to create geometries.
+        /// </summary>
+        /// <param name="geometryFactory">The geometry factory.</param>
+        /// <param name="dimension">The number of dimension to handle. Valid input are 2 and 3</param>
+        public GeometryConverter(IGeometryFactory geometryFactory, int dimension)
         {
             _factory = geometryFactory;
+            _dimension = dimension;
         }
 
         /// <summary>
@@ -219,7 +227,8 @@ namespace NetTopologySuite.IO.Converters
 
             c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(list[0]));
             c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(list[1]));
-            if (list.Count > 2)
+
+            if (list.Count > 2 && _dimension > 2)
                 c.Z = Convert.ToDouble(list[2]);
             return c;
         }
@@ -235,7 +244,7 @@ namespace NetTopologySuite.IO.Converters
             return coordinates.ToArray();
         }
 
-        private static List<Coordinate[]> GetPolygonCoordinates(IEnumerable list)
+        private List<Coordinate[]> GetPolygonCoordinates(IEnumerable list)
         {
             var coordinates = new List<Coordinate[]>();
             foreach (List<object> coord in list)
@@ -245,7 +254,7 @@ namespace NetTopologySuite.IO.Converters
             return coordinates;
         }
 
-        private static IEnumerable<List<Coordinate[]>> GetMultiPolygonCoordinates(IEnumerable list)
+        private IEnumerable<List<Coordinate[]>> GetMultiPolygonCoordinates(IEnumerable list)
         {
             var coordinates = new List<List<Coordinate[]>>();
             foreach (List<object> coord in list)

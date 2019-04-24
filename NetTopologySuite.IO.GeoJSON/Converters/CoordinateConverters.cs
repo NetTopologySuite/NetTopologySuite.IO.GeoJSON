@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Globalization;
 using GeoAPI.Geometries;
-
+using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.Converters
@@ -13,6 +13,27 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     public class CoordinateConverter : JsonConverter
     {
+        private readonly IPrecisionModel _precisionModel;
+        private readonly int _dimension;
+
+        /// <summary>
+        /// Creates an instance of this class using a floating precision model and <see cref="GeoJsonSerializer.DefaultDimension"/> output dimensions
+        /// </summary>
+        internal CoordinateConverter()
+            : this(GeometryFactory.Floating.PrecisionModel)
+        { }
+
+        /// <summary>
+        /// Creates an instance of this class
+        /// </summary>
+        /// <param name="precisionModel">The precision model to use for writing</param>
+        /// <param name="dimension">The number of dimensions</param>
+        internal CoordinateConverter(IPrecisionModel precisionModel, int dimension = GeoJsonSerializer.DefaultDimension)
+        {
+            _precisionModel = precisionModel;
+            _dimension = dimension;
+        }
+
         /// <summary>
         /// Writes a coordinate, a coordinate sequence or an enumeration of coordinates to JSON
         /// </summary>
@@ -64,9 +85,12 @@ namespace NetTopologySuite.IO.Converters
         {
             writer.WriteStartArray();
 
-            writer.WriteValue(coordinate.X);
-            writer.WriteValue(coordinate.Y);
-            if (!double.IsNaN(coordinate.Z))
+            double value = _precisionModel.MakePrecise(coordinate.X);
+            writer.WriteValue(value);
+            value = _precisionModel.MakePrecise(coordinate.Y);
+            writer.WriteValue(value);
+
+            if (_dimension > 2 && !double.IsNaN(coordinate.Z))
                 writer.WriteValue(coordinate.Z);
 
             writer.WriteEndArray();
@@ -126,33 +150,35 @@ namespace NetTopologySuite.IO.Converters
 
         }
 
-        private static Coordinate ReadJsonCoordinate(JsonReader reader)
+        private Coordinate ReadJsonCoordinate(JsonReader reader)
         {
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray)
                 return null;
 
-            Coordinate c = new Coordinate();
+            var c = new Coordinate();
 
             reader.Read();
             Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
-            c.X = Convert.ToDouble(reader.Value);
+            c.X = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value));
 
             reader.Read();
             Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
-            c.Y = Convert.ToDouble(reader.Value);
+            c.Y = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value));
 
             reader.Read();
             if (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer)
             {
-                c.Z = Convert.ToDouble(reader.Value);
+                double value = Convert.ToDouble(reader.Value);
+                if (_dimension > 2)
+                    c.Z = value;
                 reader.Read();
             }
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
             return c;
         }
 
-        private static Coordinate[] ReadJsonCoordinates(JsonReader reader)
+        private Coordinate[] ReadJsonCoordinates(JsonReader reader)
         {
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray) return null;
@@ -168,7 +194,7 @@ namespace NetTopologySuite.IO.Converters
             return coordinates.ToArray();
         }
 
-        private static List<Coordinate[]> ReadJsonCoordinatesEnumerable(JsonReader reader)
+        private List<Coordinate[]> ReadJsonCoordinatesEnumerable(JsonReader reader)
         {
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray) return null;
@@ -184,7 +210,7 @@ namespace NetTopologySuite.IO.Converters
             return coordinates;
         }
 
-        private static List<List<Coordinate[]>> ReadJsonCoordinatesEnumerable2(JsonReader reader)
+        private List<List<Coordinate[]>> ReadJsonCoordinatesEnumerable2(JsonReader reader)
         {
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray) return null;
