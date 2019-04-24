@@ -15,7 +15,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
     /// </summary>
     public class GitHubIssues
     {
-        [NtsIssueNumber(6)]
+        [GeoJsonIssueNumber(6)]
         [Test]
         public void TestFeatureIdLostForFeatureWithoutProperties()
         {
@@ -37,7 +37,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(f.Attributes["id"], Is.EqualTo("featureID"));
         }
 
-        [NtsIssueNumber(7)]
+        [GeoJsonIssueNumber(7)]
         [Test]
         public void TestReaderFailsToParseProperties()
         {
@@ -78,7 +78,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(FeatureExtensions.ID(f), Is.EqualTo("0a3f507a-b2e6-32b8-e044-0003ba298018"));
         }
 
-        [NtsIssueNumber(16)]
+        [GeoJsonIssueNumber(16)]
         [Test]
         public void TestDefaultSridOfDeserializedGeometryIs4326()
         {
@@ -115,7 +115,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(f.Geometry.SRID, Is.EqualTo(4326));
         }
 
-        [NtsIssueNumber(18)]
+        [GeoJsonIssueNumber(18)]
         [Test]
         public void TestDeserializationOfNullGeometries()
         {
@@ -139,7 +139,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             public Point Point { get; set; } // it can be null
         }
 
-        [NtsIssueNumber(19)]
+        [GeoJsonIssueNumber(19)]
         [Test]
         public void TestGeoJsonWriterWritesEmptyFeatureCollection()
         {
@@ -164,7 +164,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
 
         }
 
-        [NtsIssueNumber(20)]
+        [GeoJsonIssueNumber(20)]
         [Test]
         public void TestWriteFeatureCollectionWithFirstFeatureGeometryNull()
         {
@@ -202,7 +202,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(write_nullFirst, Throws.Nothing);
         }
 
-        [NtsIssueNumber(23)]
+        [GeoJsonIssueNumber(23)]
         [Test]
         public void TestGeoJsonWithComments()
         {
@@ -236,7 +236,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(f, Is.Not.Null);
         }
 
-        [NtsIssueNumber(20)]
+        [GeoJsonIssueNumber(20)]
         [Test]
         public void TestCoordinatesWithNullOrdinates()
         {
@@ -260,7 +260,20 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(!g.IsEmpty);
         }
 
-        [NtsIssueNumber(27)]
+        [GeoJsonIssueNumber(20)]
+        [Test]
+        public void TestNullValueHandlingEnvelope()
+        {
+            var factory = new GeometryFactory(new PrecisionModel(100), 4326);
+
+            IFeature value = new Feature(factory.CreatePoint(new Coordinate(23, 56)), new AttributesTable());
+            var writer = new GeoJsonWriter();
+            writer.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+
+            Console.WriteLine(writer.Write(value));
+        }
+
+        [GeoJsonIssueNumber(27)]
         [Test]
         public void TestOutputPrecision()
         {
@@ -290,7 +303,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             string json2 = gjWriter.Write(polygon);
             Assert.That(json2, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.1,0.0],[10.0,10.1],[0.1,10.0],[0.0,0.0]]]}"));
         }
-
+        [GeoJsonIssueNumber(27)]
         [Test]
         public void TestOutputDimension()
         {
@@ -323,7 +336,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(json3, Is.EqualTo("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0,3.0],[10.1,0.0,3.0],[10.0,10.1,3.0],[0.1,10.0,3.0],[0.0,0.0,3.0]]]}"));
         }
 
-        [NtsIssueNumber(27)]
+        [GeoJsonIssueNumber(27)]
         [Test]
         public void TestInputPrecision()
         {
@@ -336,7 +349,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
         }
 
-        [NtsIssueNumber(27)]
+        [GeoJsonIssueNumber(27)]
         [Test]
         public void TestInputDimension()
         {
