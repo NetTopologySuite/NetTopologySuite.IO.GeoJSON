@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -14,16 +15,18 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Gets a default GeometryFactory
         /// </summary>
-        public static IGeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
+        [Obsolete("Create your own, internally we use GeoJsonSerializer.Wgs84Factory")]
+        public static IGeometryFactory Wgs84Factory { get; } = GeoJsonSerializer.Wgs84Factory;
 
         private readonly IGeometryFactory _factory;
         private readonly JsonSerializerSettings _serializerSettings;
+        private readonly int _dimension;
 
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
         public GeoJsonReader()
-        : this(Wgs84Factory, new JsonSerializerSettings())
+            : this(GeoJsonSerializer.Wgs84Factory, new JsonSerializerSettings())
         {
         }
 
@@ -34,9 +37,22 @@ namespace NetTopologySuite.IO
         /// <param name="factory">The factory to use when creating geometries</param>
         /// <param name="serializerSettings">The serializer setting</param>
         public GeoJsonReader(IGeometryFactory factory, JsonSerializerSettings serializerSettings)
+            : this(factory, serializerSettings, GeoJsonSerializer.DefaultDimension)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="IGeometryFactory"/> and
+        /// <see cref="JsonSerializerSettings"/>.
+        /// </summary>
+        /// <param name="factory">The factory to use when creating geometries</param>
+        /// <param name="serializerSettings">The serializer setting</param>
+        /// <param name="dimension">The number of dimensions to handle</param>
+        public GeoJsonReader(IGeometryFactory factory, JsonSerializerSettings serializerSettings, int dimension)
         {
             _factory = factory;
             _serializerSettings = serializerSettings;
+            _dimension = dimension;
         }
 
         /// <summary>
@@ -48,7 +64,7 @@ namespace NetTopologySuite.IO
         public TObject Read<TObject>(string json)
             where TObject : class
         {
-            var g = GeoJsonSerializer.Create(_serializerSettings, _factory);
+            var g = GeoJsonSerializer.Create(_serializerSettings, _factory, _dimension);
             using (StringReader sr = new StringReader(json))
             {
                 return g.Deserialize<TObject>(new JsonTextReader(sr));

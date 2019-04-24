@@ -56,7 +56,7 @@ namespace NetTopologySuite.IO
             if (feature == null)
                 throw new ArgumentNullException(nameof(feature));
 
-            var factory = feature.Geometry?.Factory ?? GeoJsonReader.Wgs84Factory;
+            var factory = feature.Geometry?.Factory ?? GeoJsonSerializer.Wgs84Factory;
             JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
@@ -71,7 +71,7 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature collection's JSON representation</returns>
         public string Write(FeatureCollection featureCollection)
         {
-            var factory = SearchForFactory(featureCollection) ?? GeoJsonReader.Wgs84Factory;
+            var factory = SearchForFactory(featureCollection) ?? GeoJsonSerializer.Wgs84Factory;
             JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
@@ -99,7 +99,7 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the object's JSON representation</returns>
         public string Write(object value)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonReader.Wgs84Factory);
+            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory);
             StringBuilder sb = new StringBuilder();
             using (StringWriter sw = new StringWriter(sb))
                 g.Serialize(sw, value);

@@ -12,6 +12,16 @@ namespace NetTopologySuite.IO
     public class GeoJsonSerializer : JsonSerializer
     {
         /// <summary>
+        /// A default output dimension value
+        /// </summary>
+        internal const int DefaultDimension = 3;
+
+        /// <summary>
+        /// Gets a default GeometryFactory
+        /// </summary>
+        internal static IGeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
+
+        /// <summary>
         /// Factory method to create a (Geo)JsonSerializer
         /// </summary>
         /// <remarks>Calls <see cref="GeoJsonSerializer.CreateDefault()"/> internally</remarks>
@@ -26,15 +36,14 @@ namespace NetTopologySuite.IO
         /// Factory method to create a (Geo)JsonSerializer
         /// </summary>
         /// <remarks>
-        /// Creates a serializer using <see cref="JsonSerializer.CreateDefault()"/> internally
-        /// and adds the GeoJSON specific converters to it.</remarks>
+        /// <see cref="GeoJsonSerializer.Wgs84Factory"/> is used.</remarks>
         /// <returns>A <see cref="JsonSerializer"/></returns>
         public new static JsonSerializer CreateDefault()
         {
             var s = JsonSerializer.CreateDefault();
             s.NullValueHandling = NullValueHandling.Ignore;
 
-            AddGeoJsonConverters(s, GeoJsonReader.Wgs84Factory);
+            AddGeoJsonConverters(s, GeoJsonSerializer.Wgs84Factory, DefaultDimension);
             return s;
         }
 
@@ -42,12 +51,42 @@ namespace NetTopologySuite.IO
         /// Factory method to create a (Geo)JsonSerializer
         /// </summary>
         /// <remarks>
-        /// Creates a serializer using <see cref="GeoJsonSerializer.Create(JsonSerializerSettings,IGeometryFactory)"/> internally.
-        /// <see cref="GeoJsonReader.Wgs84Factory"/> is used.</remarks>
+        /// <see cref="GeoJsonSerializer.Wgs84Factory"/> is used.</remarks>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
+        public new static JsonSerializer CreateDefault(JsonSerializerSettings settings)
+        {
+            var s = JsonSerializer.Create(settings);
+            AddGeoJsonConverters(s, GeoJsonSerializer.Wgs84Factory, DefaultDimension);
+
+            return s;
+        }
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>
+        /// Creates a serializer using <see cref="GeoJsonSerializer.Create(IGeometryFactory,int)"/> internally.
+        /// </remarks>
+        /// <param name="factory">A factory to use when creating geometries. The factories <see cref="PrecisionModel"/>
+        /// is also used to format <see cref="Coordinate.X"/> and <see cref="Coordinate.Y"/> of the coordinates.</param>
         /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(IGeometryFactory factory)
         {
-            return Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
+            return Create(factory, DefaultDimension);
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <remarks>
+        /// Creates a serializer using <see cref="GeoJsonSerializer.Create(JsonSerializerSettings,IGeometryFactory,int)"/> internally.
+        /// </remarks>
+        /// <param name="factory">A factory to use when creating geometries. The factories <see cref="PrecisionModel"/>
+        /// is also used to format <see cref="Coordinate.X"/> and <see cref="Coordinate.Y"/> of the coordinates.</param>
+        /// <param name="dimension">A number of dimensions that are handled. Valid inputs are 2 and 3.</param>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
+        public static JsonSerializer Create(IGeometryFactory factory, int dimension)
+        {
+            return Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory, dimension);
         }
 
         /// <summary>
@@ -56,21 +95,36 @@ namespace NetTopologySuite.IO
         /// <returns>A <see cref="JsonSerializer"/></returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, IGeometryFactory factory)
         {
+            return Create(settings, factory, DefaultDimension);
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer using the provider serializer settings and geometry factory
+        /// </summary>
+        /// <param name="settings">Serializer settings</param>
+        /// <param name="factory">The factory to use when creating a new geometry</param>
+        /// <param name="dimension">The number of ordinates to handle</param>
+        /// <returns>A <see cref="JsonSerializer"/></returns>
+        public static JsonSerializer Create(JsonSerializerSettings settings, IGeometryFactory factory, int dimension)
+        {
+            if (dimension < 2 || dimension > 3)
+                throw new ArgumentException("Invalid number of ordinates. Must be in range [2,3]", nameof(dimension));
+
             var s = JsonSerializer.Create(settings);
-            AddGeoJsonConverters(s, factory);
+            AddGeoJsonConverters(s, factory, dimension);
             return s;
         }
 
-        private static void AddGeoJsonConverters(JsonSerializer s, IGeometryFactory factory)
+        private static void AddGeoJsonConverters(JsonSerializer s, IGeometryFactory factory, int dimension)
         {
             var c = s.Converters;
             c.Add(new ICRSObjectConverter());
             c.Add(new FeatureCollectionConverter());
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
-            c.Add(new GeometryConverter(factory));
-            c.Add(new GeometryArrayConverter());
-            c.Add(new CoordinateConverter());
+            c.Add(new GeometryConverter(factory, dimension));
+            c.Add(new GeometryArrayConverter(factory, dimension));
+            c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter());
 
         }
@@ -79,7 +133,7 @@ namespace NetTopologySuite.IO
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.
         /// </summary>
         [Obsolete("Use GeoJsonSerializer.Create...() functions")]
-        public GeoJsonSerializer() : this(GeoJsonReader.Wgs84Factory) { }
+        public GeoJsonSerializer() : this(Wgs84Factory) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GeoJsonSerializer"/> class.
@@ -93,8 +147,8 @@ namespace NetTopologySuite.IO
             base.Converters.Add(new FeatureConverter());
             base.Converters.Add(new AttributesTableConverter());
             base.Converters.Add(new GeometryConverter(geometryFactory));
-            base.Converters.Add(new GeometryArrayConverter());
-            base.Converters.Add(new CoordinateConverter());
+            base.Converters.Add(new GeometryArrayConverter(geometryFactory));
+            base.Converters.Add(new CoordinateConverter(geometryFactory.PrecisionModel));
             base.Converters.Add(new EnvelopeConverter());
         }
     }

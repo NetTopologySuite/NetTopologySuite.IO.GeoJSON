@@ -18,6 +18,29 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     [TestFixture]
     public class GeoJsonSerializerTest
     {
+        [Test]
+        public void TestFactoryMethods()
+        {
+            JsonSerializer serializer = null;
+           
+            var settings = new JsonSerializerSettings();
+            var factory = new GeometryFactory(new PrecisionModel(10000), 4326);
+
+            Assert.That(() => serializer = GeoJsonSerializer.CreateDefault(), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.CreateDefault(settings), Throws.Nothing);
+
+            Assert.That(() => serializer = GeoJsonSerializer.Create(factory), Throws.Nothing);
+
+            Assert.That(() => serializer = GeoJsonSerializer.Create(factory, 1), Throws.ArgumentException);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,2), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,3), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,4), Throws.ArgumentException);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 1), Throws.ArgumentException);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 2), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 3), Throws.Nothing);
+            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 4), Throws.ArgumentException);
+        }
         ///<summary>
         ///    A test for GeoJsonSerializer Serialize method
         ///</summary>

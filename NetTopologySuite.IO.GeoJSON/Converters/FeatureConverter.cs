@@ -48,8 +48,11 @@ namespace NetTopologySuite.IO.Converters
             // bbox (optional)
             if (serializer.NullValueHandling == NullValueHandling.Include || feature.BoundingBox != null)
             {
+                var bbox = feature.BoundingBox;
+                if (bbox == null && feature.Geometry != null) bbox = feature.Geometry.EnvelopeInternal;
+
                 writer.WritePropertyName("bbox");
-                serializer.Serialize(writer, feature.BoundingBox, typeof(Envelope));
+                serializer.Serialize(writer, bbox, typeof(Envelope));
             }
 
             // geometry
