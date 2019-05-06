@@ -5,6 +5,8 @@ using System.Text;
 using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO.Converters;
+using NetTopologySuite.Triangulate;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -374,6 +376,26 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001,3.0],[10.1,0.002,3.0],[10.0,10.1,3.0],[0.05,9.999,3.0],[0.001,0.001,3.0]]]}"));
             geom = serializer2.Deserialize<IGeometry>(reader);
             Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
+        }
+
+        [Test, GeoJsonIssueNumber(30)]
+        public void TestAddToSerializerSettings()
+        {
+            var jss = new JsonSerializerSettings();
+            var factory = new GeometryFactory(new PrecisionModel(1E6),4326);
+            const int dimension = 2;
+            Assert.That(() =>
+            {
+                // see https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON/blob/v1.15.2/NetTopologySuite.IO.GeoJSON/GeoJsonSerializer.cs#L64
+                jss.Converters.Add(new ICRSObjectConverter());
+                jss.Converters.Add(new FeatureCollectionConverter());
+                jss.Converters.Add(new FeatureConverter());
+                jss.Converters.Add(new AttributesTableConverter());
+                jss.Converters.Add(new GeometryConverter(factory, dimension));
+                jss.Converters.Add(new GeometryArrayConverter(factory, dimension));
+                jss.Converters.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
+                jss.Converters.Add(new EnvelopeConverter());
+            }, Throws.Nothing);
         }
     }
 }

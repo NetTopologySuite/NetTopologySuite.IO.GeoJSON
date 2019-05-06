@@ -19,7 +19,7 @@ namespace NetTopologySuite.IO.Converters
         /// <summary>
         /// Creates an instance of this class using a floating precision model and <see cref="GeoJsonSerializer.DefaultDimension"/> output dimensions
         /// </summary>
-        internal CoordinateConverter()
+        public CoordinateConverter()
             : this(GeometryFactory.Floating.PrecisionModel)
         { }
 
@@ -28,7 +28,7 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         /// <param name="precisionModel">The precision model to use for writing</param>
         /// <param name="dimension">The number of dimensions</param>
-        internal CoordinateConverter(IPrecisionModel precisionModel, int dimension = GeoJsonSerializer.DefaultDimension)
+        public CoordinateConverter(IPrecisionModel precisionModel, int dimension = GeoJsonSerializer.DefaultDimension)
         {
             _precisionModel = precisionModel;
             _dimension = dimension;
