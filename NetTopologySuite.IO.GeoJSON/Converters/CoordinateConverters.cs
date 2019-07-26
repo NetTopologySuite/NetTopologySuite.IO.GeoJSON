@@ -130,35 +130,39 @@ namespace NetTopologySuite.IO.Converters
         /// <returns></returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            reader.Read();
-
-            Debug.Assert(reader.TokenType == JsonToken.PropertyName);
-            Debug.Assert((string)reader.Value == "coordinates");
-
             object result;
             if (objectType == typeof(Coordinate))
                 result = ReadJsonCoordinate(reader);
             else if (typeof(IEnumerable<Coordinate>).IsAssignableFrom(objectType))
+            {
+                reader.Read();
                 result = ReadJsonCoordinates(reader);
+            }
             else if (typeof(List<Coordinate[]>).IsAssignableFrom(objectType))
+            {
+                reader.Read();
                 result = ReadJsonCoordinatesEnumerable(reader);
+            }
             else if (typeof(List<List<Coordinate[]>>).IsAssignableFrom(objectType))
+            {
+                reader.Read();
                 result = ReadJsonCoordinatesEnumerable2(reader);
+            }
             else throw new ArgumentException("unmanaged type: " + objectType);
+
             reader.Read();
             return result;
-
         }
 
-        private Coordinate ReadJsonCoordinate(JsonReader reader)
+        private Coordinate ReadArrayJsonAsCoordinate(JsonReader reader)
         {
-            reader.Read();
-            if (reader.TokenType != JsonToken.StartArray)
-                return null;
+            if (reader.TokenType != JsonToken.StartArray) return null;
 
             var c = new Coordinate();
-
             reader.Read();
+
+            if (reader.TokenType != JsonToken.Float && reader.TokenType != JsonToken.Integer) return null;
+
             Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
             c.X = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value));
 
@@ -176,6 +180,28 @@ namespace NetTopologySuite.IO.Converters
             }
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
             return c;
+        }
+
+        private Coordinate ReadObjectJsonAsCoordinate(JsonReader reader)
+        {
+            reader.Read();
+            var coordinate = ReadArrayJsonAsCoordinate(reader);
+            reader.Read();
+            return coordinate;
+        }
+
+        private Coordinate ReadJsonCoordinate(JsonReader reader)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonToken.StartArray:
+                    return ReadArrayJsonAsCoordinate(reader);
+                case JsonToken.StartObject:
+                    reader.Read();
+                    return ReadObjectJsonAsCoordinate(reader);
+                default:
+                    return null;
+            }
         }
 
         private Coordinate[] ReadJsonCoordinates(JsonReader reader)
