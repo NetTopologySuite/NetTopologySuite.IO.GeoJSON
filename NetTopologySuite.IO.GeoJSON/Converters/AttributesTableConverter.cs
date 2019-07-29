@@ -60,7 +60,12 @@ namespace NetTopologySuite.IO.Converters
         /// </returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return InternalReadJson(reader, serializer);
+            IAttributesTable attributesTable = null;
+#if !(NETSTANDARD1_0 || NETSTANDARD1_3)
+            var feature = serializer.Context.Context as IFeature;
+            attributesTable = feature?.Attributes;
+#endif
+            return InternalReadJson(reader, serializer, attributesTable);
         }
 
         private static IList<object> InternalReadJsonArray(JsonReader reader, JsonSerializer serializer)
@@ -110,7 +115,7 @@ namespace NetTopologySuite.IO.Converters
             return res;
         }
 
-        private static object InternalReadJson(JsonReader reader, JsonSerializer serializer)
+        private static object InternalReadJson(JsonReader reader, JsonSerializer serializer, IAttributesTable attributesTable = null)
         {
             //// TODO: refactor to remove check when reading TopoJSON
             //if (reader.TokenType == JsonToken.StartArray)
@@ -134,11 +139,7 @@ namespace NetTopologySuite.IO.Converters
             reader.Read();
             Utility.SkipComments(reader);
 
-            IAttributesTable attributesTable = null;
-#if !(NETSTANDARD1_0 || NETSTANDARD1_3)
-            var feature = serializer.Context.Context as IFeature;
-            attributesTable = feature?.Attributes;
-#endif
+
             if (reader.TokenType != JsonToken.Null)
             {
                 if (attributesTable == null)

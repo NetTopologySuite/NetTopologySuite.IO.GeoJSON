@@ -80,6 +80,163 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(FeatureExtensions.ID(f), Is.EqualTo("0a3f507a-b2e6-32b8-e044-0003ba298018"));
         }
 
+        [Test]
+        public void TestReaderFailsToParseComplexProperties()
+        {
+            const string geojson = @"{
+  ""type"": ""Feature"",
+  ""id"": ""Test"",
+  ""geometry"": {
+    ""type"": ""Point"",
+    ""coordinates"": [
+      12.5851472,
+      55.68323837
+    ]
+  },
+  ""properties"": {
+    ""Building.Data.Shared.HeatingMainSystemType"": {
+        ""value"": 2.0,
+        ""quality"": 1
+    },
+    ""Building.Data.Shared.ECSMainSystemType"": {
+        ""value"": 2.0,
+        ""quality"": 1
+    },
+    ""Building.Data.Shared.Energy"": {
+        ""value"": ""B"",
+        ""quality"": 1
+    }
+  }
+}";
+
+            Feature f = null;
+            Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(f.Attributes, Is.Not.Null);
+            Assert.That(f.Attributes.Count, Is.EqualTo(4));
+        }
+
+
+        [Test]
+        public void TestReaderFeatureCollectionFailsToParseComplexProperties()
+        {
+            const string geojson = @"
+{
+  ""type"": ""FeatureCollection"",
+  ""features"": [
+    {
+      ""type"": ""Feature"",
+      ""id"": ""dbfec7559d5f4678829cfa5454b28222-1b7296c7609b48d296afe57807da1bf4"",
+      ""bbox"": [
+        9.227035,
+        45.559685,
+        9.227035,
+        45.559685
+      ],
+      ""geometry"": {
+        ""type"": ""Point"",
+        ""coordinates"": [
+          9.227035,
+          45.559685
+        ]
+    },
+      ""properties"": {
+        ""Building.Data.Shared.StreetAddress"": {
+          ""value"": ""LINCOLN, 2, Cinisello Balsamo "",
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.ConsoClaimed"": {
+          ""value"": 93.0,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.HeatingMainSystemType"": {
+          ""value"": 2.0,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.EnergyPercentage"": {
+          ""value"": 100.0,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.Identifier.CRM"": {
+          ""value"": ""C-1"",
+          ""quality"": 1
+        }
+      }
+    },
+    {
+      ""type"": ""Feature"",
+      ""id"": ""1b7296c7609b48d296afe57807da1bf4"",
+      ""bbox"": null,
+      ""geometry"": null,
+      ""properties"": {
+        ""Row"": ""1"",
+        ""Entity.Data.ValidationState"": 2.0,
+        ""Building.Data.Shared.Identifier.Feedermarket"": ""6633874"",
+        ""Entity.Type"": ""Entity.Type.BuildingData""
+      }
+    },
+    {
+      ""type"": ""Feature"",
+      ""id"": ""753aaa49a92d44deb0e207ff22c15c5a-9365f9efc3094f17858193ca6a69bff7"",
+      ""bbox"": [
+        9.224861,
+        45.535383,
+        9.224861,
+        45.535383
+      ],
+      ""geometry"": {
+        ""type"": ""Point"",
+        ""coordinates"": [
+          9.224861,
+          45.535383
+        ]
+      },
+      ""properties"": {
+        ""Building.Data.Shared.StreetAddress"": {
+          ""value"": ""MATTEOTTI, 39, Cinisello Balsamo "",
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.ConsoClaimed"": {
+          ""value"": 162.792762552,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.HeatingMainSystemType"": {
+          ""value"": 2.0,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.EnergyPercentage"": {
+          ""value"": 100.0,
+          ""quality"": 1
+        },
+        ""Building.Data.Shared.Identifier.CRM"": {
+          ""value"": ""D-3"",
+          ""quality"": 1
+        }
+      }
+    },
+    {
+      ""type"": ""Feature"",
+      ""id"": ""9365f9efc3094f17858193ca6a69bff7"",
+      ""bbox"": null,
+      ""geometry"": null,
+      ""properties"": {
+        ""Row"": ""10"",
+        ""Entity.Data.ValidationState"": 0.0,
+        ""Entity.Type"": ""Entity.Type.BuildingData""
+      }
+    }
+    ]
+}";
+
+            FeatureCollection f = null;
+            Assert.That(() => f = new GeoJsonReader().Read<FeatureCollection>(geojson), Throws.Nothing);
+            Assert.That(f.Features, Is.Not.Null);
+            Assert.That(f.Features.Count, Is.EqualTo(4));
+            Assert.That(f.Features[0].Attributes.Count, Is.EqualTo(6));
+            Assert.That(f.Features[1].Attributes.Count, Is.EqualTo(5));
+            Assert.That(f.Features[2].Attributes.Count, Is.EqualTo(6));
+            Assert.That(f.Features[3].Attributes.Count, Is.EqualTo(4));
+        }
+
         [GeoJsonIssueNumber(16)]
         [Test]
         public void TestDefaultSridOfDeserializedGeometryIs4326()
