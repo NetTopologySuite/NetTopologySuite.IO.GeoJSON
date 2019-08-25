@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 
@@ -56,11 +57,30 @@ namespace NetTopologySuite.IO
         public TObject Read<TObject>(string json)
             where TObject : class
         {
-            var g = GeoJsonSerializer.Create(_serializerSettings, _factory, _dimension);
-            using (var sr = new StringReader(json))
+            if (json is null)
             {
-                return g.Deserialize<TObject>(new JsonTextReader(sr));
+                throw new ArgumentNullException(nameof(json));
             }
+
+            return Read<TObject>(new JsonTextReader(new StringReader(json)));
+        }
+
+        /// <summary>
+        /// Reads the specified json.
+        /// </summary>
+        /// <typeparam name="TObject">The type of the object.</typeparam>
+        /// <param name="json">The json.</param>
+        /// <returns></returns>
+        public TObject Read<TObject>(JsonReader json)
+            where TObject : class
+        {
+            if (json is null)
+            {
+                throw new ArgumentNullException(nameof(json));
+            }
+
+            var g = GeoJsonSerializer.Create(_serializerSettings, _factory, _dimension);
+            return g.Deserialize<TObject>(json);
         }
     }
 }

@@ -34,15 +34,39 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the geometry's JSON representation</returns>
         public string Write(Geometry geometry)
         {
-            if (geometry == null)
+            if (geometry is null)
+            {
                 throw new ArgumentNullException(nameof(geometry));
-
-            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);
+            }
 
             var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
-                g.Serialize(sw, geometry);
+            using (var writer = new JsonTextWriter(new StringWriter(sb)))
+            {
+                Write(geometry, writer);
+            }
+
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the specified geometry.
+        /// </summary>
+        /// <param name="geometry">The geometry.</param>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        public void Write(Geometry geometry, JsonWriter writer)
+        {
+            if (geometry is null)
+            {
+                throw new ArgumentNullException(nameof(geometry));
+            }
+
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);
+            g.Serialize(writer, geometry);
         }
 
         /// <summary>
@@ -52,15 +76,40 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature's JSON representation</returns>
         public string Write(Feature feature)
         {
-            if (feature == null)
+            if (feature is null)
+            {
                 throw new ArgumentNullException(nameof(feature));
+            }
+
+            var sb = new StringBuilder();
+            using (var writer = new JsonTextWriter(new StringWriter(sb)))
+            {
+                Write(feature, writer);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the specified feature.
+        /// </summary>
+        /// <param name="feature">The feature.</param>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        public void Write(Feature feature, JsonWriter writer)
+        {
+            if (feature is null)
+            {
+                throw new ArgumentNullException(nameof(feature));
+            }
+
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
 
             var factory = feature.Geometry?.Factory ?? GeoJsonSerializer.Wgs84Factory;
             var g = GeoJsonSerializer.Create(SerializerSettings, factory);
-            var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
-                g.Serialize(sw, feature);
-            return sb.ToString();
+            g.Serialize(writer, feature);
         }
 
         /// <summary>
@@ -70,25 +119,55 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the feature collection's JSON representation</returns>
         public string Write(FeatureCollection featureCollection)
         {
+            if (featureCollection is null)
+            {
+                throw new ArgumentNullException(nameof(featureCollection));
+            }
+
+            var sb = new StringBuilder();
+            using (var writer = new JsonTextWriter(new StringWriter(sb)))
+            {
+                Write(featureCollection, writer);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the specified feature collection.
+        /// </summary>
+        /// <param name="featureCollection">The feature collection.</param>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        public void Write(FeatureCollection featureCollection, JsonWriter writer)
+        {
+            if (featureCollection is null)
+            {
+                throw new ArgumentNullException(nameof(featureCollection));
+            }
+
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             var factory = SearchForFactory(featureCollection) ?? GeoJsonSerializer.Wgs84Factory;
             var g = GeoJsonSerializer.Create(SerializerSettings, factory);
-            var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
-                g.Serialize(sw, featureCollection);
-            return sb.ToString();
+            g.Serialize(writer, featureCollection);
         }
 
         private static GeometryFactory SearchForFactory(FeatureCollection features)
         {
-            if (features == null)
-                return null;
-
+            GeometryFactory result = null;
             foreach (var feature in features)
             {
-                if (feature.Geometry != null)
-                    return feature.Geometry.Factory;
+                result = feature?.Geometry?.Factory;
+                if (!(result is null))
+                {
+                    break;
+                }
             }
-            return null;
+
+            return result;
         }
 
         /// <summary>
@@ -98,11 +177,39 @@ namespace NetTopologySuite.IO
         /// <returns>A string representing the object's JSON representation</returns>
         public string Write(object value)
         {
-            JsonSerializer g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory);
-            StringBuilder sb = new StringBuilder();
-            using (StringWriter sw = new StringWriter(sb))
-                g.Serialize(sw, value);
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            var sb = new StringBuilder();
+            using (var writer = new JsonTextWriter(new StringWriter(sb)))
+            {
+                Write(value, writer);
+            }
+
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes any specified object.
+        /// </summary>
+        /// <param name="value">Any object.</param>
+        /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
+        public void Write(object value, JsonWriter writer)
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory);
+            g.Serialize(writer, value);
         }
     }
 }
