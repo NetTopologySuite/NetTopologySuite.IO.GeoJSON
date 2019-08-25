@@ -76,7 +76,6 @@
     <!-- See https://docs.microsoft.com/en-us/dotnet/standard/library-guidance/versioning -->
     <AssemblyVersion>$(NtsMajorVersion).0.0.0</AssemblyVersion>
     <AssemblyFileVersion>$(NtsMajorVersion).$(NtsMinorVersion).$(NtsPatchVersion).$(NtsBuildNumber)</AssemblyFileVersion>
-    <InformationalVersion>$(NtsMajorVersion).$(NtsMinorVersion).$(NtsPatchVersion) (compatible with JTS $(JTSCompatibilityLevel))</InformationalVersion>
 
     <Company>NetTopologySuite - Team</Company>
 
