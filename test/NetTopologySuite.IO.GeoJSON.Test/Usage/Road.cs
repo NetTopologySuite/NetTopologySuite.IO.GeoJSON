@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using GeoAPI.Geometries;
+
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
+
 using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.GeoJSON.Test.Usage
@@ -12,6 +13,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
     public class Road : IFeature
     {
         private readonly AttributesProxy<Road> _attPrx;
+
         private Envelope _boundingBox;
         public bool BoundingBoxSet;
 
@@ -20,11 +22,14 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
             _attPrx = new AttributesProxy<Road>(this);
         }
 
-        public Road(IFeature feature) : this()
+        public Road(IFeature feature)
+            : this()
         {
             Geometry = feature.Geometry;
-            if (!(feature.BoundingBox ?? new Envelope()).IsNull)
+            if (feature.BoundingBox?.IsNull == false)
+            {
                 BoundingBox = feature.BoundingBox;
+            }
 
             _attPrx.SetValues(feature.Attributes);
         }
@@ -35,81 +40,85 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
             set => _attPrx.SetValues(value);
         }
 
-        public IGeometry Geometry { get; set; }
+        public Geometry Geometry { get; set; }
 
         public Envelope BoundingBox
         {
-            get => _boundingBox ?? (Geometry?.EnvelopeInternal ?? new Envelope());
+            get => _boundingBox ?? Geometry?.EnvelopeInternal ?? new Envelope();
             set
             {
                 _boundingBox = value;
                 BoundingBoxSet = _boundingBox != null;
-
             }
         }
 
-        public double Length
-        {
-            get { return Geometry?.Length ?? 0d; }
-        }
+        public double Length => Geometry?.Length ?? 0;
 
         public string Name { get; set; }
 
         public int NumLanes { get; set; }
 
         public bool OneWay { get; set; }
-
     }
 
     public class AttributesProxy<T> : IAttributesTable
     {
-        private static readonly Dictionary<string, Tuple<Func<object, object>, Action<object, object>, Type>>
-            ObjectAccess = new Dictionary<string, Tuple<Func<object, object>, Action<object, object>, Type>>();
+        private static readonly Dictionary<string, (Func<T, object> getter, Action<T, object> setter, Type memberType)>
+            ObjectAccess = new Dictionary<string, (Func<T, object> getter, Action<T, object> setter, Type memberType)>();
+
+        private static readonly string[] MemberNames;
+
+        private static readonly Func<T, object>[] ValueAccessors;
 
         private readonly T _instance;
 
         static AttributesProxy()
         {
-            AddFields(typeof(T));
-            AddProperties(typeof(T));
-        }
-
-        private static void AddFields(Type t)
-        {
-            foreach (var fi in t.GetFields())
+            for (var t = typeof(T); t != typeof(object); t = t.BaseType)
             {
-                var get = new Func<object, object>(fi.GetValue);
-                var set = new Action<object, object>(fi.SetValue);
+                foreach (var fi in t.GetFields())
+                {
+                    var get = new Func<T, object>(x => fi.GetValue(x));
+                    var set = new Action<T, object>((x, val) => fi.SetValue(x, val));
 
-                ObjectAccess[fi.Name] = Tuple.Create(get, set, fi.FieldType);
+                    if (!ObjectAccess.TryAdd(fi.Name, (get, set, fi.FieldType)))
+                    {
+                        throw new NotSupportedException($"name '{fi.Name}' is shadowed on type '{typeof(T)}' (duplicate was a field on type {t})");
+                    }
+                }
+
+                foreach (var pi in t.GetProperties())
+                {
+                    // ignore the properties that are actually just there to implement IFeature.
+                    switch (pi.Name)
+                    {
+                        case nameof(IFeature.Geometry):
+                        case nameof(IFeature.BoundingBox):
+                        case nameof(IFeature.Attributes):
+                            continue;
+                    }
+
+                    var get = pi.CanRead ? new Func<T, object>(x => pi.GetValue(x)) : null;
+                    var set = pi.CanWrite ? new Action<T, object>((x, val) => pi.SetValue(x, val)) : null;
+
+                    if (!ObjectAccess.TryAdd(pi.Name, (get, set, pi.PropertyType)))
+                    {
+                        throw new NotSupportedException($"name '{pi.Name}' is shadowed on type '{typeof(T)}' (duplicate was a property on type {t})");
+                    }
+                }
             }
-            if (t.BaseType != typeof(object))
-                AddFields(t.BaseType);
-        }
 
-        private static object GetNull(object item)
-        {
-            return null;
-        }
-        private static void SetNull(object item, object value)
-        {
-        }
-
-        private static void AddProperties(Type t)
-        {
-            foreach (var pi in t.GetProperties())
+            // cache these for GetNames() and GetValues()
+            MemberNames = new string[ObjectAccess.Count];
+            ValueAccessors = new Func<T, object>[ObjectAccess.Count];
+            int i = 0;
+            foreach (var (key, (getter, _, _)) in ObjectAccess)
             {
-                if (pi.Name == "Geometry" || pi.Name == "BoundingBox" ||
-                    pi.Name == "Attributes")
-                    continue;
-                var piTmp = pi;
-                var get = piTmp.CanRead ? new Func<object, object>(piTmp.GetValue) : GetNull;
-                var set = piTmp.CanWrite ?  new Action<object, object>(piTmp.SetValue) : SetNull;
+                MemberNames[i] = key;
+                ValueAccessors[i] = getter;
 
-                ObjectAccess[pi.Name] = Tuple.Create(get, set, pi.PropertyType);
+                ++i;
             }
-            if (t.BaseType != typeof(object))
-                AddProperties(t.BaseType);
         }
 
         public AttributesProxy(T instance)
@@ -117,7 +126,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
             _instance = instance;
         }
 
-        public void AddAttribute(string attributeName, object value)
+        public void Add(string attributeName, object value)
         {
             this[attributeName] = value;
         }
@@ -129,9 +138,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
 
         public Type GetType(string attributeName)
         {
-            if (ObjectAccess.TryGetValue(attributeName, out var item))
-                return item.Item3;
-            throw new ArgumentOutOfRangeException();
+            return ObjectAccess.TryGetValue(attributeName, out var item)
+                ? item.memberType
+                : throw new ArgumentOutOfRangeException();
         }
 
         public bool Exists(string attributeName)
@@ -141,50 +150,57 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
 
         public string[] GetNames()
         {
-            return ObjectAccess.Keys.ToArray();
+            return MemberNames;
         }
 
         public object[] GetValues()
         {
-            object[] res = new object[Count];
-            int i = 0;
-            foreach (var gs in ObjectAccess.Values)
-                res[i++] = gs.Item1(_instance);
-            return res;
+            return Array.ConvertAll(ValueAccessors, accessor => accessor?.Invoke(_instance));
         }
 
         public object this[string attributeName]
         {
             get
             {
-                if (ObjectAccess.TryGetValue(attributeName, out var res))
-                    return res.Item1(_instance);
-                throw new ArgumentOutOfRangeException(nameof(attributeName));
+                if (!ObjectAccess.TryGetValue(attributeName, out var tup))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(attributeName));
+                }
+
+                return tup.getter?.Invoke(_instance);
             }
+
             set
             {
-                if (ObjectAccess.TryGetValue(attributeName, out var res))
+                if (!ObjectAccess.TryGetValue(attributeName, out var tup))
                 {
-                    value = Convert.ChangeType(value, res.Item3);
-                    res.Item2(_instance, value);
-                }
-                else
                     throw new ArgumentOutOfRangeException(nameof(attributeName));
+                }
+
+                value = Convert.ChangeType(value, tup.memberType);
+                tup.setter?.Invoke(_instance, value);
             }
         }
 
-        public int Count
-        {
-            get { return ObjectAccess.Count; } 
-        }
+        public int Count => ObjectAccess.Count;
 
         public void SetValues(IAttributesTable value)
         {
             if (value == this)
+            {
                 return;
+            }
 
             foreach (string name in value.GetNames())
+            {
                 this[name] = value[name];
+            }
+        }
+
+        public object GetOptionalValue(string attributeName)
+        {
+            ObjectAccess.TryGetValue(attributeName, out var tuple);
+            return tuple.getter?.Invoke(_instance);
         }
     }
 }

@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.Converters
 {
+    using static AttributesTableExtensions;
+
     /// <summary>
     /// Converts IAttributesTable object to its JSON representation.
     /// </summary>
@@ -24,11 +26,12 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (writer == null)
+            if (writer is null)
+            {
                 throw new ArgumentNullException(nameof(writer));
+            }
 
-            var attributes = value as IAttributesTable;
-            if (attributes == null)
+            if (!(value is IAttributesTable attributes))
             {
                 writer.WriteNull();
                 return;
@@ -39,12 +42,16 @@ namespace NetTopologySuite.IO.Converters
             foreach (string name in names)
             {
                 // skip id
-                if (name == "id" && !WriteIdToProperties) continue;
+                if (name == IdPropertyName && !WriteIdToProperties)
+                {
+                    continue;
+                }
 
                 writer.WritePropertyName(name);
                 object val = attributes[name];
                 serializer.Serialize(writer, val);
             }
+
             writer.WriteEndObject();
         }
 
@@ -70,7 +77,7 @@ namespace NetTopologySuite.IO.Converters
 
             // advance
             reader.Read();
-            Utility.SkipComments(reader);
+            reader.SkipComments();
 
             // create result object
             var res = new List<object>();
@@ -85,16 +92,20 @@ namespace NetTopologySuite.IO.Converters
                         // advance
                         reader.Read();
                         break;
+
                     case JsonToken.StartArray:
                         // add new array to result
                         res.Add(InternalReadJsonArray(reader, serializer));
                         break;
+
                     case JsonToken.Comment:
                         break;
+
                     case JsonToken.EndConstructor:
                     case JsonToken.EndObject:
                     case JsonToken.PropertyName:
                         throw new JsonException("Expected token ']' or '[' token, or a value");
+
                     default:
                         // add value to list
                         res.Add(reader.Value);
@@ -102,8 +113,9 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         break;
                 }
-                Utility.SkipComments(reader);
+                reader.SkipComments();
             }
+
             // Read past end array
             reader.Read();
 
@@ -128,21 +140,26 @@ namespace NetTopologySuite.IO.Converters
             //}
 
             if (reader.TokenType != JsonToken.StartObject)
+            {
                 throw new ArgumentException("Expected token '{' not found.");
+            }
 
             // Advance reader
             reader.Read();
-            Utility.SkipComments(reader);
+            reader.SkipComments();
 
             IAttributesTable attributesTable = null;
-#if !(NETSTANDARD1_0 || NETSTANDARD1_3)
-            var feature = serializer.Context.Context as IFeature;
-            attributesTable = feature?.Attributes;
-#endif
+            if (serializer.Context.Context is IFeature feature)
+            {
+                attributesTable = feature.Attributes;
+            }
+
             if (reader.TokenType != JsonToken.Null)
             {
-                if (attributesTable == null)
+                if (attributesTable is null)
+                {
                     attributesTable = new AttributesTable();
+                }
 
                 while (reader.TokenType == JsonToken.PropertyName)
                 {
@@ -154,7 +171,10 @@ namespace NetTopologySuite.IO.Converters
                         // inner object
                         attributeValue = InternalReadJson(reader, serializer);
                         if (reader.TokenType != JsonToken.EndObject)
+                        {
                             throw new ArgumentException("Expected token '}' not found.");
+                        }
+
                         // read EndObject token
                         reader.Read();
                     }
@@ -178,15 +198,19 @@ namespace NetTopologySuite.IO.Converters
                     }
 
                     if (!attributesTable.Exists(attributeName))
-                        attributesTable.AddAttribute(attributeName, attributeValue);
+                    {
+                        attributesTable.Add(attributeName, attributeValue);
+                    }
                 }
 
-                Utility.SkipComments(reader);
+                reader.SkipComments();
             }
 
             // TODO: refactor to remove check when reading TopoJSON
             if (reader.TokenType != JsonToken.EndObject)
+            {
                 throw new ArgumentException("Expected token '}' not found.");
+            }
 
             return attributesTable;
         }

@@ -1,4 +1,3 @@
-using NetTopologySuite.CoordinateSystems;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
@@ -19,16 +18,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadFeatureCollectionTest()
         {
             const string json = "{\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56.0]},\"properties\":{\"test1\":\"value1\"}}],\"type\":\"FeatureCollection\",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"name1\"}}}";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection result = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var result = reader.Read<FeatureCollection>(json);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.Count);
-            Assert.IsNotNull(result.CRS);
-            Assert.IsInstanceOf(typeof(NamedCRS), result.CRS);
-            Assert.AreEqual(CRSTypes.Name, result.CRS.Type);
-            NamedCRS crs = (NamedCRS)result.CRS;
-            Assert.AreEqual("name1", crs.Properties["name"]);
         }
 
         ///<summary>
@@ -38,11 +32,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadFeatureTest()
         {
             const string json = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56]},\"properties\":{\"test1\":\"value1\"}}";
-            IFeature result = new GeoJsonReader().Read<Feature>(json);
+            var result = new GeoJsonReader().Read<Feature>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Point), result.Geometry);
-            Point p = (Point)result.Geometry;
+            var p = (Point)result.Geometry;
             Assert.AreEqual(23, p.X);
             Assert.AreEqual(56, p.Y);
             Assert.IsNotNull(result.Attributes);
@@ -57,11 +51,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadFeatureWithBboxTest()
         {
             const string json = "{\"type\":\"Feature\",\"bbox\": [-180.0, -90.0, 180.0, 90.0],\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56]},\"properties\":{\"test1\":\"value1\"}}";
-            IFeature result = new GeoJsonReader().Read<Feature>(json);
+            var result = new GeoJsonReader().Read<Feature>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Point), result.Geometry);
-            Point p = (Point)result.Geometry;
+            var p = (Point)result.Geometry;
             Assert.AreEqual(23, p.X);
             Assert.AreEqual(56, p.Y);
             Assert.IsNotNull(result.Attributes);
@@ -76,11 +70,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadFeatureWithCoordinatesBeforeTypeTest()
         {
             const string json = "{\"type\":\"Feature\",\"geometry\":{\"coordinates\":[23.0,56.0], \"type\":\"Point\"},\"properties\":{\"test1\":\"value1\"}}";
-            IFeature result = new GeoJsonReader().Read<Feature>(json);
+            var result = new GeoJsonReader().Read<Feature>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Point), result.Geometry);
-            Point p = (Point)result.Geometry;
+            var p = (Point)result.Geometry;
             Assert.AreEqual(23, p.X);
             Assert.AreEqual(56, p.Y);
             Assert.IsNotNull(result.Attributes);
@@ -92,29 +86,14 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         ///   A test for GeoJsonReader Read method
         ///</summary>
         [Test]
-        public void GeoJsonReaderReadCRSTest()
-        {
-            const string json = "{\"type\":\"name\",\"properties\":{\"name\":\"name1\"}}";
-            CRSBase result = new GeoJsonReader().Read<CRSBase>(json);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(CRSTypes.Name, result.Type);
-            Assert.IsNotNull(result.Properties);
-            Assert.AreEqual("name1", result.Properties["name"]);
-        }
-
-        ///<summary>
-        ///   A test for GeoJsonReader Read method
-        ///</summary>
-        [Test]
         public void GeoJsonReaderReadGeometryPointTest()
         {
             const string json = "{\"type\":\"Point\",\"coordinates\":[23.0,56.0]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Point), result);
-            Point p = (Point)result;
+            var p = (Point)result;
             Assert.AreEqual(23, p.X);
             Assert.AreEqual(56, p.Y);
         }
@@ -126,11 +105,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryLineStringTest()
         {
             const string json = "{\"type\": \"LineString\",\"coordinates\": [ [100.0, 0.0], [101.0, 1.0] ]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(LineString), result);
-            LineString ls = (LineString)result;
+            var ls = (LineString)result;
             Assert.AreEqual(2, ls.Coordinates.Length);
             Assert.AreEqual(100, ls.Coordinates[0].X);
             Assert.AreEqual(0, ls.Coordinates[0].Y);
@@ -145,11 +124,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryPolygonTest()
         {
             const string json = "{\"type\": \"Polygon\",\"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Polygon), result);
-            Polygon poly = (Polygon)result;
+            var poly = (Polygon)result;
             Assert.AreEqual(5, poly.Coordinates.Length);
             Assert.AreEqual(100, poly.Coordinates[0].X);
             Assert.AreEqual(0, poly.Coordinates[0].Y);
@@ -170,11 +149,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryPolygonWithHoleTest()
         {
             const string json = "{\"type\": \"Polygon\",\"coordinates\": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]], [[100.2, 0.2], [100.8, 0.2], [100.8, 0.8], [100.2, 0.8], [100.2, 0.2]]]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(Polygon), result);
-            Polygon poly = (Polygon)result;
+            var poly = (Polygon)result;
 
             Assert.AreEqual(1, poly.NumInteriorRings);
             Assert.AreEqual(100, poly.ExteriorRing.Coordinates[0].X);
@@ -207,11 +186,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryMultiPointTest()
         {
             const string json = "{\"type\": \"MultiPoint\",\"coordinates\": [[100.0, 0.0], [101.0, 1.0]]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(MultiPoint), result);
-            MultiPoint multiPoint = (MultiPoint)result;
+            var multiPoint = (MultiPoint)result;
 
             Assert.AreEqual(2, multiPoint.Coordinates.Length);
             Assert.AreEqual(2, multiPoint.NumGeometries);
@@ -229,11 +208,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryMultiLineStringTest()
         {
             const string json = "{\"type\": \"MultiLineString\",\"coordinates\": [[[100.0, 0.0], [101.0, 1.0]], [[102.0, 2.0], [103.0, 3.0]]]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(MultiLineString), result);
-            MultiLineString multiLineString = (MultiLineString)result;
+            var multiLineString = (MultiLineString)result;
 
             Assert.AreEqual(2, multiLineString.NumGeometries);
             Assert.AreEqual(100, multiLineString.Coordinates[0].X);
@@ -254,11 +233,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryMultiPolygonTest()
         {
             const string json = "{\"type\": \"MultiPolygon\",\"coordinates\": [[[[102.0, 2.0], [103.0, 2.0], [103.0, 3.0], [102.0, 3.0], [102.0, 2.0]]],[[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]], [[100.2, 0.2], [100.8, 0.2], [100.8, 0.8], [100.2, 0.8], [100.2, 0.2]]]]}";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(MultiPolygon), result);
-            MultiPolygon multiPolygon = (MultiPolygon)result;
+            var multiPolygon = (MultiPolygon)result;
 
             Assert.AreEqual(2, multiPolygon.NumGeometries);
 
@@ -310,11 +289,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void GeoJsonReaderReadGeometryCollectionTest()
         {
             const string json = "{\"type\": \"GeometryCollection\", \"geometries\": [{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]}, { \"type\": \"LineString\", \"coordinates\": [ [101.0, 0.0], [102.0, 1.0]]}] }";
-            Geometry result = new GeoJsonReader().Read<Geometry>(json);
+            var result = new GeoJsonReader().Read<Geometry>(json);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOf(typeof(GeometryCollection), result);
-            GeometryCollection geometryCollection = (GeometryCollection)result;
+            var geometryCollection = (GeometryCollection)result;
             Assert.AreEqual(2, geometryCollection.Count);
 
             var point = (Point)geometryCollection.GetGeometryN(0);

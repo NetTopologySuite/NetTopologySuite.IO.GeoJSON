@@ -1,8 +1,4 @@
-﻿using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.IO;
-using GeoAPI.Geometries;
+﻿using System.Diagnostics;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NUnit.Framework;
@@ -19,7 +15,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
         }
 
-        protected AbstractIOFixture(IGeometryFactory factory)
+        protected AbstractIOFixture(GeometryFactory factory)
         {
             RandomGeometryHelper = new RandomGeometryHelper(factory);
         }
@@ -27,86 +23,6 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         private int _counter;
 
         public int Counter { get { return ++_counter; } }
-
-        [SetUp]
-        public virtual void OnFixtureSetUp()
-        {
-            try
-            {
-                CheckAppConfigPresent();
-                CreateTestStore();
-            }
-            catch (Exception ex)
-            {
-                throw new IgnoreException("Fixture setup failed", ex);
-            }
-        }
-
-        [TearDown]
-        public virtual void OnFixtureTearDown() { }
-
-        private void CheckAppConfigPresent()
-        {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NetTopologySuite.IO.GeoJSON.Test.dll.config");
-            if (!File.Exists(path))
-                CreateAppConfig();
-            UpdateAppConfig();
-            ReadAppConfig();
-        }
-
-        private void UpdateAppConfig()
-        {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-            KeyValueConfigurationCollection appSettings = config.AppSettings.Settings;
-            AddAppConfigSpecificItems(appSettings);
-            config.Save(ConfigurationSaveMode.Full);
-            ConfigurationManager.RefreshSection("appSettings");
-
-        }
-
-        private void CreateAppConfig()
-        {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-            KeyValueConfigurationCollection appSettings = config.AppSettings.Settings;
-
-            appSettings.Add("PrecisionModel", "Floating");
-            appSettings.Add("Ordinates", "XY");
-            appSettings.Add("MinX", "-180");
-            appSettings.Add("MaxX", "180");
-            appSettings.Add("MinY", "-90");
-            appSettings.Add("MaxY", "90");
-            appSettings.Add("Srid", "4326");
-
-            config.Save(ConfigurationSaveMode.Full);
-            ConfigurationManager.RefreshSection("appSettings");
-        }
-
-        protected abstract void AddAppConfigSpecificItems(KeyValueConfigurationCollection kvcc);
-
-        private void ReadAppConfig()
-        {
-            AppSettingsReader asr = new AppSettingsReader();
-            SRID = (int)asr.GetValue("Srid", typeof(int));
-            string pm = (string)asr.GetValue("PrecisionModel", typeof(string));
-            int scale;
-            PrecisionModel = int.TryParse(pm, out scale)
-                ? new PrecisionModel(scale)
-                : new PrecisionModel((PrecisionModels)Enum.Parse(typeof(PrecisionModels), pm));
-            MinX = (double)asr.GetValue("MinX", typeof(double));
-            MaxX = (double)asr.GetValue("MaxX", typeof(double));
-            MinY = (double)asr.GetValue("MinY", typeof(double));
-            MaxY = (double)asr.GetValue("MaxY", typeof(double));
-            string ordinatesString = (string)asr.GetValue("Ordinates", typeof(string));
-            Ordinates ordinates = (Ordinates)Enum.Parse(typeof(Ordinates), ordinatesString);
-            RandomGeometryHelper.Ordinates = ordinates;
-            ReadAppConfigInternal(asr);
-        }
-
-        protected virtual void ReadAppConfigInternal(AppSettingsReader asr) { }
-
-        public string ConnectionString { get; protected set; }
 
         public int SRID
         {
@@ -116,9 +32,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             }
             protected set
             {
-                PrecisionModel oldPM = new PrecisionModel();
+                var oldPM = new PrecisionModel();
                 if (RandomGeometryHelper != null)
-                    oldPM = (PrecisionModel)RandomGeometryHelper.Factory.PrecisionModel;
+                    oldPM = RandomGeometryHelper.Factory.PrecisionModel;
                 Debug.Assert(RandomGeometryHelper != null, "RandomGeometryHelper != null");
                 if (RandomGeometryHelper.Factory is OgcCompliantGeometryFactory)
                     RandomGeometryHelper.Factory = new OgcCompliantGeometryFactory(oldPM, value);
@@ -131,7 +47,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             get
             {
-                return (PrecisionModel)RandomGeometryHelper.Factory.PrecisionModel;
+                return RandomGeometryHelper.Factory.PrecisionModel;
             }
             protected set
             {
@@ -141,9 +57,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 if (value == PrecisionModel)
                     return;
 
-                IGeometryFactory factory = RandomGeometryHelper.Factory;
+                var factory = RandomGeometryHelper.Factory;
                 int oldSrid = factory != null ? factory.SRID : 0;
-                ICoordinateSequenceFactory oldFactory = factory != null
+                var oldFactory = factory != null
                                      ? factory.CoordinateSequenceFactory
                                      : CoordinateArraySequenceFactory.Instance;
 
@@ -188,32 +104,27 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             }
         }
 
-        /// <summary>
-        /// Function to create the test table and add some data
-        /// </summary>
-        protected abstract void CreateTestStore();
-
-        public void PerformTest(IGeometry gIn)
+        public void PerformTest(Geometry gIn)
         {
-            WKTWriter writer = new WKTWriter(2) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
+            var writer = new WKTWriter(2) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
             byte[] b = null;
             Assert.DoesNotThrow(() => b = Write(gIn), "Threw exception during write:\n{0}", writer.WriteFormatted(gIn));
 
-            IGeometry gParsed = null;
+            Geometry gParsed = null;
             Assert.DoesNotThrow(() => gParsed = Read(b), "Threw exception during read:\n{0}", writer.WriteFormatted(gIn));
 
             Assert.IsNotNull(gParsed, "Could not be parsed\n{0}", gIn);
             CheckEquality(gIn, gParsed, writer);
         }
 
-        protected virtual void CheckEquality(IGeometry gIn, IGeometry gParsed, WKTWriter writer)
+        protected virtual void CheckEquality(Geometry gIn, Geometry gParsed, WKTWriter writer)
         {
             Assert.IsTrue(gIn.EqualsExact(gParsed), "Instances are not equal\n{0}\n\n{1}", gIn, gParsed);
         }
 
-        protected abstract IGeometry Read(byte[] b);
+        protected abstract Geometry Read(byte[] b);
 
-        protected abstract byte[] Write(IGeometry gIn);
+        protected abstract byte[] Write(Geometry gIn);
 
         [Test]
         public virtual void TestPoint()

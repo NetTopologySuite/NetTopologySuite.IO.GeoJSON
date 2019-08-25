@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -13,21 +12,21 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     [TestFixture]
     public class Issue148Fixture
     {
-        readonly IGeometryFactory factory = GeometryFactory.Default;
+        readonly GeometryFactory factory = GeometryFactory.Default;
 
-        private static IGeometry[] geometries;
-        private static IGeometryCollection collection;
+        private static Geometry[] geometries;
+        private static GeometryCollection collection;
         private static string serializedGeometries;
         private static string serializedCollection;
 
         [SetUp]
         public void SetUp()
         {
-            IPoint point = factory.CreatePoint(new Coordinate(1, 1));
-            ILineString linestring = factory.CreateLineString(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), });
-            ILinearRing shell = factory.CreateLinearRing(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), new Coordinate(1, 1) });
-            IPolygon polygon = factory.CreatePolygon(shell);
-            geometries = new IGeometry[] { point, linestring, polygon };
+            var point = factory.CreatePoint(new Coordinate(1, 1));
+            var linestring = factory.CreateLineString(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), });
+            var shell = factory.CreateLinearRing(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), new Coordinate(1, 1) });
+            var polygon = factory.CreatePolygon(shell);
+            geometries = new Geometry[] { point, linestring, polygon };
             serializedGeometries = //"\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
                 "[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
 
@@ -38,9 +37,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test]
         public void serialize_an_array_of_geometries_should_return_a_json_fragment()
         {
-            StringBuilder sb = new StringBuilder();
-            JsonTextWriter writer = new JsonTextWriter(new StringWriter(sb));
-            JsonSerializer serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
+            var sb = new StringBuilder();
+            var writer = new JsonTextWriter(new StringWriter(sb));
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
             serializer.Serialize(writer, geometries);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -50,9 +49,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test]
         public void serialize_a_geometrycollection_should_return_a_valid_json()
         {
-            StringBuilder sb = new StringBuilder();
-            JsonTextWriter writer = new JsonTextWriter(new StringWriter(sb));
-            JsonSerializer serializer = GeoJsonSerializer.Create();
+            var sb = new StringBuilder();
+            var writer = new JsonTextWriter(new StringWriter(sb));
+            var serializer = GeoJsonSerializer.Create();
             serializer.Serialize(writer, collection);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -62,17 +61,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test, Ignore("Behavior changed")]
         public void deserialize_a_json_fragment_should_throws_an_error()
         {
-            JsonTextReader reader = new JsonTextReader(new StringReader(serializedGeometries));
-            JsonSerializer serializer = GeoJsonSerializer.Create(factory);
-            Assert.Throws<JsonReaderException>(() => serializer.Deserialize<IGeometry[]>(reader));
+            var reader = new JsonTextReader(new StringReader(serializedGeometries));
+            var serializer = GeoJsonSerializer.Create(factory);
+            Assert.Throws<JsonReaderException>(() => serializer.Deserialize<Geometry[]>(reader));
         }
 
         [Test]
         public void deserialize_a_valid_json_should_return_a_geometrycollection()
         {
-            JsonTextReader reader = new JsonTextReader(new StringReader(serializedCollection));
-            JsonSerializer serializer = GeoJsonSerializer.Create(factory);
-            IGeometryCollection actual = serializer.Deserialize<GeometryCollection>(reader);
+            var reader = new JsonTextReader(new StringReader(serializedCollection));
+            var serializer = GeoJsonSerializer.Create(factory);
+            var actual = serializer.Deserialize<GeometryCollection>(reader);
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual.EqualsExact(collection), Is.True);
         }
@@ -80,7 +79,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test]
         public void howto_serialize_geometries()
         {
-            GeoJsonWriter writer = new GeoJsonWriter();
+            var writer = new GeoJsonWriter();
             string actual = writer.Write(collection);
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual, Is.EqualTo(serializedCollection));
@@ -89,8 +88,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test]
         public void howto_deserialize_geometries()
         {
-            GeoJsonReader reader = new GeoJsonReader();
-            IGeometry actual = reader.Read<GeometryCollection>(serializedCollection);
+            var reader = new GeoJsonReader();
+            Geometry actual = reader.Read<GeometryCollection>(serializedCollection);
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual.EqualsExact(collection), Is.True);
         }

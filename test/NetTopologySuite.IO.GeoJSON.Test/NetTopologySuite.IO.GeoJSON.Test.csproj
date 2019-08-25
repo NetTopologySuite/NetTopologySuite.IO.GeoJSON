@@ -1,29 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-
-    <IsPackable>false</IsPackable>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="World_AL6.GeoJson" />
+    <EmbeddedResource Include="*.GeoJson" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="World_AL6.GeoJson" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NetTopologySuite.Core" Version="1.15.0" />
-    <PackageReference Include="nunit" Version="3.9.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj" />
+    <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj" />
   </ItemGroup>
 
 </Project>

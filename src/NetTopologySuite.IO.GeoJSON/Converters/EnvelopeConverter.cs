@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using GeoAPI.Geometries;
+using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NetTopologySuite.IO.Converters
 {
-
     /// <summary>
     /// Convertes <see cref="Envelope"/>s to and from JSON
     /// </summary>
@@ -21,8 +20,7 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            Envelope envelope = value as Envelope;
-            if (envelope == null)
+            if (!(value is Envelope envelope))
             {
                 writer.WriteToken(null);
                 return;
@@ -52,7 +50,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (reader.TokenType != JsonToken.Null)
             {
-                JArray envelope = serializer.Deserialize<JArray>(reader);
+                var envelope = serializer.Deserialize<JArray>(reader);
                 Debug.Assert(envelope.Count == 4);
 
                 double minX = double.Parse((string)envelope[0], NumberFormatInfo.InvariantInfo);

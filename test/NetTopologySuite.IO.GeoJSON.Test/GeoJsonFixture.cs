@@ -3,10 +3,7 @@
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
     using System;
-    using System.Configuration;
     using System.IO;
-
-    using GeoAPI.Geometries;
 
     using NUnit.Framework;
 
@@ -15,15 +12,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
     public class GeoJsonFixture : AbstractIOFixture
     {
-        protected override void AddAppConfigSpecificItems(KeyValueConfigurationCollection kvcc)
-        {
-        }
-
-        protected override void CreateTestStore()
-        {
-        }
-
-        protected override IGeometry Read(byte[] b)
+        protected override Geometry Read(byte[] b)
         {
             string json;
             using (var ms = new MemoryStream(b))
@@ -56,10 +45,10 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             }
         }
 
-        protected override byte[] Write(IGeometry gIn)
+        protected override byte[] Write(Geometry gIn)
         {
             var gjw = new GeoJsonWriter();
-            var res = gjw.Write(gIn);
+            string res = gjw.Write(gIn);
             using (var ms = new MemoryStream(res.Length))
             {
                 using (var s = new StreamWriter(ms))

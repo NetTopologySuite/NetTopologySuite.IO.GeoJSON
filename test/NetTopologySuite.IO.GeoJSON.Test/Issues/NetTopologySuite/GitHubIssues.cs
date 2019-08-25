@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.IO;
 using System.Text;
-using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -19,43 +18,39 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test(Description = "Testcase for Issue 83")]
         public void TestIssue83()
         {
-            var geoJson = @"{ ""type"": ""Feature"", 
+            const string geoJson = @"{ ""type"": ""Feature"", 
                               ""geometry"": { ""type"": ""Point"", ""coordinates"": [10.0, 60.0] }, 
                               ""id"": 1, 
                              ""properties"": { ""Name"": ""test"" } }";
 
             var s = GeoJsonSerializer.Create(GeometryFactory.Default);
             Feature f = null;
-            Assert.DoesNotThrow(() =>
-                f = s.Deserialize<Feature>(new JsonTextReader(new StringReader(geoJson)))
-                );
+            Assert.That(() => f = s.Deserialize<Feature>(new JsonTextReader(new StringReader(geoJson))), Throws.Nothing);
 
-            Assert.IsNotNull(f, "f != null");
-            Assert.IsTrue(FeatureExtensions.HasID(f), "f.HasID()");
-            Assert.AreEqual(1, FeatureExtensions.ID(f), "f.ID != 1");
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo(1));
 
             var sb = new StringBuilder();
             var tw = new JsonTextWriter(new StringWriter(sb));
             s.Serialize(tw, f);
-            var geoJsonRes = sb.ToString();
+            string geoJsonRes = sb.ToString();
 
             CompareJson(geoJson, geoJsonRes);
         }
 
         public void CompareJson(string expectedJson, string json)
         {
-            JToken e = JToken.Parse(expectedJson);
-            JToken j = JToken.Parse(json);
-            if (!JToken.DeepEquals(e, j))
-                Assert.Fail("The json's do not match:\n1: {0}\n2:{1}", expectedJson, json);
+            var e = JToken.Parse(expectedJson);
+            var j = JToken.Parse(json);
+            Assert.That(JToken.DeepEquals(e, j), "The json's do not match:\n1: {0}\n2:{1}", expectedJson, json);
         }
-
 
         [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88WithoutAdditionalProperties()
         {
-            string expectedJson = @"
+            const string expectedJson = @"
 {
 	""id"" : ""00000000-0000-0000-0000-000000000000"",
 	""type"" : ""Feature"",
@@ -67,32 +62,35 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
 
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var serializer = GeoJsonSerializer.CreateDefault();
             Feature feat = null;
-            Assert.DoesNotThrow(() =>
+            Assert.That(() =>
             {
                 using (JsonReader reader = new JsonTextReader(new StringReader(expectedJson)))
+                {
                     feat = serializer.Deserialize<Feature>(reader);
-            });
+                }
+            }, Throws.Nothing);
 
-            Assert.IsNotNull(feat);
-            Assert.IsTrue(FeatureExtensions.HasID(feat));
-            Assert.AreEqual("00000000-0000-0000-0000-000000000000", FeatureExtensions.ID(feat));
-            IGeometry geometry = feat.Geometry;
-            Assert.IsNull(geometry);
-            IAttributesTable attributes = feat.Attributes;
-            Assert.IsNotNull(attributes);
-            Assert.AreEqual(3, attributes.Count);
-            Assert.AreEqual(FeatureExtensions.ID(feat), attributes["id"]);
-            Assert.AreEqual(false, attributes["yesNo 1"]);
-            Assert.AreEqual(DateTime.Parse("2016-02-16T00:00:00", CultureInfo.InvariantCulture), attributes["date 1"]);
+            Assert.That(feat, Is.Not.Null);
+            Assert.That(feat.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("00000000-0000-0000-0000-000000000000"));
+            Assert.That(feat.Geometry, Is.Null);
+
+            var attributes = feat.Attributes;
+            Assert.That(attributes, Is.Not.Null);
+            Assert.That(attributes.Count, Is.EqualTo(3));
+            Assert.That(attributes.Exists("yesNo 1"));
+            Assert.That(attributes["yesNo 1"], Is.False);
+            Assert.That(attributes.Exists("date 1"));
+            Assert.That(attributes["date 1"], Is.EqualTo(DateTime.Parse("2016-02-16T00:00:00", CultureInfo.InvariantCulture)));
         }
 
         [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88WithFlatProperties()
         {
-            string expectedJson = @"
+            const string expectedJson = @"
 {
 	""id"" : ""00000000-0000-0000-0000-000000000000"",
 	""type"" : ""Feature"",
@@ -109,23 +107,25 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
 
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             Feature feat = null;
-            Assert.DoesNotThrow(() =>
+            Assert.That(() =>
             {
                 using (JsonReader reader = new JsonTextReader(new StringReader(expectedJson)))
+                {
                     feat = serializer.Deserialize<Feature>(reader);
-            });
+                }
+            }, Throws.Nothing);
 
-            Assert.IsNotNull(feat);
-            Assert.IsNull(feat.Geometry);
+            Assert.That(feat, Is.Not.Null);
+            Assert.That(feat.Geometry, Is.Null);
         }
 
         [NtsIssueNumber(88)]
         [Test(Description = "Testcase for Issue 88")]
         public void TestIssue88()
         {
-            string expectedJson = @"
+            const string expectedJson = @"
 {
 	""id"" : ""00000000-0000-0000-0000-000000000000"",
 	""type"" : ""Feature"",
@@ -144,16 +144,18 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
 
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var serializer = GeoJsonSerializer.CreateDefault(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             Feature feat = null;
-            Assert.DoesNotThrow(() =>
+            Assert.That(() =>
             {
                 using (JsonReader reader = new JsonTextReader(new StringReader(expectedJson)))
+                {
                     feat = serializer.Deserialize<Feature>(reader);
-            });
+                }
+            }, Throws.Nothing);
 
-            Assert.IsNotNull(feat);
-            Assert.IsNull(feat.Geometry);
+            Assert.That(feat, Is.Not.Null);
+            Assert.That(feat.Geometry, Is.Null);
         }
 
         private Feature _feature;
@@ -198,7 +200,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
             var featureCollection = _reader.Read<FeatureCollection>(geojsonString);
-            Assert.AreEqual(1, featureCollection.Count);
+            Assert.That(featureCollection, Has.Count.EqualTo(1));
         }
 
         [NtsIssueNumber(92)]
@@ -230,20 +232,20 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
             var featureCollection = _reader.Read<FeatureCollection>(geojsonString);
-            var written = _writer.Write(featureCollection);
-            Assert.IsTrue(written.Contains("FeatureCollection"));
+            string written = _writer.Write(featureCollection);
+            Assert.That(written, Contains.Substring("FeatureCollection"));
         }
 
         [NtsIssueNumber(92)]
         [Test(Description = "Testcase for GitHub Issue 92")]
         public void WhenArrayOfIntArraysPropertyInFeatureThenWritable()
         {
-            var arrayOfInts = new[] { 1, 2, 3 };
-            var anotherArrayOfInts = new[] { 4, 5, 6 };
-            var arrayOfArrays = new[] { arrayOfInts, anotherArrayOfInts };
-            _feature.Attributes.AddAttribute("foo", arrayOfArrays);
-            var written = _writer.Write(_feature);
-            Assert.IsTrue(written.Contains("Feature"));
+            int[] arrayOfInts = { 1, 2, 3 };
+            int[] anotherArrayOfInts = { 4, 5, 6 };
+            int[][] arrayOfArrays = { arrayOfInts, anotherArrayOfInts };
+            _feature.Attributes.Add("foo", arrayOfArrays);
+            string written = _writer.Write(_feature);
+            Assert.That(written, Contains.Substring("Feature"));
         }
 
         [NtsIssueNumber(92)]
@@ -286,7 +288,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
             var featureCollection = _reader.Read<FeatureCollection>(geojsonString);
-            Assert.AreEqual(1, featureCollection.Count);
+            Assert.That(featureCollection, Has.Count.EqualTo(1));
         }
 
         [NtsIssueNumber(93)]
@@ -311,7 +313,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }
 ";
             var featureCollection = new GeoJsonReader().Read<FeatureCollection>(geojsonString);
-            Assert.AreEqual(1, featureCollection.Count);
+            Assert.That(featureCollection, Has.Count.EqualTo(1));
         }
 
         [NtsIssueNumber(95)]
@@ -336,9 +338,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
   ""bbox"":[ -8.59, 4.35, -2.49, 10.73 ] 
 }";
             var featureCollection = new GeoJsonReader().Read<FeatureCollection>(geoJsonString);
-            Assert.AreEqual(1, featureCollection.Count);
-            Assert.That(FeatureExtensions.HasID(featureCollection[0]));
-            var res = new GeoJsonWriter().Write(featureCollection);
+            Assert.That(featureCollection, Has.Count.EqualTo(1));
+            string res = new GeoJsonWriter().Write(featureCollection);
             CompareJson(geoJsonString, res);
         }
 
@@ -351,31 +352,28 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
             var f2 = SandD(f1);
             DoCheck(f1, f2);
 
-            var t1 = new TestFeature { Geometry = f1.Geometry };
+            var t1 = new Feature { Geometry = f1.Geometry };
             var t2 = SandD(t1);
             DoCheck(t1, t2);
 
             string jsonWithoutProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]}}";
             DoCheck(jsonWithoutProps);
             string jsonWithValidProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]},\"properties\":{\"aaa\":1,\"bbb\":2}}";
-            DoCheck(jsonWithValidProps, false);
+            DoCheck(jsonWithValidProps);
             string jsonWithNullProps = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-104.50348159865847,40.891762392617345]},\"properties\":null}";
             DoCheck(jsonWithNullProps);
         }
 
-        private static void DoCheck(string json, bool nullProps = true)
+        private static void DoCheck(string json)
         {
-            GeoJsonReader reader = new GeoJsonReader();
-            Feature feature = reader.Read<Feature>(json);
-            Assert.IsNotNull(feature);
-            IGeometry geometry = feature.Geometry;
-            Assert.IsNotNull(geometry);
-            Assert.IsInstanceOf<IPoint>(geometry);
-            Assert.AreEqual(nullProps, feature.Attributes == null);
-            Assert.IsNull(feature.BoundingBox);
+            var reader = new GeoJsonReader();
+            var feature = reader.Read<Feature>(json);
+            Assert.That(feature, Is.Not.Null);
+            Assert.That(feature.Geometry, Is.InstanceOf<Point>());
+            Assert.That(feature.BoundingBox, Is.Null);
         }
 
-        private static IFeature SandD(IFeature input)
+        private static Feature SandD(Feature input)
         {
             var s = GeoJsonSerializer.Create(
                 new JsonSerializerSettings
@@ -385,186 +383,52 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
                     FloatParseHandling = FloatParseHandling.Double
                 }, input.Geometry.Factory ?? GeometryFactory.Default);
             var sb = new StringBuilder();
-            s.Serialize(new JsonTextWriter(new StringWriter(sb)), input, typeof(IFeature));
-            return (IFeature)s.Deserialize<IFeature>(new JsonTextReader(new StringReader(sb.ToString())));
+            s.Serialize(new JsonTextWriter(new StringWriter(sb)), input, typeof(Feature));
+            return s.Deserialize<Feature>(new JsonTextReader(new StringReader(sb.ToString())));
 
         }
 
-        private static void DoCheck(IFeature f1, IFeature f2)
+        private static void DoCheck(Feature f1, Feature f2)
         {
-            if (f1 == null)
+            if (f1 is null)
             {
                 Assert.That(f2, Is.Null);
                 return;
             }
-            if (f1.Geometry != null) Assert.That(f2.Geometry, Is.Not.Null, "f2.Geometry is not null");
-            if (f1.Geometry != null) Assert.That(f1.Geometry.EqualsExact(f2.Geometry), Is.True, "f1.Geometry.EqualsExact(f2.Geometry)");
-            if (f1.BoundingBox != null)
-            {
-                if (f1.BoundingBox.Equals(f2.BoundingBox))
-                    Assert.That(true, Is.True);
-                else
-                {
-                    Assert.That(Math.Abs(f1.BoundingBox.MinX - f2.BoundingBox.MinX), Is.LessThanOrEqualTo(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
-                    Assert.That(Math.Abs(f1.BoundingBox.MaxX - f2.BoundingBox.MaxX), Is.LessThanOrEqualTo(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
-                    Assert.That(Math.Abs(f1.BoundingBox.MinY - f2.BoundingBox.MinY), Is.LessThanOrEqualTo(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
-                    Assert.That(Math.Abs(f1.BoundingBox.MaxY - f2.BoundingBox.MaxY), Is.LessThanOrEqualTo(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
-                }
 
-            }
-            if (f1.Attributes != null)
+            if (!(f1.Geometry is null))
             {
-                Assert.That(f2.Attributes, Is.Not.Null);
-                var names1 = f1.Attributes.GetNames();
-                var names2 = f2.Attributes.GetNames();
-                Assert.That(names1.Length, Is.EqualTo(names2.Length));
-                foreach (var name in names1)
+                Assert.That(f2.Geometry, Is.Not.Null, "f2.Geometry is not null");
+                Assert.That(f1.Geometry.EqualsExact(f2.Geometry), "f1.Geometry.EqualsExact(f2.Geometry)");
+            }
+
+            if (!(f1.BoundingBox is null))
+            {
+                if (!Equals(f1.BoundingBox, f2.BoundingBox))
                 {
-                    var v1 = f1.Attributes[name];
-                    object v2 = null;
-                    Assert.DoesNotThrow(() => v2 = f2.Attributes[name]);
-                    if (v1 == null)
+                    Assert.Multiple(() =>
                     {
-                        Assert.That(v2, Is.Null);
-                    }
-                    else
-                    {
-                        Assert.That(v1, Is.EqualTo(v2));
-                    }
+                        Assert.That(f1.BoundingBox.MinX, Is.EqualTo(f2.BoundingBox.MinX).Within(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
+                        Assert.That(f1.BoundingBox.MaxX, Is.EqualTo(f2.BoundingBox.MaxX).Within(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
+                        Assert.That(f1.BoundingBox.MinY, Is.EqualTo(f2.BoundingBox.MinY).Within(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
+                        Assert.That(f1.BoundingBox.MaxY, Is.EqualTo(f2.BoundingBox.MaxY).Within(1e-10), "f1.BoundingBox.Equals(f2.BoundingBox)");
+                    });
                 }
+            }
+
+            if (f1.Attributes is null)
+            {
+                Assert.That(f2.Attributes, Is.Null);
             }
             else
-                Assert.That(f2.Attributes, Is.Null);
-        }
-
-
-        private class TestFeature : IFeature
-        {
-            private readonly AttributeMapper _mapper;
-
-            public TestFeature()
             {
-                _mapper = new AttributeMapper(this);
-                Item1 = true;
-                Item2 = "The quick brown fox jumped over the fence.";
-                Item3 = double.Epsilon;
-                Item4 = new[] { 1, 2, 3, 4 };
-            }
-
-            public IAttributesTable Attributes
-            {
-                get { return _mapper; }
-                set { throw new NotSupportedException(); }
-            }
-
-            public IGeometry Geometry { get; set; }
-
-            public Envelope BoundingBox
-            {
-                get { return Geometry != null ? Geometry.EnvelopeInternal : null; }
-                set { throw new NotSupportedException(); }
-            }
-
-            public bool Item1 { get; set; }
-            public string Item2 { get; set; }
-
-            public double Item3 { get; set; }
-
-            public int[] Item4 { get; set; }
-
-            private class AttributeMapper : IAttributesTable
-            {
-                private readonly TestFeature _feature;
-                public AttributeMapper(TestFeature feature)
+                Assert.That(f2.Attributes, Is.Not.Null);
+                string[] names1 = f1.Attributes.GetNames();
+                string[] names2 = f2.Attributes.GetNames();
+                Assert.That(names2, Is.EqualTo(names1));
+                foreach (string name in names1)
                 {
-                    _feature = feature;
-                }
-                public void AddAttribute(string attributeName, object value)
-                {
-                    switch (attributeName.ToLowerInvariant())
-                    {
-                        case "item1":
-                            _feature.Item1 = (bool)value;
-                            break;
-                        case "item2":
-                            _feature.Item2 = (string)value;
-                            break;
-                        case "item3":
-                            _feature.Item3 = (double)value;
-                            break;
-                        case "item4":
-                            _feature.Item4 = (int[])value;
-                            break;
-                        default:
-                            throw new ArgumentException("attributeName");
-                    }
-                }
-
-                public void DeleteAttribute(string attributeName)
-                {
-                    throw new NotSupportedException();
-                }
-
-                public Type GetType(string attributeName)
-                {
-                    switch (attributeName.ToLowerInvariant())
-                    {
-                        case "item1":
-                            return _feature.Item1.GetType();
-                        case "item2":
-                            return _feature.Item2.GetType();
-                        case "item3":
-                            return _feature.Item3.GetType();
-                        case "item4":
-                            return _feature.Item4.GetType();
-                    }
-                    throw new ArgumentException("attributeName");
-                }
-
-                public object this[string attributeName]
-                {
-                    get
-                    {
-                        switch (attributeName.ToLowerInvariant())
-                        {
-                            case "item1":
-                                return _feature.Item1;
-                            case "item2":
-                                return _feature.Item2;
-                            case "item3":
-                                return _feature.Item3;
-                            case "item4":
-                                return _feature.Item4;
-                            default:
-                                throw new ArgumentException("attributeName");
-                        }
-                    }
-                    set { AddAttribute(attributeName, value); }
-                }
-
-                public bool Exists(string attributeName)
-                {
-                    switch (attributeName.ToLowerInvariant())
-                    {
-                        case "item1":
-                        case "item2":
-                        case "item3":
-                        case "item4":
-                            return true;
-                    }
-                    return false;
-                }
-
-                public int Count { get { return 4; } }
-                public string[] GetNames()
-                {
-                    return new[] { "Item1", "Item2", "Item3", "Item4" };
-                }
-
-                public object[] GetValues()
-                {
-                    return new object[]
-                        {_feature.Item1, _feature.Item2, _feature.Item3, _feature.Item4};
+                    Assert.That(() => f2.Attributes[name], Is.EqualTo(f1.Attributes[name]));
                 }
             }
         }
@@ -577,7 +441,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
              *Parsing GeoJSON issue related to Bounding Box #178
              */
 
-            var json = "{ \"type\": \"FeatureCollection\", " +
+            string json = "{ \"type\": \"FeatureCollection\", " +
                        "\"features\": [{\"type\": \"Feature\",\"properties\": {},\"geometry\": {\"type\": \"Polygon\"," +
                        "\"bbox\": [-105.46875,38.788345355085625,-102.98583984374999,40.27952566881291]," +
                        "\"coordinates\": [[[-105.46875,38.788345355085625],[-102.98583984374999,38.788345355085625]," +
@@ -586,7 +450,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 
             var rdr = new GeoJsonReader();
             FeatureCollection fc = null;
-            var cbb = Feature.ComputeBoundingBoxWhenItIsMissing;
+            bool cbb = Feature.ComputeBoundingBoxWhenItIsMissing;
             Feature.ComputeBoundingBoxWhenItIsMissing = true;
             Assert.DoesNotThrow(() => fc = rdr.Read<FeatureCollection>(json));
             Assert.That(fc != null);

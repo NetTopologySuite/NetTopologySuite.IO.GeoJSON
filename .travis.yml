@@ -1,0 +1,35 @@
+language: csharp
+mono: none
+sudo: false
+dotnet: 2.2
+dist: xenial
+
+
+script:
+  - dotnet build -c Release
+  - dotnet test  -c Release --no-build
+  - dotnet pack  -c Release --no-build -p:NoWarn=NU5105
+
+
+deploy:
+
+
+  - on:
+      branch: master
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+    skip_cleanup: true
+
+
+  - on:
+      branch: develop
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+    skip_cleanup: true
+
+env:
+  global:
+  - secure: Jww9luQoIe+n2qgwB/bA9zsGszD+swS/oFVBQC5fxjUZEcOgCBXKvbMDnBgJERcx4lRD+JSdjHJT6m/PbllZL88J77rlz+4MY6Ytl37SfeJHlbwS4csnktMJ3v5+H3fo/gW4icrc0pxRW7xKyIuOlLbgVyYmmatXyx5hv2ucRy++BkCjfRn9K8iT8ITIyDMv1CSTsS9oA+QylKRKB3J8GGLxjrXlV9llCC7hWUxR2ojQVROA1nPTkb6mQ2qIsrjKpleHtM9kb7BnZdzvM3THJAfdufJv1cywBsetXxnf4GiD9EuNYQzxFu7zZF8oVXn+GtGVBfRHvk8b/KKR4tVFpa3Wgjtymp1et5OgqGa85lI5/aHcNB6ok77ykCA/utlCYCSPDTBaMTdJhIA3XdfJz9QJ08UZKsK8TQeYoMcewx7YgRkeECoYjXrqtPXnFjVP0+p28Tp/A8knEzXiiqe7ZgfvDZulzpFUchUIuB10tI2gobO9mk0rQfWyUT92gUStWSh9TsRQGSiwNdjKc6fvWJj1b3CjbH/ZPv0aCmF1z/XLXA06WNBlDM9/6aY+ZrXrjNV1MmW6tuSQO8eC7jNvJQ7JFpW441apX0f0UJ/pNm28xELu69mleXJnIrjFjpapePlzpt6kRJZ4zlnd8Pi7WVNtB6EVzyw4pIzuEDpYKaw=
+  - secure: D1fF3jpVU2CFu/RI/qhmPptmWuxeMsOwMYhyb4yChqwUwRGWM5aXzR1db9HOYT65SnMcCFjZmLzNCiQfuGBhgLrtJvmf7MeXSnnBT4PZYU8Uy11ff1Y3sMH9h/kDOW8PnlAktSUDVB4NlUUfmSewYajk0OyMYaZae4AN0kjShw3011b1PbUEoVsgxvKZbQiBh8s2825ESc08tzQIpCrwiiRSFbbuaMsgXnim+Wjvkvbxuo0kabIM4DSw9yRIP3wu99Gb4xqDMeVs78lDVhfasMpdjWxXGc7qY3I/QHMSbhGdbmO/ckSAWSeKetST/qEvN3+354XQqtZVEL0oUXtIJ+V7558ZWAPRDsonVZ2hepTqTRcyus1XyHtrmAwpCFmojT4sjqzCaPMocCatR9Xd2vz0Jxqd0KdAXd1PjSfRLSjo9e2Zz9vmDgYwyZ3OLs43l1lGEIGd3B0LtIcmBMRbfcmxKIXmnJd704HcVV30qXDNj53iateKitl1osppLUm5+GBCps2Nspe5Yq1/O/kEQLfBtmpNveCbADk0FMLTFZKriIyr6bqweTvayLwn2cU5H3TFej8/YBmiAoOLNeXmYovVzi23faU6kODnYOdkFprYY/JNQcU+UOpBvzEHQC8oL4qbsKM0oW0/M/BCkzjUwBP6LvoYidZERDo+Q3vuMms=

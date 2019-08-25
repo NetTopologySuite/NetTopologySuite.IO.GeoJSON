@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NetTopologySuite.CoordinateSystems;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -21,44 +20,42 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void TestFactoryMethods()
         {
-            JsonSerializer serializer = null;
-           
             var settings = new JsonSerializerSettings();
             var factory = new GeometryFactory(new PrecisionModel(10000), 4326);
 
-            Assert.That(() => serializer = GeoJsonSerializer.CreateDefault(), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.CreateDefault(settings), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.CreateDefault(), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.CreateDefault(settings), Throws.Nothing);
 
-            Assert.That(() => serializer = GeoJsonSerializer.Create(factory), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(factory), Throws.Nothing);
 
-            Assert.That(() => serializer = GeoJsonSerializer.Create(factory, 1), Throws.ArgumentException);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,2), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,3), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(factory,4), Throws.ArgumentException);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 1), Throws.ArgumentException);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 2), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 3), Throws.Nothing);
-            Assert.That(() => serializer = GeoJsonSerializer.Create(settings, factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 1), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 2), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 3), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 1), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 2), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 3), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 4), Throws.ArgumentException);
         }
+
         ///<summary>
         ///    A test for GeoJsonSerializer Serialize method
         ///</summary>
         [Test]
         public void GeoJsonSerializerFeatureCollectionTest()
         {
-            StringBuilder sb = new StringBuilder();
-            StringWriter writer = new StringWriter(sb);
-            AttributesTable attributes = new AttributesTable();
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            var attributes = new AttributesTable();
             attributes.Add("test1", "value1");
-            IFeature feature = new Feature(new Point(23, 56), attributes);
-            FeatureCollection featureCollection = new FeatureCollection(new Collection<IFeature> { feature })
-            { CRS = new NamedCRS("name1") };
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var feature = new Feature(new Point(23, 56), attributes);
+            var featureCollection = new FeatureCollection { feature };
+            var serializer = GeoJsonSerializer.CreateDefault();
             serializer.NullValueHandling = NullValueHandling.Ignore;
             serializer.Serialize(writer, featureCollection);
             writer.Flush();
-            Assert.AreEqual("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56.0]},\"properties\":{\"test1\":\"value1\"}}],\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"name1\"}}}", sb.ToString());
+            Assert.That(sb.ToString(), Is.EqualTo("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56.0]},\"properties\":{\"test1\":\"value1\"}}]}"));
         }
 
         ///<summary>
@@ -67,12 +64,12 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void GeoJsonSerializerFeatureTest()
         {
-            StringBuilder sb = new StringBuilder();
-            StringWriter writer = new StringWriter(sb);
-            AttributesTable attributes = new AttributesTable();
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            var attributes = new AttributesTable();
             attributes.Add("test1", "value1");
-            IFeature feature = new Feature(new Point(23, 56), attributes);
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var feature = new Feature(new Point(23, 56), attributes);
+            var serializer = GeoJsonSerializer.CreateDefault();
             serializer.NullValueHandling = NullValueHandling.Ignore;
             serializer.Serialize(writer, feature);
             writer.Flush();
@@ -85,9 +82,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void GeoJsonSerializerGeometryTest()
         {
-            StringBuilder sb = new StringBuilder();
-            StringWriter writer = new StringWriter(sb);
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            var serializer = GeoJsonSerializer.CreateDefault();
             serializer.Serialize(writer, new Point(23, 56));
             writer.Flush();
             Assert.AreEqual("{\"type\":\"Point\",\"coordinates\":[23.0,56.0]}", sb.ToString());
@@ -99,11 +96,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void GeoJsonSerializerAttributesTest()
         {
-            StringBuilder sb = new StringBuilder();
-            StringWriter writer = new StringWriter(sb);
-            AttributesTable attributes = new AttributesTable();
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            var attributes = new Dictionary<string, object>();
             attributes.Add("test1", "value1");
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var serializer = GeoJsonSerializer.CreateDefault();
             serializer.Serialize(writer, attributes);
             writer.Flush();
             Assert.AreEqual("{\"test1\":\"value1\"}", sb.ToString());
@@ -115,9 +112,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void GeoJsonDeserializePolygonTest()
         {
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
+            var serializer = GeoJsonSerializer.CreateDefault();
 
-            var s = "{\"type\": \"Polygon\",\"coordinates\": [[[-180,-67.8710140098964],[-180,87.270282879440586],[180,87.270282879440586],[180,-67.8710140098964],[-180,-67.8710140098964]]],\"rect\": {\"min\": [-180,-67.8710140098964],\"max\": [180,87.270282879440586]}}";
+            const string s = "{\"type\": \"Polygon\",\"coordinates\": [[[-180,-67.8710140098964],[-180,87.270282879440586],[180,87.270282879440586],[180,-67.8710140098964],[-180,-67.8710140098964]]],\"rect\": {\"min\": [-180,-67.8710140098964],\"max\": [180,87.270282879440586]}}";
             var poly = serializer.Deserialize<Polygon>(JObject.Parse(s).CreateReader());
 
             Assert.IsNotNull(poly);

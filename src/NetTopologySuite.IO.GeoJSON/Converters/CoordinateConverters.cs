@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using GeoAPI.Geometries;
+
 using NetTopologySuite.Geometries;
+
 using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.Converters
@@ -13,23 +13,29 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     public class CoordinateConverter : JsonConverter
     {
-        private readonly IPrecisionModel _precisionModel;
+        private readonly PrecisionModel _precisionModel;
         private readonly int _dimension;
 
         /// <summary>
-        /// Creates an instance of this class using a floating precision model and <see cref="GeoJsonSerializer.DefaultDimension"/> output dimensions
+        /// Creates an instance of this class using a floating precision model and default output dimensions (2).
         /// </summary>
         public CoordinateConverter()
-            : this(GeometryFactory.Floating.PrecisionModel)
-        { }
+            : this(GeometryFactory.Floating.PrecisionModel, 2)
+        {
+        }
 
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
         /// <param name="precisionModel">The precision model to use for writing</param>
-        /// <param name="dimension">The number of dimensions</param>
-        public CoordinateConverter(IPrecisionModel precisionModel, int dimension = GeoJsonSerializer.DefaultDimension)
+        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
+        public CoordinateConverter(PrecisionModel precisionModel, int dimension)
         {
+            if (dimension != 2 && dimension != 3)
+            {
+                throw new ArgumentException("Must be either 2 or 3", nameof(dimension));
+            }
+
             _precisionModel = precisionModel;
             _dimension = dimension;
         }
@@ -42,37 +48,28 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="serializer">The serializer</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value == null)
+            switch (value)
             {
-                writer.WriteToken(JsonToken.Null);
-                return;
+                case null:
+                    writer.WriteToken(JsonToken.Null);
+                    break;
+
+                case IEnumerable<IEnumerable<IEnumerable<Coordinate>>> sequenceOfSequencesOfSequences:
+                    WriteJsonCoordinatesEnumerable2(writer, sequenceOfSequencesOfSequences);
+                    break;
+
+                case IEnumerable<IEnumerable<Coordinate>> sequenceOfSequences:
+                    WriteJsonCoordinatesEnumerable(writer, sequenceOfSequences);
+                    break;
+
+                case IEnumerable<Coordinate> sequence:
+                    WriteJsonCoordinates(writer, sequence);
+                    break;
+
+                case Coordinate coordinate:
+                    WriteJsonCoordinate(writer, coordinate);
+                    break;
             }
-
-            List<List<Coordinate[]>> coordinatesss = value as List<List<Coordinate[]>>;
-            if (coordinatesss != null)
-            {
-                WriteJsonCoordinatesEnumerable2(writer, coordinatesss, serializer);
-                return;
-            }
-
-            List<Coordinate[]> coordinatess = value as List<Coordinate[]>;
-            if (coordinatess != null)
-            {
-                WriteJsonCoordinatesEnumerable(writer, coordinatess, serializer);
-                return;
-            }
-
-            IEnumerable<Coordinate> coordinates = value as IEnumerable<Coordinate>;
-            if (coordinates != null)
-            {
-                WriteJsonCoordinates(writer, coordinates, serializer);
-                return;
-            }
-
-            Coordinate coordinate = value as Coordinate;
-            if (coordinate != null)
-                WriteJsonCoordinate(writer, coordinate, serializer);
-
         }
 
         /// <summary>
@@ -80,8 +77,7 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         /// <param name="writer">The writer</param>
         /// <param name="coordinate">The coordinate</param>
-        /// <param name="serializer">The serializer</param>
-        protected void WriteJsonCoordinate(JsonWriter writer, Coordinate coordinate, JsonSerializer serializer)
+        protected void WriteJsonCoordinate(JsonWriter writer, Coordinate coordinate)
         {
             writer.WriteStartArray();
 
@@ -91,32 +87,43 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteValue(value);
 
             if (_dimension > 2 && !double.IsNaN(coordinate.Z))
+            {
                 writer.WriteValue(coordinate.Z);
+            }
 
             writer.WriteEndArray();
         }
 
-        private void WriteJsonCoordinates(JsonWriter writer, IEnumerable<Coordinate> coordinates, JsonSerializer serializer)
+        private void WriteJsonCoordinates(JsonWriter writer, IEnumerable<Coordinate> coordinates)
         {
             writer.WriteStartArray();
-            foreach (Coordinate coordinate in coordinates)
-                WriteJsonCoordinate(writer, coordinate, serializer);
+            foreach (var coordinate in coordinates)
+            {
+                WriteJsonCoordinate(writer, coordinate);
+            }
+
             writer.WriteEndArray();
         }
 
-        private void WriteJsonCoordinatesEnumerable(JsonWriter writer, IEnumerable<Coordinate[]> coordinates, JsonSerializer serializer)
+        private void WriteJsonCoordinatesEnumerable(JsonWriter writer, IEnumerable<IEnumerable<Coordinate>> coordinates)
         {
             writer.WriteStartArray();
-            foreach (Coordinate[] coordinate in coordinates)
-                WriteJsonCoordinates(writer, coordinate, serializer);
+            foreach (var coordinate in coordinates)
+            {
+                WriteJsonCoordinates(writer, coordinate);
+            }
+
             writer.WriteEndArray();
         }
 
-        private void WriteJsonCoordinatesEnumerable2(JsonWriter writer, List<List<Coordinate[]>> coordinates, JsonSerializer serializer)
+        private void WriteJsonCoordinatesEnumerable2(JsonWriter writer, IEnumerable<IEnumerable<IEnumerable<Coordinate>>> coordinates)
         {
             writer.WriteStartArray();
-            foreach (List<Coordinate[]> coordinate in coordinates)
-                WriteJsonCoordinatesEnumerable(writer, coordinate, serializer);
+            foreach (var coordinate in coordinates)
+            {
+                WriteJsonCoordinatesEnumerable(writer, coordinate);
+            }
+
             writer.WriteEndArray();
         }
 
@@ -137,43 +144,60 @@ namespace NetTopologySuite.IO.Converters
 
             object result;
             if (objectType == typeof(Coordinate))
+            {
                 result = ReadJsonCoordinate(reader);
+            }
             else if (typeof(IEnumerable<Coordinate>).IsAssignableFrom(objectType))
+            {
                 result = ReadJsonCoordinates(reader);
-            else if (typeof(List<Coordinate[]>).IsAssignableFrom(objectType))
+            }
+            else if (typeof(IEnumerable<IEnumerable<Coordinate>>).IsAssignableFrom(objectType))
+            {
                 result = ReadJsonCoordinatesEnumerable(reader);
-            else if (typeof(List<List<Coordinate[]>>).IsAssignableFrom(objectType))
+            }
+            else if (typeof(IEnumerable<IEnumerable<IEnumerable<Coordinate>>>).IsAssignableFrom(objectType))
+            {
                 result = ReadJsonCoordinatesEnumerable2(reader);
-            else throw new ArgumentException("unmanaged type: " + objectType);
+            }
+            else
+            {
+                throw new ArgumentException("unmanaged type: " + objectType);
+            }
+
             reader.Read();
             return result;
-
         }
 
         private Coordinate ReadJsonCoordinate(JsonReader reader)
         {
             reader.Read();
             if (reader.TokenType != JsonToken.StartArray)
+            {
                 return null;
+            }
 
-            var c = new Coordinate();
-
-            reader.Read();
-            Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
-            c.X = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value));
+            var c = Coordinates.Create(_dimension);
 
             reader.Read();
             Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
-            c.Y = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value));
+            c.X = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value, reader.Culture));
+
+            reader.Read();
+            Debug.Assert(reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
+            c.Y = _precisionModel.MakePrecise(Convert.ToDouble(reader.Value, reader.Culture));
 
             reader.Read();
             if (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer)
             {
-                double value = Convert.ToDouble(reader.Value);
+                double value = Convert.ToDouble(reader.Value, reader.Culture);
                 if (_dimension > 2)
+                {
                     c.Z = value;
+                }
+
                 reader.Read();
             }
+
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
             return c;
         }
@@ -181,15 +205,23 @@ namespace NetTopologySuite.IO.Converters
         private Coordinate[] ReadJsonCoordinates(JsonReader reader)
         {
             reader.Read();
-            if (reader.TokenType != JsonToken.StartArray) return null;
+            if (reader.TokenType != JsonToken.StartArray)
+            {
+                return null;
+            }
 
-            List<Coordinate> coordinates = new List<Coordinate>();
+            var coordinates = new List<Coordinate>();
             while (true)
             {
-                Coordinate c = ReadJsonCoordinate(reader);
-                if (c == null) break;
+                var c = ReadJsonCoordinate(reader);
+                if (c is null)
+                {
+                    break;
+                }
+
                 coordinates.Add(c);
             }
+
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
             return coordinates.ToArray();
         }
@@ -197,13 +229,20 @@ namespace NetTopologySuite.IO.Converters
         private List<Coordinate[]> ReadJsonCoordinatesEnumerable(JsonReader reader)
         {
             reader.Read();
-            if (reader.TokenType != JsonToken.StartArray) return null;
+            if (reader.TokenType != JsonToken.StartArray)
+            {
+                return null;
+            }
 
-            List<Coordinate[]> coordinates = new List<Coordinate[]>();
+            var coordinates = new List<Coordinate[]>();
             while (true)
             {
-                Coordinate[] res = ReadJsonCoordinates(reader);
-                if (res == null) break;
+                var res = ReadJsonCoordinates(reader);
+                if (res is null)
+                {
+                    break;
+                }
+
                 coordinates.Add(res);
             }
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
@@ -213,15 +252,24 @@ namespace NetTopologySuite.IO.Converters
         private List<List<Coordinate[]>> ReadJsonCoordinatesEnumerable2(JsonReader reader)
         {
             reader.Read();
-            if (reader.TokenType != JsonToken.StartArray) return null;
-            List<List<Coordinate[]>> coordinates = new List<List<Coordinate[]>>();
+            if (reader.TokenType != JsonToken.StartArray)
+            {
+                return null;
+            }
+
+            var coordinates = new List<List<Coordinate[]>>();
 
             while (true)
             {
-                List<Coordinate[]> res = ReadJsonCoordinatesEnumerable(reader);
-                if (res == null) break;
+                var res = ReadJsonCoordinatesEnumerable(reader);
+                if (res is null)
+                {
+                    break;
+                }
+
                 coordinates.Add(res);
             }
+
             Debug.Assert(reader.TokenType == JsonToken.EndArray);
             return coordinates;
         }

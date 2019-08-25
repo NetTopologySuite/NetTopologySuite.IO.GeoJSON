@@ -1,21 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B0923F22-AF00-46DA-B5CE-73F4D398DE37}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		NetTopologySuite.Common.props = NetTopologySuite.Common.props
-		NetTopologySuite.IO.GeoJSON.nuspec = NetTopologySuite.IO.GeoJSON.nuspec
 		README.md = README.md
-		SharedAssemblyVersion.cs = SharedAssemblyVersion.cs
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON", "NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj", "{CBF8F6D8-2EBC-4D1D-B9FF-E6736F94E95F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON", "src\NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj", "{CBF8F6D8-2EBC-4D1D-B9FF-E6736F94E95F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON.Test", "NetTopologySuite.IO.GeoJSON.Test\NetTopologySuite.IO.GeoJSON.Test.csproj", "{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON.Test", "test\NetTopologySuite.IO.GeoJSON.Test\NetTopologySuite.IO.GeoJSON.Test.csproj", "{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

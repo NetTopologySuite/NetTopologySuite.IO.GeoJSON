@@ -35,8 +35,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));
         }
@@ -69,8 +69,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     }
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));
         }
@@ -103,8 +103,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));
         }
@@ -133,8 +133,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     ""type"" : ""FeatureCollection""
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));
         }
@@ -169,8 +169,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(2));
         }

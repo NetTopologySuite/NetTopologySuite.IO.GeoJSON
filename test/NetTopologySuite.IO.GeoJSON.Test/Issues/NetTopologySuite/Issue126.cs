@@ -6731,7 +6731,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }";
             var s = GeoJsonSerializer.Create(GeometryFactory.Default);
             var fc = s.Deserialize<FeatureCollection>(new JsonTextReader(new StringReader(geoJson)));
-            var f = fc.Features[0];
+            var f = fc[0];
             Debug.WriteLine(fc.Count);
 
             var isValidOp = new global::NetTopologySuite.Operation.Valid.IsValidOp(f.Geometry);
@@ -6739,7 +6739,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
             {
                 Debug.WriteLine(isValidOp.ValidationError.Message);
             }
-            var contains = false;
+            bool contains = false;
             Assert.DoesNotThrow(() => contains = f.Geometry.Contains(f.Geometry.InteriorPoint));
             var bgeom = f.Geometry.Buffer(0);
             Assert.That(Math.Abs(f.Geometry.Area - bgeom.Area), Is.LessThanOrEqualTo(1e-7));
@@ -6748,7 +6748,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test, Ignore("")]
         public void TestIssue126_2()
         {
-            var geoJson = @"{ 
+            string geoJson = @"{ 
 ""type"":""FeatureCollection"",
 ""features"":[{
   ""type"":""Feature"",
@@ -6953,7 +6953,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 }";
             var s = GeoJsonSerializer.Create(GeometryFactory.Default);
             var fc = s.Deserialize<FeatureCollection>(new JsonTextReader(new StringReader(geoJson)));
-            var f = fc.Features[0];
+            var f = fc[0];
             Debug.WriteLine(fc.Count);
 
             Debug.WriteLine(f.Geometry.AsText());
@@ -6962,7 +6962,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
             {
                 Debug.WriteLine(isValidOp.ValidationError.Message);
             }
-            var contains = false;
+            bool contains = false;
             Assert.Throws<TopologyException>(() => contains = f.Geometry.Contains(f.Geometry.InteriorPoint));
             var bgeom = f.Geometry.Buffer(0);
             Assert.That(Math.Abs(f.Geometry.Area - bgeom.Area), Is.LessThanOrEqualTo(1e-7));
@@ -6975,7 +6975,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test, Ignore("")]
         public void TestIssue126_3()
         {
-            var geoJson =
+            string geoJson =
                 @"{
 ""type"": ""FeatureCollection"",
 features: [{

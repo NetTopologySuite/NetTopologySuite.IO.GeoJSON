@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
-using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
@@ -76,8 +77,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
             Assert.That(f.Attributes, Is.Not.Null);
             Assert.That(f.Attributes.Count, Is.EqualTo(10));
-            Assert.That(FeatureExtensions.HasID(f), Is.True);
-            Assert.That(FeatureExtensions.ID(f), Is.EqualTo("0a3f507a-b2e6-32b8-e044-0003ba298018"));
+            Assert.That(f.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("0a3f507a-b2e6-32b8-e044-0003ba298018"));
         }
 
         [GeoJsonIssueNumber(16)]
@@ -177,24 +178,21 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 "{\"type\": \"Feature\",\"geometry\": {\"type\": \"LineString\",\"coordinates\": [[0,0],[2,2],[3,2]]},\"properties\": {\"key\": \"value\"}}";
             var notNullGeometryFeature = new GeoJsonReader().Read<Feature>(featureJson);
 
-            var attributesTable = new AttributesTable {{"key", "value"}};
-            IGeometry geometry = null;
+            var attributesTable = new AttributesTable { {"key", "value"}};
+            Geometry geometry = null;
             var nullGeometryFeature = new Feature(geometry, attributesTable);
 
-            var features_notNullFirst = new Collection<IFeature>
+            var featureCollection_notNullFirst = new FeatureCollection
             {
                 notNullGeometryFeature,
                 nullGeometryFeature
             };
 
-            var features_nullFirst = new Collection<IFeature>
+            var featureCollection_nullFirst = new FeatureCollection
             {
                 nullGeometryFeature,
                 notNullGeometryFeature
             };
-
-            var featureCollection_notNullFirst = new FeatureCollection(features_notNullFirst);
-            var featureCollection_nullFirst = new FeatureCollection(features_nullFirst);
 
             // Act
             TestDelegate write_notNullFirst = () => geoJsonWriter.Write(featureCollection_notNullFirst);
@@ -247,18 +245,18 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             const string json2 = "{ \"type\":\"Point\",\"coordinates\":[2,null]} }";
             const string json3 = "{ \"type\":\"Point\",\"coordinates\":[2,1,null]} }";
 
-            IGeometry g = null;
+            Geometry g = null;
             Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json0), Throws.Nothing, "null, null");
-            Assert.That(g is IPoint);
+            Assert.That(g is Point);
             Assert.That(g.IsEmpty);
             Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json1), Throws.Nothing, "null, 1");
-            Assert.That(g is IPoint);
+            Assert.That(g is Point);
             Assert.That(!g.IsEmpty);
             Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json2), Throws.Nothing, "2, null");
-            Assert.That(g is IPoint);
+            Assert.That(g is Point);
             Assert.That(!g.IsEmpty);
             Assert.That(() => g = new GeoJsonReader().Read<Geometry>(json3), Throws.Nothing, "2, 1, null");
-            Assert.That(g is IPoint);
+            Assert.That(g is Point);
             Assert.That(!g.IsEmpty);
         }
 
@@ -268,7 +266,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         {
             var factory = new GeometryFactory(new PrecisionModel(100), 4326);
 
-            IFeature value = new Feature(factory.CreatePoint(new Coordinate(23, 56)), new AttributesTable());
+            var value = new Feature(factory.CreatePoint(new Coordinate(23, 56)), null);
             var writer = new GeoJsonWriter();
             writer.SerializerSettings.NullValueHandling = NullValueHandling.Include;
 
@@ -309,13 +307,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         [Test]
         public void TestOutputDimension()
         {
-            var coords = new[]
+            var coords = new Coordinate[]
             {
-                new Coordinate(0.001, 0.001, 3),
-                new Coordinate(10.1, 0.002, 3),
-                new Coordinate(10, 10.1, 3),
-                new Coordinate(0.05, 9.999, 3),
-                new Coordinate(0.001, 0.001, 3)
+                new CoordinateZ(0.001, 0.001, 3),
+                new CoordinateZ(10.1, 0.002, 3),
+                new CoordinateZ(10, 10.1, 3),
+                new CoordinateZ(0.05, 9.999, 3),
+                new CoordinateZ(0.001, 0.001, 3)
             };
 
             // Create a factory with scale = 10
@@ -347,7 +345,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
 
             var serializer = GeoJsonSerializer.Create(factory);
             var reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001],[10.1,0.002],[10.0,10.1],[0.05,9.999],[0.001,0.001]]]}"));
-            var geom = serializer.Deserialize<IGeometry>(reader);
+            var geom = serializer.Deserialize<Geometry>(reader);
             Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
         }
 
@@ -355,27 +353,19 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         [Test]
         public void TestInputDimension()
         {
-            var coords = new[]
-            {
-                new Coordinate(0.001, 0.001),
-                new Coordinate(10.1, 0.002),
-                new Coordinate(10, 10.1),
-                new Coordinate(0.05, 9.999),
-                new Coordinate(0.001, 0.001)
-            };
-
             // Create a factory with scale = 10
             var factory = new GeometryFactory(new PrecisionModel(10), 4326);
+            var wktWriter = new WKTWriter(4);
 
-            var serializer3 = GeoJsonSerializer.Create(factory, 3);
+            var serializerZ = GeoJsonSerializer.Create(factory, 3);
             var reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001,3.0],[10.1,0.002,3.0],[10.0,10.1,3.0],[0.05,9.999,3.0],[0.001,0.001,3.0]]]}"));
-            var geom = serializer3.Deserialize<IGeometry>(reader);
-            Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0 3, 10.1 0 3, 10 10.1 3, 0.1 10 3, 0 0 3))"));
+            var geom = serializerZ.Deserialize<Geometry>(reader);
+            Assert.That(wktWriter.Write(geom), Is.EqualTo("POLYGON Z((0 0 3, 10.1 0 3, 10 10.1 3, 0.1 10 3, 0 0 3))"));
 
-            var serializer2 = GeoJsonSerializer.Create(factory, 2);
+            var serializer = GeoJsonSerializer.Create(factory, 2);
             reader = new JsonTextReader(new StringReader("{\"type\":\"Polygon\",\"coordinates\":[[[0.001,0.001,3.0],[10.1,0.002,3.0],[10.0,10.1,3.0],[0.05,9.999,3.0],[0.001,0.001,3.0]]]}"));
-            geom = serializer2.Deserialize<IGeometry>(reader);
-            Assert.That(geom.AsText(), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
+            geom = serializer.Deserialize<Geometry>(reader);
+            Assert.That(wktWriter.Write(geom), Is.EqualTo("POLYGON ((0 0, 10.1 0, 10 10.1, 0.1 10, 0 0))"));
         }
 
         [Test, GeoJsonIssueNumber(30)]
@@ -387,10 +377,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(() =>
             {
                 // see https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON/blob/v1.15.2/NetTopologySuite.IO.GeoJSON/GeoJsonSerializer.cs#L64
-                jss.Converters.Add(new ICRSObjectConverter());
                 jss.Converters.Add(new FeatureCollectionConverter());
                 jss.Converters.Add(new FeatureConverter());
-                jss.Converters.Add(new AttributesTableConverter());
                 jss.Converters.Add(new GeometryConverter(factory, dimension));
                 jss.Converters.Add(new GeometryArrayConverter(factory, dimension));
                 jss.Converters.Add(new CoordinateConverter(factory.PrecisionModel, dimension));

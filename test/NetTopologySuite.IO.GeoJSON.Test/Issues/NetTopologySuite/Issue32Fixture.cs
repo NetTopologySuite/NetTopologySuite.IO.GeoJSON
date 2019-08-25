@@ -29,16 +29,16 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.That(coll, Is.Not.Null);
             Assert.That(coll.Count, Is.EqualTo(1));
 
-            IFeature feature = coll[0];
+            var feature = coll[0];
             Assert.That(feature.Geometry, Is.Null);
             Assert.That(feature.Attributes, Is.Not.Null);
-            Assert.That(feature.Attributes.Exists("id"), Is.True);
-            Assert.That(feature.Attributes["id"], Is.EqualTo("vfs_kommun.256"));
+            Assert.That(feature.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("vfs_kommun.256"));
         }
 
         [Test]
@@ -59,11 +59,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	""crs"" : null
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
-            Assert.That(coll, Is.Not.Null);
-            Assert.That(coll.CRS, Is.Null);
-            Assert.That(coll.Count, Is.EqualTo(1));
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
+            Assert.That(coll, Has.Count.EqualTo(1));
         }
 
         [Test]
@@ -85,17 +83,15 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	""crs"" : null
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
-            Assert.That(coll, Is.Not.Null);
-            Assert.That(coll.CRS, Is.Null);
-            Assert.That(coll.Count, Is.EqualTo(1));
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
+            Assert.That(coll, Has.Count.EqualTo(1));
 
-            IFeature feature = coll[0];
+            var feature = coll[0];
             Assert.That(feature.Geometry, Is.Null);
             Assert.That(feature.Attributes, Is.Not.Null);
-            Assert.That(feature.Attributes.Exists("id"), Is.True);
-            Assert.That(feature.Attributes["id"], Is.EqualTo("vfs_kommun.256"));
+            Assert.That(feature.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("vfs_kommun.256"));
         }
 
         [Test]
@@ -125,19 +121,16 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	}
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
-            Assert.That(coll, Is.Not.Null);
-            Assert.That(coll.CRS, Is.Not.Null);
-            Assert.That(coll.Count, Is.EqualTo(1));
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
+            Assert.That(coll, Has.Count.EqualTo(1));
 
-            IFeature feature = coll[0];
+            var feature = coll[0];
             Assert.That(feature.Geometry, Is.Not.Null);
             Assert.That(feature.Attributes, Is.Not.Null);
-            Assert.That(feature.Attributes.Exists("id"), Is.True);
-            Assert.That(feature.Attributes["id"], Is.EqualTo("Road.1249"));
-            Assert.That(feature.Attributes.Exists("road_id"), Is.True);
-            Assert.That(feature.Attributes["road_id"], Is.EqualTo(173922));
+            Assert.That(feature.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("Road.1249"));
+            Assert.That(feature.Attributes.GetOptionalValue("road_id"), Is.EqualTo(173922));
         }
 
         [Test]
@@ -168,20 +161,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 	}
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
-            Assert.That(coll, Is.Not.Null);
-            Assert.That(coll.CRS, Is.Not.Null);
-            Assert.That(coll.Count, Is.EqualTo(1));
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
+            Assert.That(coll, Has.Count.EqualTo(1));
 
-            IFeature feature = coll[0];
+            var feature = coll[0];
             Assert.That(feature.Geometry, Is.Not.Null);
             Assert.That(feature.Attributes, Is.Not.Null);
-            Assert.That(feature.Attributes.Exists("id"), Is.True);
-            Assert.That(feature.Attributes["id"], Is.EqualTo("Road.1249"));
-            Assert.That(feature.Attributes.Exists("road_id"), Is.True);
-            Assert.That(feature.Attributes["road_id"], Is.EqualTo(173922));
-            Assert.That(feature.Attributes.Exists("geometry_name"), Is.False);
+            Assert.That(feature.Attributes.TryGetId(out object id));
+            Assert.That(id, Is.EqualTo("Road.1249"));
+            Assert.That(feature.Attributes.GetOptionalValue("road_id"), Is.EqualTo(173922));
+            Assert.That(!feature.Attributes.Exists("geometry_name"));
         }
     }
 }

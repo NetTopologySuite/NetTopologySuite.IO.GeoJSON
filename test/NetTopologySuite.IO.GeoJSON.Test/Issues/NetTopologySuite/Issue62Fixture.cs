@@ -1,5 +1,5 @@
-﻿using GeoAPI.Geometries;
-using NetTopologySuite.Features;
+﻿using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
@@ -31,8 +31,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     ]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            IGeometry geometry = reader.Read<IGeometry>(json);
+            var reader = new GeoJsonReader();
+            var geometry = reader.Read<Geometry>(json);
             Assert.IsNotNull(geometry);
         }
 
@@ -63,8 +63,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     }
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            Feature geometry = reader.Read<Feature>(json);
+            var reader = new GeoJsonReader();
+            var geometry = reader.Read<Feature>(json);
             Assert.IsNotNull(geometry);
         }
     }

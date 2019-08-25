@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using GeoAPI.Geometries;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -33,7 +32,7 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="geometry">The geometry.</param>
         /// <returns>A string representing the geometry's JSON representation</returns>
-        public string Write(IGeometry geometry)
+        public string Write(Geometry geometry)
         {
             if (geometry == null)
                 throw new ArgumentNullException(nameof(geometry));
@@ -51,7 +50,7 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="feature">The feature.</param>
         /// <returns>A string representing the feature's JSON representation</returns>
-        public string Write(IFeature feature)
+        public string Write(Feature feature)
         {
             if (feature == null)
                 throw new ArgumentNullException(nameof(feature));
@@ -79,12 +78,12 @@ namespace NetTopologySuite.IO
             return sb.ToString();
         }
 
-        private static IGeometryFactory SearchForFactory(FeatureCollection features)
+        private static GeometryFactory SearchForFactory(FeatureCollection features)
         {
             if (features == null)
                 return null;
 
-            foreach (var feature in features.Features)
+            foreach (var feature in features)
             {
                 if (feature.Geometry != null)
                     return feature.Geometry.Factory;

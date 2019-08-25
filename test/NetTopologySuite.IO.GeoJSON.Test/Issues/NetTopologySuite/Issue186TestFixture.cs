@@ -14,9 +14,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         public void feature_collection_is_serialized_as_geojson_when_type_is_placed_as_last_property()
         {
             const string data = @"{ ""features"": [], ""type"": ""FeatureCollection"" }";
-            JsonSerializer serializer = GeoJsonSerializer.CreateDefault();
-            JsonTextReader reader = new JsonTextReader(new StringReader(data));
-            FeatureCollection fc = serializer.Deserialize<FeatureCollection>(reader);
+            var serializer = GeoJsonSerializer.CreateDefault();
+            var reader = new JsonTextReader(new StringReader(data));
+            var fc = serializer.Deserialize<FeatureCollection>(reader);
             Assert.That(fc, Is.Not.Null);
             Assert.That(fc.Count, Is.EqualTo(0));
         }
@@ -25,9 +25,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         public void feature_collection_is_serialized_as_geojson_when_type_is_placed_as_first_property()
         {
             const string data = @"{ ""type"": ""FeatureCollection"", ""features"": [] }";
-            JsonSerializer serializer = GeoJsonSerializer.Create();
-            JsonTextReader reader = new JsonTextReader(new StringReader(data));
-            FeatureCollection fc = serializer.Deserialize<FeatureCollection>(reader);
+            var serializer = GeoJsonSerializer.Create();
+            var reader = new JsonTextReader(new StringReader(data));
+            var fc = serializer.Deserialize<FeatureCollection>(reader);
             Assert.That(fc, Is.Not.Null);
             Assert.That(fc.Count, Is.EqualTo(0));
         }
@@ -41,9 +41,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     ""crs"": {""type"": ""name"", ""properties"": {""name"": ""urn:ogc:def:crs:OGC:1.3:CRS84""}}, 
     ""features"": [] 
 }";
-            JsonSerializer serializer = GeoJsonSerializer.Create();
-            JsonTextReader reader = new JsonTextReader(new StringReader(data));
-            FeatureCollection fc = serializer.Deserialize<FeatureCollection>(reader);
+            var serializer = GeoJsonSerializer.Create();
+            var reader = new JsonTextReader(new StringReader(data));
+            var fc = serializer.Deserialize<FeatureCollection>(reader);
             Assert.That(fc, Is.Not.Null);
             Assert.That(fc.Count, Is.EqualTo(0));
         }
@@ -59,9 +59,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
     ""features"": [],
     ""foo3"": ""bar3""
 }";
-            JsonSerializer serializer = GeoJsonSerializer.Create();
-            JsonTextReader reader = new JsonTextReader(new StringReader(data));
-            FeatureCollection fc = serializer.Deserialize<FeatureCollection>(reader);
+            var serializer = GeoJsonSerializer.Create();
+            var reader = new JsonTextReader(new StringReader(data));
+            var fc = serializer.Deserialize<FeatureCollection>(reader);
             Assert.That(fc, Is.Not.Null);
             Assert.That(fc.Count, Is.EqualTo(0));
         }

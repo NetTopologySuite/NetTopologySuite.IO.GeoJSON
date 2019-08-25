@@ -32,14 +32,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
                         Assert.IsNotNull(collection);
                         Assert.AreEqual(4, collection.Count);
 
-                        foreach (var feature in collection.Features)
+                        foreach (var feature in collection)
                         {
                             Assert.IsNotNull(feature.Geometry);
                             Assert.IsNull(feature.BoundingBox);
                             var attributes = feature.Attributes;
                             Assert.IsNotNull(attributes);
-                            var names = attributes.GetNames();
-                            foreach (var name in names)
+                            foreach (string name in attributes.GetNames())
                                 Console.WriteLine("{0}: {1}", name, attributes[name]);
                         }
                     }

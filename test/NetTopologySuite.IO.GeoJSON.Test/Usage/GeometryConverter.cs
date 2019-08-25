@@ -9,14 +9,14 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Usage
         {
             var myModelItem = new MyModelItem();
             myModelItem.Geom = new global::NetTopologySuite.Geometries.MultiLineString(
-                new GeoAPI.Geometries.ILineString[]
+                new NetTopologySuite.Geometries.LineString[]
                 {
                     new global::NetTopologySuite.Geometries.LineString(new[]
-                        {new GeoAPI.Geometries.Coordinate(10, 10), new GeoAPI.Geometries.Coordinate(20, 10)}),
+                        {new NetTopologySuite.Geometries.Coordinate(10, 10), new NetTopologySuite.Geometries.Coordinate(20, 10)}),
                     new global::NetTopologySuite.Geometries.LineString(new[]
-                        {new GeoAPI.Geometries.Coordinate(10, 11), new GeoAPI.Geometries.Coordinate(20, 11)}),
+                        {new NetTopologySuite.Geometries.Coordinate(10, 11), new NetTopologySuite.Geometries.Coordinate(20, 11)}),
                     new global::NetTopologySuite.Geometries.LineString(new[]
-                        {new GeoAPI.Geometries.Coordinate(10, 12), new GeoAPI.Geometries.Coordinate(20, 12)})
+                        {new NetTopologySuite.Geometries.Coordinate(10, 12), new NetTopologySuite.Geometries.Coordinate(20, 12)})
                 });
 
             var s = GeoJsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings(),

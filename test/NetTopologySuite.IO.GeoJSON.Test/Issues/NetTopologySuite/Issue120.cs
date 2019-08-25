@@ -30,17 +30,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
 
         }
 
-        private static IFeature SandD(JsonSerializer s, IFeature f)
+        private static Feature SandD(JsonSerializer s, Feature f)
         {
             var sb = new StringBuilder();
             var jtw = new JsonTextWriter(new StringWriter(sb));
             s.Serialize(jtw, f);
-            var jsonText = sb.ToString();
+            string jsonText = sb.ToString();
 
             Debug.WriteLine(jsonText);
 
             var jtr = new JsonTextReader(new StringReader(jsonText));
-            var res = s.Deserialize<IFeature>(jtr);
+            var res = s.Deserialize<Feature>(jtr);
             return res;
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -11,10 +10,10 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     [TestFixture]
     public class Test
     {
-        private readonly IPoint _point = new Point(10, 10);
-        private readonly ILineString _lineString = new LineString(new[] { new Coordinate(10, 10), new Coordinate(20, 20) });
+        private readonly Point _point = new Point(10, 10);
+        private readonly LineString _lineString = new LineString(new[] { new Coordinate(10, 10), new Coordinate(20, 20) });
 
-        private readonly IPolygon _polygon1 =
+        private readonly Polygon _polygon1 =
             new Polygon(
                 new LinearRing(new[]
                                    {
@@ -22,7 +21,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                                        new Coordinate(10, 10)
                                    }));
 
-        private readonly IPolygon _polygon2 = new Polygon(
+        private readonly Polygon _polygon2 = new Polygon(
             new LinearRing(new[]
                                {
                                    new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(20, 10),
@@ -36,10 +35,10 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                                            new Coordinate(11, 11)
                                        })
                 });
-        private readonly IMultiPoint _multiPoint = new MultiPoint(new[] { new Point(10, 10), new Point(11, 11), new Point(12, 12), });
+        private readonly MultiPoint _multiPoint = new MultiPoint(new[] { new Point(10, 10), new Point(11, 11), new Point(12, 12), });
 
 
-        private readonly IMultiPolygon _multiPolygon =
+        private readonly MultiPolygon _multiPolygon =
             new MultiPolygon(
                 new[] {
                     new Polygon(
@@ -58,7 +57,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
 
 
-        private readonly IMultiLineString _multiLineString =
+        private readonly MultiLineString _multiLineString =
             new MultiLineString(new[]
                                     {
                                         new LineString(new[] {new Coordinate(10, 10), new Coordinate(20, 20)}),
@@ -81,13 +80,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             PerformGeometryTest(_multiPoint);
             PerformGeometryTest(_multiLineString);
             PerformGeometryTest(_multiPolygon);
-            PerformGeometryTest(new GeometryCollection(new[] { (IGeometry)_point, _lineString, _polygon2 }));
+            PerformGeometryTest(new GeometryCollection(new[] { (Geometry)_point, _lineString, _polygon2 }));
         }
 
-        public void PerformGeometryTest(IGeometry geom)
+        public void PerformGeometryTest(Geometry geom)
         {
-            JsonSerializer s = GeoJsonSerializer.CreateDefault();
-            StringBuilder sb = new StringBuilder();
+            var s = GeoJsonSerializer.CreateDefault();
+            var sb = new StringBuilder();
             s.Serialize(new JsonTextWriter(new StringWriter(sb)), geom);
             string result = sb.ToString();
             Console.WriteLine(result);
@@ -95,26 +94,26 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Deserialize(result, geom);
         }
 
-        private static void Deserialize(string result, IGeometry geom)
+        private static void Deserialize(string result, Geometry geom)
         {
-            JsonSerializer s = GeoJsonSerializer.CreateDefault();
-            JsonTextReader r = new JsonTextReader(new StringReader(result));
+            var s = GeoJsonSerializer.CreateDefault();
+            var r = new JsonTextReader(new StringReader(result));
 
-            IGeometry des;
+            Geometry des;
 
-            if (geom is IPoint)
+            if (geom is Point)
                 des = s.Deserialize<Point>(r);
-            else if (geom is ILineString)
+            else if (geom is LineString)
                 des = s.Deserialize<LineString>(r);
-            else if (geom is IPolygon)
+            else if (geom is Polygon)
                 des = s.Deserialize<Polygon>(r);
-            else if (geom is IMultiPoint)
+            else if (geom is MultiPoint)
                 des = s.Deserialize<MultiPoint>(r);
-            else if (geom is IMultiLineString)
+            else if (geom is MultiLineString)
                 des = s.Deserialize<MultiLineString>(r);
-            else if (geom is IMultiPolygon)
+            else if (geom is MultiPolygon)
                 des = s.Deserialize<MultiPolygon>(r);
-            else if (geom is IGeometryCollection)
+            else if (geom is GeometryCollection)
                 des = s.Deserialize<GeometryCollection>(r);
             else
                 throw new Exception();
@@ -126,9 +125,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void TestCoordinateSerialize()
         {
-            Coordinate coordinate = new Coordinate(1, 1);
-            JsonSerializer g = GeoJsonSerializer.CreateDefault();
-            StringBuilder sb = new StringBuilder();
+            var coordinate = new Coordinate(1, 1);
+            var g = GeoJsonSerializer.CreateDefault();
+            var sb = new StringBuilder();
             g.Serialize(new JsonTextWriter(new StringWriter(sb)), coordinate);
 
             Console.WriteLine(sb.ToString());
@@ -137,13 +136,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         [Test]
         public void TestCoordinatesSerialize()
         {
-            Coordinate[] coordinates = new Coordinate[4];
+            var coordinates = new Coordinate[4];
             for (int i = 0; i < coordinates.Length; i++)
             {
-                coordinates[i] = new Coordinate(i, i, i);
+                coordinates[i] = new CoordinateZ(i, i, i);
             }
-            StringBuilder sb = new StringBuilder();
-            JsonSerializer g = GeoJsonSerializer.CreateDefault();
+            var sb = new StringBuilder();
+            var g = GeoJsonSerializer.CreateDefault();
             g.Serialize(new JsonTextWriter(new StringWriter(sb)), coordinates);
 
             Console.WriteLine(sb.ToString());
@@ -153,8 +152,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public void TestCoordinateDeserialize()
         {
             string json = "{coordinates:[1.0, 1.0]}";
-            JsonSerializer s = GeoJsonSerializer.CreateDefault();
-            Coordinate c = s.Deserialize<Coordinate>(new JsonTextReader(new StringReader(json)));
+            var s = GeoJsonSerializer.CreateDefault();
+            var c = s.Deserialize<Coordinate>(new JsonTextReader(new StringReader(json)));
             Console.WriteLine(c.ToString());
 
         }

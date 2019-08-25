@@ -35,11 +35,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
   ]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.IsNotNull(coll);
 
-            GeoJsonWriter writer = new GeoJsonWriter();
+            var writer = new GeoJsonWriter();
             string s = writer.Write(coll);
             Assert.IsNotNull(s);
         }
@@ -75,11 +75,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
   ]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.IsNotNull(coll);
 
-            GeoJsonWriter writer = new GeoJsonWriter();
+            var writer = new GeoJsonWriter();
             string s = writer.Write(coll);
             Assert.IsNotNull(s);
         }
@@ -124,11 +124,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
   ]
 }
 ";
-            GeoJsonReader reader = new GeoJsonReader();
-            FeatureCollection coll = reader.Read<FeatureCollection>(json);
+            var reader = new GeoJsonReader();
+            var coll = reader.Read<FeatureCollection>(json);
             Assert.IsNotNull(coll);
 
-            GeoJsonWriter writer = new GeoJsonWriter();
+            var writer = new GeoJsonWriter();
             string s = writer.Write(coll);
             Assert.IsNotNull(s);
         }

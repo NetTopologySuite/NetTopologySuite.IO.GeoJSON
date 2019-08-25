@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using GeoAPI.Geometries;
-using NetTopologySuite.CoordinateSystems;
+
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
+
 using Newtonsoft.Json;
 
 namespace NetTopologySuite.IO.Converters
 {
+    using static AttributesTableExtensions;
+
     /// <summary>
     /// Converts Feature object to its JSON representation.
     /// </summary>
@@ -21,49 +23,54 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (writer == null)
-                throw new ArgumentNullException("writer");
-            if (serializer == null)
-                throw new ArgumentNullException("serializer");
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
 
-            var feature = value as IFeature;
-            if (feature == null)
+            if (serializer is null)
+            {
+                throw new ArgumentNullException(nameof(serializer));
+            }
+
+            if (!(value is IFeature feature))
+            {
                 return;
+            }
 
             writer.WriteStartObject();
 
             // type
             writer.WritePropertyName("type");
-            writer.WriteValue("Feature");
+            writer.WriteValue(nameof(GeoJsonObjectType.Feature));
 
             // Add the id here if present in attributes.
             // It will be skipped in serialization of properties
-            if (feature.Attributes != null && feature.Attributes.Exists("id"))
+            object id = null;
+            if (feature.Attributes?.TryGetId(out id) == true)
             {
-                var id = feature.Attributes["id"];
-                writer.WritePropertyName("id");
+                writer.WritePropertyName(IdPropertyName);
                 serializer.Serialize(writer, id);
             }
 
             // bbox (optional)
-            if (serializer.NullValueHandling == NullValueHandling.Include || feature.BoundingBox != null)
+            if (serializer.NullValueHandling == NullValueHandling.Include || !(feature.BoundingBox is null))
             {
-                var bbox = feature.BoundingBox;
-                if (bbox == null && feature.Geometry != null) bbox = feature.Geometry.EnvelopeInternal;
+                var bbox = feature.BoundingBox ?? feature.Geometry?.EnvelopeInternal;
 
                 writer.WritePropertyName("bbox");
                 serializer.Serialize(writer, bbox, typeof(Envelope));
             }
 
             // geometry
-            if (serializer.NullValueHandling == NullValueHandling.Include || feature.Geometry != null)
+            if (serializer.NullValueHandling == NullValueHandling.Include || !(feature.Geometry is null))
             {
                 writer.WritePropertyName("geometry");
-                serializer.Serialize(writer, feature.Geometry, typeof(IGeometry));
+                serializer.Serialize(writer, feature.Geometry, typeof(Geometry));
             }
 
             // properties
-            if (serializer.NullValueHandling == NullValueHandling.Include || feature.Attributes != null)
+            if (serializer.NullValueHandling == NullValueHandling.Include || !(feature.Attributes is null))
             {
                 writer.WritePropertyName("properties");
                 serializer.Serialize(writer, feature.Attributes, typeof(IAttributesTable));
@@ -85,46 +92,57 @@ namespace NetTopologySuite.IO.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType != JsonToken.StartObject)
+            {
                 throw new JsonReaderException("Expected Start object '{' Token");
+            }
 
             bool read = reader.Read();
-            Utility.SkipComments(reader);
+            reader.SkipComments();
 
-            object featureId = null;
-            Feature feature = new Feature();
+            var feature = new Feature();
             while (reader.TokenType == JsonToken.PropertyName)
             {
-                string prop = (string)reader.Value;
-                switch (prop)
+                switch ((string)reader.Value)
                 {
                     case "type":
-                        read = reader.Read();
+                        reader.Read();
                         if ((string)reader.Value != "Feature")
+                        {
                             throw new ArgumentException("Expected value 'Feature' not found.");
+                        }
+
                         read = reader.Read();
                         break;
+
                     case "id":
-                        read = reader.Read();
-                        featureId = reader.Value;
-                        if (feature.Attributes == null)
-                            feature.Attributes = new AttributesTable(new[]
-                                {new KeyValuePair<string, object>("id", featureId),});
+                        reader.Read();
+                        object featureId = reader.Value;
+                        if (feature.Attributes is null)
+                        {
+                            feature.Attributes = new AttributesTable
+                            {
+                                { "id", featureId },
+                            };
+                        }
+                        else if (feature.Attributes.Exists("id"))
+                        {
+                            feature.Attributes["id"] = featureId;
+                        }
                         else
                         {
-                            if (feature.Attributes.Exists("id"))
-                                feature.Attributes["id"] = featureId;
-                            else
-                                feature.Attributes.AddAttribute("id", featureId);
+                            feature.Attributes.Add("id", featureId);
                         }
                         read = reader.Read();
                         break;
+
                     case "bbox":
-                        Envelope bbox = serializer.Deserialize<Envelope>(reader);
+                        var bbox = serializer.Deserialize<Envelope>(reader);
                         feature.BoundingBox = bbox;
                         //Debug.WriteLine("BBOX: {0}", bbox.ToString());
                         break;
+
                     case "geometry":
-                        read = reader.Read();
+                        reader.Read();
                         if (reader.TokenType == JsonToken.Null)
                         {
                             read = reader.Read();
@@ -132,37 +150,43 @@ namespace NetTopologySuite.IO.Converters
                         }
 
                         if (reader.TokenType != JsonToken.StartObject)
+                        {
                             throw new ArgumentException("Expected token '{' not found.");
-                        IGeometry geometry = serializer.Deserialize<IGeometry>(reader);
-                        feature.Geometry = geometry;
+                        }
+
+                        feature.Geometry = serializer.Deserialize<Geometry>(reader);
                         if (reader.TokenType != JsonToken.EndObject)
+                        {
                             throw new ArgumentException("Expected token '}' not found.");
+                        }
+
                         read = reader.Read();
                         break;
+
                     case "properties":
-                        read = reader.Read();
+                        reader.Read();
                         if (reader.TokenType != JsonToken.Null)
                         {
                             // #120: ensure "properties" isn't "null"
                             if (reader.TokenType != JsonToken.StartObject)
+                            {
                                 throw new ArgumentException("Expected token '{' not found.");
-#if NETSTANDARD1_0 || NETSTANDARD1_3
-                            var attributes = serializer.Deserialize<AttributesTable>(reader);
-                            ((AttributesTable) feature.Attributes).MergeWith(attributes);
-#else
+                            }
+
                             var context = serializer.Context;
                             serializer.Context = new StreamingContext(serializer.Context.State, feature);
                             feature.Attributes = serializer.Deserialize<AttributesTable>(reader);
                             serializer.Context = context;
-#endif
                             if (reader.TokenType != JsonToken.EndObject)
+                            {
                                 throw new ArgumentException("Expected token '}' not found.");
+                            }
                         }
                         read = reader.Read();
                         break;
-                
+
                     default:
-                        read = reader.Read(); // move next                        
+                        read = reader.Read(); // move next
                         // jump to next property
                         if (read)
                         {
@@ -172,11 +196,13 @@ namespace NetTopologySuite.IO.Converters
                         break;
                 }
 
-                Utility.SkipComments(reader);
+                reader.SkipComments();
             }
 
             if (read && reader.TokenType != JsonToken.EndObject)
+            {
                 throw new ArgumentException("Expected token '}' not found.");
+            }
 
             return feature;
         }
