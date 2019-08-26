@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>NetTopologySuite.IO</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Assembly Info">
+    <AssemblyTitle>NetTopologySuite.IO.GeoJSON</AssemblyTitle>
+  </PropertyGroup>
+
+  <PropertyGroup Label="NuGet Package Info">
+    <PackageId>NetTopologySuite.IO.GeoJSON</PackageId>
+    <Title>NTS - Topology Suite - IO Library for GeoJSON</Title>
+    <Authors>NetTopologySuite - Team</Authors>
+    <Owners>NetTopologySuite - Team</Owners>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
+    <PackageIconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</PackageIconUrl>
+    <Description>This package contains the GeoJSON IO library.</Description>
+    <PackageTags>NTS;GeoJSON</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetTopologySuite" Version="[2.0.0, 3.0.0-A)" />
+    <PackageReference Include="NetTopologySuite.Features" Version="[2.0.0, 3.0.0-A)" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
+</Project>

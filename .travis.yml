@@ -1,0 +1,35 @@
+language: csharp
+mono: none
+sudo: false
+dotnet: 2.2
+dist: xenial
+
+
+script:
+  - dotnet build -c Release
+  - dotnet test  -c Release --no-build
+  - dotnet pack  -c Release --no-build -p:NoWarn=NU5105
+
+
+deploy:
+
+
+  - on:
+      branch: master
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+    skip_cleanup: true
+
+
+  - on:
+      branch: develop
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+    skip_cleanup: true
+
+env:
+  global:
+  - secure: JDhN7XlU3V+bl1K8IqzN2x9mLAlNL49jraBK0ULuwyjFrpg2CKox/nrUkkh6JcQkHnutjHqm0Y5wId5ktgWMnYiNlMO1j7JGXmYhaO851YfA9eSTf+Tr2Qid9IsrIN2BJyG8CleS8xwUcqu5gY1fibmQOxON20yH86K2IC8Y3vkNARTxpBKGr8ziqxfL3ZiZ/tal8UHPW6rOi2radGF5e4z8n9TVgYleaXI/Nc/3vqVDE1kevfR921sDjFAWTsmsN5s/UATl0vMgtt1XxJdHCLYksdhm7fDYf/wE1R4xT7Oudcm7xQi8pluVZbC4BdeiHwVLuM0X1zLgZ2J4SVoFPNSnblu+/5tZE6RW1IgV2G/z0Uukd0KOrnWRONVFKak404NyInJ0Dt6UbkAWvjU5vM5SNzRD290lE2UnlTcwf4W37+vWBdJ050mViHVhXuMf1uS/3GVFpIs2DSCyE6ouvzI4dTUSbOVl3lqxRt7to1yNnSa8B6Luoiv3xf2kRkOZqAk3dMyLfepSgOBCd8YVuyzOp+A+w1vgcFWEtMldnE2a3wcOveg385P3oRRw9sgPrsWaRFTnkU7RbUUAqfC0p+0IFm7CQehz084ZJUzwgJFeyOTuMe6EdzY+pIitpKtQOoUmnHqRuzkdLsWcFVz8LsCvuokB/jldW2BlRPymOZ8=
+  - secure: nzWM0LfzhnRSeD/wa1B22We2mR89j7UhvisqgP8U64PqnuZT1zyDW/Ku9MY9H8pfsQ7Cy5npXxuO+dKIom/sUDOsDCtAB3mNNGk/yk5yIoxTafplTpXC771R1YhiMLnt9ztsLVgt1r5izn2LYvE0ENCgg34MBMEqGm+dBky2n+QamqlbqiCP+BI/aUnsGGEbrE2qSYffYEjTS642ABGcz7cokzlC5M9DuAHEQ6VVxQlCT4zcXygg1wlOxtTKlc9p9PjU6SUZ5EFA2QpEYivY3FAfT0C0DV516EwVPTsngzyeQtFDmoQ/6hmJJjHtB1fc2Bs8p5+K31mGgMbl4uki7QPb5dc//MBRfmvILjGyptv8kyVUCsbKi6Bgokk7YK68e/q8eAjAiBiAP9D8bX9ZrOkGh/R1zXr1wfktfp6iKpN0lfsPANCx7sLAJ1vDVF4hKOJW/QJrLm/ROHDNV8N+BmNhuB/qF4m00LDq+P5Je3kquRU4CbrwBfSAcTr/rjIuIdFWVHGK0essnbGLnfd4Bt3BqrGeOJssWwUBHno0BRWzr7NOshgBFdmWCxnXcu9Y9sYMfJo1SP62dtR9fI0T+MCrnVtLmAzUjsjPO8dzsekh3Hc1nP6vwZHjtAIlZO/72R5WC95NXASVOCldoIHTEvS32wm22hFVBGTOukLQFtQ=
