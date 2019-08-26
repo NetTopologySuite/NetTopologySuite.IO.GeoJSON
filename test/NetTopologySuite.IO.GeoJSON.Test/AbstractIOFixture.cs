@@ -106,7 +106,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
         public void PerformTest(Geometry gIn)
         {
-            var writer = new WKTWriter(2) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
+            var writer = new WKTWriter(2) { MaxCoordinatesPerLine = 3, };
             byte[] b = null;
             Assert.DoesNotThrow(() => b = Write(gIn), "Threw exception during write:\n{0}", writer.WriteFormatted(gIn));
 
