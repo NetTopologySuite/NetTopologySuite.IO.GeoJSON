@@ -285,6 +285,7 @@ namespace NetTopologySuite.IO.Converters
                    objectType == typeof(Coordinate[]) ||
                    objectType == typeof(List<Coordinate[]>) ||
                    objectType == typeof(List<List<Coordinate[]>>) ||
+                   typeof(Coordinate).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<Coordinate>).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<IEnumerable<Coordinate>>).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<IEnumerable<IEnumerable<Coordinate>>>).IsAssignableFrom(objectType);

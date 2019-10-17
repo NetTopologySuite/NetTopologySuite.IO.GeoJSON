@@ -385,5 +385,17 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 jss.Converters.Add(new EnvelopeConverter());
             }, Throws.Nothing);
         }
+
+        [Test, GeoJsonIssueNumber(41)]
+        public void Test3DPointSerialization()
+        {
+            var featureCollection = new FeatureCollection { new Feature(new Point(1, 2, 3), new AttributesTable()) };
+            var writer = new StringWriter();
+            var jsonWriter = new JsonTextWriter(writer);
+            var serializer = GeoJsonSerializer.Create(new GeometryFactory(), 3);
+            serializer.Serialize(jsonWriter, featureCollection);
+            string json = writer.ToString();
+            Assert.That(json, Is.EqualTo("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[1.0,2.0,3.0]},\"properties\":{}}]}"));
+        }
     }
 }
