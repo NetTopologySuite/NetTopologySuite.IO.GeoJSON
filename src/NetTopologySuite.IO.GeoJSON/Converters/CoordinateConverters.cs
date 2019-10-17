@@ -143,7 +143,7 @@ namespace NetTopologySuite.IO.Converters
             Debug.Assert((string)reader.Value == "coordinates");
 
             object result;
-            if (objectType == typeof(Coordinate))
+            if (typeof(Coordinate).IsAssignableFrom(objectType))
             {
                 result = ReadJsonCoordinate(reader);
             }
@@ -281,10 +281,7 @@ namespace NetTopologySuite.IO.Converters
         /// <returns><value>true</value> if the conversion is possible, otherwise <value>false</value></returns>
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(Coordinate) ||
-                   objectType == typeof(Coordinate[]) ||
-                   objectType == typeof(List<Coordinate[]>) ||
-                   objectType == typeof(List<List<Coordinate[]>>) ||
+            return typeof(Coordinate).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<Coordinate>).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<IEnumerable<Coordinate>>).IsAssignableFrom(objectType) ||
                    typeof(IEnumerable<IEnumerable<IEnumerable<Coordinate>>>).IsAssignableFrom(objectType);

@@ -385,5 +385,39 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 jss.Converters.Add(new EnvelopeConverter());
             }, Throws.Nothing);
         }
+
+        [Test, GeoJsonIssueNumber(41)]
+        public void Test3DPointSerialization()
+        {
+            var factory = GeometryFactory.Default;
+            var point1 = factory.CreatePoint(new CoordinateZM(1, 2, 3, 4));
+            var feature1 = new Feature(point1, null);
+
+            Feature feature2;
+            using (var ms = new MemoryStream())
+            {
+                var serializer = GeoJsonSerializer.Create(factory, 3);
+                using (var writer = new StreamWriter(ms, Encoding.UTF8, 1024, true))
+                using (var jsonWriter = new JsonTextWriter(writer))
+                {
+                    serializer.Serialize(jsonWriter, feature1);
+                }
+
+                ms.Position = 0;
+                using (var reader = new StreamReader(ms, Encoding.UTF8, true, 1024, true))
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    feature2 = serializer.Deserialize<Feature>(jsonReader);
+                }
+            }
+
+            Assert.That(feature2.Geometry, Is.InstanceOf<Point>());
+            var point2 = (Point)feature2.Geometry;
+            Assert.That(point2.CoordinateSequence.HasZ);
+            Assert.That(CoordinateSequences.IsEqual(point1.CoordinateSequence, point2.CoordinateSequence));
+
+            // GeoJSON doesn't support M, so there should NOT be an M present in round-trip.
+            Assert.That(!point2.CoordinateSequence.HasM);
+        }
     }
 }
