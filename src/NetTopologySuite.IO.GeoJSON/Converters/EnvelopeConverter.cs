@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 namespace NetTopologySuite.IO.Converters
 {
     /// <summary>
-    /// Convertes <see cref="Envelope"/>s to and from JSON
+    /// Converts <see cref="Envelope"/>s to and from JSON
     /// </summary>
     public class EnvelopeConverter : JsonConverter
     {

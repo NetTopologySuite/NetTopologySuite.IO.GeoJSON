@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj" />
+    <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.GeoJSON4STJ\NetTopologySuite.IO.GeoJSON4STJ.csproj" />
   </ItemGroup>
 
 </Project>

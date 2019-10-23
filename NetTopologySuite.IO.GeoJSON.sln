@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON.Test", "test\NetTopologySuite.IO.GeoJSON.Test\NetTopologySuite.IO.GeoJSON.Test.csproj", "{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoJSON4STJ", "src\NetTopologySuite.IO.GeoJSON4STJ\NetTopologySuite.IO.GeoJSON4STJ.csproj", "{91366C8B-C996-4801-A691-80C335924FCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AA4E251-7124-4DD3-A643-B81AD8BB69C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91366C8B-C996-4801-A691-80C335924FCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91366C8B-C996-4801-A691-80C335924FCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91366C8B-C996-4801-A691-80C335924FCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91366C8B-C996-4801-A691-80C335924FCC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
