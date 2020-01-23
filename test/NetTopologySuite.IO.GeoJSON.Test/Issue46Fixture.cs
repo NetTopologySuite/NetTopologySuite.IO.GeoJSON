@@ -9,7 +9,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
     [TestFixture]
     public class Issue46Fixture
     {
-        [Test, Category("Issue46")]
+        [Test, GeoJsonIssueNumber(46)]
         public void test_deserialize_nested_geojson()
         {
 #pragma warning disable CS0219 // Variable is assigned but its value is never used
