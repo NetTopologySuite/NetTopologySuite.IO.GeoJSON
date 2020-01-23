@@ -67,7 +67,7 @@ namespace NetTopologySuite.IO.Converters
         /// </returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return InternalReadJson(reader, serializer);
+            return InternalReadJson(reader, serializer, false);
         }
 
         private static IList<object> InternalReadJsonArray(JsonReader reader, JsonSerializer serializer)
@@ -87,7 +87,7 @@ namespace NetTopologySuite.IO.Converters
                 switch (reader.TokenType)
                 {
                     case JsonToken.StartObject:
-                        res.Add(InternalReadJson(reader, serializer));
+                        res.Add(InternalReadJson(reader, serializer, true));
                         Debug.Assert(reader.TokenType == JsonToken.EndObject);
                         // advance
                         reader.Read();
@@ -122,7 +122,8 @@ namespace NetTopologySuite.IO.Converters
             return res;
         }
 
-        private static object InternalReadJson(JsonReader reader, JsonSerializer serializer)
+        private static object InternalReadJson(JsonReader reader, JsonSerializer serializer,
+            bool innerObject)
         {
             //// TODO: refactor to remove check when reading TopoJSON
             //if (reader.TokenType == JsonToken.StartArray)
@@ -149,7 +150,7 @@ namespace NetTopologySuite.IO.Converters
             reader.SkipComments();
 
             IAttributesTable attributesTable = null;
-            if (serializer.Context.Context is IFeature feature)
+            if (!innerObject && serializer.Context.Context is IFeature feature)
             {
                 attributesTable = feature.Attributes;
             }
@@ -169,7 +170,7 @@ namespace NetTopologySuite.IO.Converters
                     if (reader.TokenType == JsonToken.StartObject)
                     {
                         // inner object
-                        attributeValue = InternalReadJson(reader, serializer);
+                        attributeValue = InternalReadJson(reader, serializer, true);
                         if (reader.TokenType != JsonToken.EndObject)
                         {
                             throw new ArgumentException("Expected token '}' not found.");
