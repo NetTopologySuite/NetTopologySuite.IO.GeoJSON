@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Properties;
 
@@ -14,7 +15,7 @@ namespace NetTopologySuite.IO.Converters
         /// <summary>
         /// Gets the default geometry factory to use with this converter.
         /// </summary>
-        public static GeometryFactory DefaultGeometryFactory { get; } = new OgcCompliantGeometryFactory(new PrecisionModel(), 4326);
+        public static GeometryFactory DefaultGeometryFactory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
 
         /*
         private static readonly ReadOnlySequence<byte> Utf8Point;
@@ -60,7 +61,7 @@ namespace NetTopologySuite.IO.Converters
             reader.SkipComments();
 
             GeoJsonObjectType? geometryType = null;
-            MemoryStream coordinateData = null;
+            ReadOnlySpan<byte> coordinateData = null;
             Geometry[] geometries = null;
 
             while (reader.TokenType == JsonTokenType.PropertyName)
@@ -78,7 +79,7 @@ namespace NetTopologySuite.IO.Converters
                         geometries = ReadGeometries(ref reader, options);
                         break;
                     case "coordinates":
-                        coordinateData = ReadCoordinateData(ref reader, options);
+                        coordinateData = ReadCoordinateData(ref reader);
                         break;
                     case "bbox":
                         var env = ReadBBox(ref reader, options);
@@ -95,7 +96,7 @@ namespace NetTopologySuite.IO.Converters
             {
                 if (coordinateData == null)
                     throw new JsonException(Resources.EX_NoCoordinatesDefined);
-                cdr = new Utf8JsonReader(new ReadOnlySpan<byte>(coordinateData.ToArray()));
+                cdr = new Utf8JsonReader(coordinateData);
                 cdr.Read();
             }
 
@@ -245,9 +246,9 @@ namespace NetTopologySuite.IO.Converters
         private void WritePolygon(Utf8JsonWriter writer, Polygon value, JsonSerializerOptions options)
         {
             writer.WriteStartArray();
-            WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options);
+            WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options, orientation:OrientationIndex.Clockwise);
             for (int i = 0; i < value.NumInteriorRings; i++)
-                WriteCoordinateSequence(writer, value.GetInteriorRingN(i).CoordinateSequence, options);
+                WriteCoordinateSequence(writer, value.GetInteriorRingN(i).CoordinateSequence, options, orientation: OrientationIndex.CounterClockwise);
             writer.WriteEndArray();
         }
 

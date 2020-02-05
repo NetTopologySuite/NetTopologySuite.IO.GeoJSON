@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 
@@ -10,7 +11,7 @@ namespace NetTopologySuite.IO.Converters
 {
     public partial class StjGeometryConverter
     {
-        private MemoryStream ReadCoordinateData(ref Utf8JsonReader reader, JsonSerializerOptions options)
+        private ReadOnlySpan<byte> ReadCoordinateData(ref Utf8JsonReader reader)
         {
             reader.ReadToken(JsonTokenType.StartArray);
             var res = new MemoryStream();
@@ -59,8 +60,8 @@ namespace NetTopologySuite.IO.Converters
             //reader.ReadToken(JsonTokenType.EndArray);
             //res.Write(System.Text.Encoding.UTF8.GetBytes("]"), 0, 1);
 
-            Console.WriteLine(System.Text.Encoding.UTF8.GetString(res.ToArray()));
-            return res;
+            //Console.WriteLine(System.Text.Encoding.UTF8.GetString(res.ToArray()));
+            return new ReadOnlySpan<byte>(res.ToArray());
         }
 
         private Coordinate ReadCoordinate(ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -138,7 +139,7 @@ namespace NetTopologySuite.IO.Converters
             return coordinates.ToArray();
         }
 
-        private void WriteCoordinateSequence(Utf8JsonWriter writer, CoordinateSequence sequence, JsonSerializerOptions options, bool multiple = true)
+        private void WriteCoordinateSequence(Utf8JsonWriter writer, CoordinateSequence sequence, JsonSerializerOptions options, bool multiple = true, OrientationIndex orientation = OrientationIndex.None)
         {
             //writer.WritePropertyName("coordinates");
             if (sequence == null)
@@ -148,7 +149,14 @@ namespace NetTopologySuite.IO.Converters
             }
 
             if (multiple)
+            { 
                 writer.WriteStartArray();
+                if (orientation == OrientationIndex.Clockwise && Orientation.IsCCW(sequence) ||
+                    orientation == OrientationIndex.CounterClockwise && !Orientation.IsCCW(sequence))
+                {
+                    CoordinateSequences.Reverse(sequence);
+                }
+            }
 
             bool hasZ = sequence.HasZ;
             for (int i = 0; i < sequence.Count; i++)

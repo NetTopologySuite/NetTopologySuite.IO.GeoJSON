@@ -7,7 +7,7 @@ namespace NetTopologySuite.IO.Converters
 {
     public partial class StjGeometryConverter
     {
-        private Envelope ReadBBox(ref Utf8JsonReader reader, JsonSerializerOptions options)
+        internal Envelope ReadBBox(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             Envelope res = null;
 
@@ -41,7 +41,7 @@ namespace NetTopologySuite.IO.Converters
             return res;
         }
 
-        private void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options)
+        internal void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options)
         {
             writer.WritePropertyName("bbox");
 

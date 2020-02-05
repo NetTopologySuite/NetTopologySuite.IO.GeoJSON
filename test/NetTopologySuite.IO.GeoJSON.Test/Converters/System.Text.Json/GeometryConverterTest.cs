@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using NetTopologySuite.Geometries;
@@ -189,8 +188,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
         [TestCase("LINESTRING Z (1 2 0, 2 2 0)")]
         [TestCase("POLYGON ((0 0, 10 10, 0 10, 0 0))")]
         [TestCase("POLYGON Z ((0 0 1, 10 10 1, 0 10 1, 0 0 1))")]
-        [TestCase("POLYGON ((0 0, 10 10, 0 10, 0 0), (1 1, 1 9, 9 9, 1 1))")]
-        [TestCase("POLYGON Z ((0 0 1, 10 10 1, 0 10 1, 0 0 1), (1 1 1, 1 9 1, 9 9 1, 1 1 1))")]
+        [TestCase("POLYGON ((0 0, 10 10, 0 10, 0 0), (1 2, 1 9, 8 9, 1 2))")]
+        [TestCase("POLYGON Z ((0 0 1, 10 10 1, 0 10 1, 0 0 1), (1 2.4 1, 1 9 1, 7.6 9 1, 1 2.4 1))")]
 
         public void TestWriteReadWkt(string wkt)
         {
@@ -202,7 +201,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
             Serialize(c, ms, geomS, new JsonSerializerOptions());
             var geomD = Deserialize(c, ms, new JsonSerializerOptions());
 
-            Assert.That(geomS.EqualsExact(geomD));
+            Assert.That(geomS.EqualsTopologically(geomD));
         }
     }
 }
