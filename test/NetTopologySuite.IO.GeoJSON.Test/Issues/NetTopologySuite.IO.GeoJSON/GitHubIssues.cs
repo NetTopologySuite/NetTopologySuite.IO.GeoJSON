@@ -419,5 +419,34 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             // GeoJSON doesn't support M, so there should NOT be an M present in round-trip.
             Assert.That(!point2.CoordinateSequence.HasM);
         }
+
+        [GeoJsonIssueNumber(45)]
+        [Test]
+        public void TestDeserializeObjectInsideProperties()
+        {
+            var f = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+            var p = f.CreatePoint(new CoordinateZ(10, 10, 1));
+            var featureS = new Feature(p, new AttributesTable(new[] {
+                new KeyValuePair<string, object>("data", new MyClass { ValueString = "Hello", ValueInt32 = 17, ValueDouble = Math.PI }),
+                }));
+
+            var js = GeoJsonSerializer.CreateDefault();
+            js.TypeNameHandling = TypeNameHandling.Objects;
+            var ms = GeoJsonSerializerTest.Serialize(js, featureS);
+            var featureD = (Feature)GeoJsonSerializerTest.Deserialize(js, ms, typeof(Feature));
+
+            Assert.That(featureD.Attributes["data"], Is.InstanceOf<MyClass>());
+            var mc = (MyClass)featureD.Attributes["data"];
+            Assert.That(mc.ValueString, Is.EqualTo("Hello"));
+            Assert.That(mc.ValueInt32, Is.EqualTo(17));
+            Assert.That(mc.ValueDouble, Is.EqualTo(Math.PI));
+        }
+    }
+
+    class MyClass
+    {
+        public string ValueString { get; set; }
+        public int ValueInt32 { get; set; }
+        public double ValueDouble { get; set; }
     }
 }

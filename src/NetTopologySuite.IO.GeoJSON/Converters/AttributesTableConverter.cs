@@ -169,15 +169,23 @@ namespace NetTopologySuite.IO.Converters
                     object attributeValue;
                     if (reader.TokenType == JsonToken.StartObject)
                     {
-                        // inner object
-                        attributeValue = InternalReadJson(reader, serializer, true);
-                        if (reader.TokenType != JsonToken.EndObject)
+                        if (serializer.TypeNameHandling != TypeNameHandling.Objects)
                         {
-                            throw new ArgumentException("Expected token '}' not found.");
-                        }
+                            // inner object to AttributeTable
+                            attributeValue = InternalReadJson(reader, serializer, true);
+                            if (reader.TokenType != JsonToken.EndObject)
+                            {
+                                throw new ArgumentException("Expected token '}' not found.");
+                            }
 
-                        // read EndObject token
-                        reader.Read();
+                            // read EndObject token
+                            reader.Read();
+                        }
+                        else
+                        {
+                            // deserialize the inner object
+                            attributeValue = serializer.Deserialize(reader);
+                        }
                     }
                     else if (reader.TokenType == JsonToken.StartArray)
                     {
