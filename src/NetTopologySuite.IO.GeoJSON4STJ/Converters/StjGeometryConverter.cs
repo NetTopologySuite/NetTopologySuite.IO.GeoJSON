@@ -17,6 +17,15 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         public static GeometryFactory DefaultGeometryFactory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
 
+        /// <summary>
+        /// Gets or sets an array pool to rent buffers from.
+        /// </summary>
+        public ArrayPool<byte> ArrayPool
+        {
+            get => _arrayPool ?? ArrayPool<byte>.Shared;
+            set => _arrayPool = value;
+        }
+
         /*
         private static readonly ReadOnlySequence<byte> Utf8Point;
         private static readonly ReadOnlySequence<byte> Utf8LineString;
@@ -39,6 +48,7 @@ namespace NetTopologySuite.IO.Converters
         }
         */
         private readonly GeometryFactory _geometryFactory;
+        private ArrayPool<byte> _arrayPool;
 
         /// <summary>
         /// Creates an instance of this class
@@ -61,7 +71,7 @@ namespace NetTopologySuite.IO.Converters
             reader.SkipComments();
 
             GeoJsonObjectType? geometryType = null;
-            ReadOnlySpan<byte> coordinateData = null;
+            byte[] coordinateData = null;
             Geometry[] geometries = null;
 
             while (reader.TokenType == JsonTokenType.PropertyName)
@@ -79,7 +89,7 @@ namespace NetTopologySuite.IO.Converters
                         geometries = ReadGeometries(ref reader, options);
                         break;
                     case "coordinates":
-                        coordinateData = ReadCoordinateData(ref reader);
+                        coordinateData = ReadCoordinateData(ref reader, ArrayPool);
                         break;
                     case "bbox":
                         var env = ReadBBox(ref reader, options);
@@ -129,6 +139,10 @@ namespace NetTopologySuite.IO.Converters
                 default:
                     throw new NotSupportedException();
             }
+
+            // Return coordinate data.
+            if (coordinateData != null)
+                ArrayPool.Return(coordinateData);
 
             return geometry;
         }

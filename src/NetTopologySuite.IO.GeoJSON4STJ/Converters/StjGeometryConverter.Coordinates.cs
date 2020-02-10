@@ -5,63 +5,70 @@ using System.IO;
 using System.Text.Json;
 using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO.Converters;
 
 namespace NetTopologySuite.IO.Converters
 {
     public partial class StjGeometryConverter
     {
-        private ReadOnlySpan<byte> ReadCoordinateData(ref Utf8JsonReader reader)
+        private static int GetCoordinateDataSize(Utf8JsonReader reader)
         {
-            reader.ReadToken(JsonTokenType.StartArray);
-            var res = new MemoryStream();
-            res.Write(System.Text.Encoding.UTF8.GetBytes("["), 0, 1);
-            int openBrackets = 1;
+            long start = reader.TokenStartIndex;
+            reader.Skip();
+            return (int) (reader.TokenStartIndex - start);
+        }
 
-            bool wasCloseBracket = false;
-            bool addComma = false;
-            byte bytComma = System.Text.Encoding.UTF8.GetBytes(",")[0];
-            while (openBrackets > 0)
+        /// <summary>
+        /// Reads the coordinate data
+        /// </summary>
+        /// <param name="reader">the reader</param>
+        /// <param name="pool">A pool to rent buffers from.</param>
+        /// <returns>A <b>rented</b> buffer. Make sure to return it!</returns>
+        private static byte[] ReadCoordinateData(ref Utf8JsonReader reader, ArrayPool<byte> pool)
+        {
+            byte[] buffer = pool.Rent(GetCoordinateDataSize(reader) + 1);
+            var span = new Span<byte>(buffer);
+            int position = 0;
+
+            bool wasNumber = false;
+            bool wasEndArray = false;
+            int depth = reader.CurrentDepth;
+            do
             {
-                // add a comma to separate arrays
-                if (reader.TokenType == JsonTokenType.StartArray)
+                if (wasNumber && reader.TokenType == JsonTokenType.Number)
+                    buffer[position++] = 44; //System.Text.Encoding.UTF8.GetBytes(",")[0];
+                else if (wasEndArray && reader.TokenType == JsonTokenType.StartArray)
+                    buffer[position++] = 44; //System.Text.Encoding.UTF8.GetBytes(",")[0];
+
+                if (reader.HasValueSequence)
                 {
-                    if (wasCloseBracket)
-                        res.WriteByte(bytComma);
-                    addComma = false;
-                    openBrackets++;
-                }
-
-                if (reader.TokenType == JsonTokenType.Number && addComma)
-                    res.WriteByte(bytComma);
-
-                byte[] seq = reader.HasValueSequence
-                    ? reader.ValueSequence.ToArray()
-                    : reader.ValueSpan.ToArray();
-                res.Write(seq, 0, seq.Length);
-
-                addComma = reader.TokenType == JsonTokenType.Number;
-
-                if (reader.TokenType == JsonTokenType.EndArray)
-                {
-                    openBrackets--;
-                    addComma = false;
-                    wasCloseBracket = true;
+                    reader.ValueSequence.CopyTo(span.Slice(position, (int)reader.ValueSequence.Length));
+                    position += (int)reader.ValueSequence.Length;
                 }
                 else
                 {
-                    wasCloseBracket = false;
+                    reader.ValueSpan.CopyTo(span.Slice(position, reader.ValueSpan.Length));
+                    position += reader.ValueSpan.Length;
                 }
 
-                if (!reader.Read())
-                    throw new JsonException();
+                wasNumber = reader.TokenType == JsonTokenType.Number;
+                wasEndArray = reader.TokenType == JsonTokenType.EndArray;
+
+                reader.Read();
+
+            } while (depth < reader.CurrentDepth);
+
+            if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                buffer[position++] = 93; //System.Text.Encoding.UTF8.GetBytes("]")[0];
+                reader.Read();
             }
 
-            //reader.ReadToken(JsonTokenType.EndArray);
-            //res.Write(System.Text.Encoding.UTF8.GetBytes("]"), 0, 1);
+            // fill tail spaces
+            while (position < buffer.Length)
+                buffer[position++] = 32;
 
-            //Console.WriteLine(System.Text.Encoding.UTF8.GetString(res.ToArray()));
-            return new ReadOnlySpan<byte>(res.ToArray());
+            return span.ToArray();
+
         }
 
         private Coordinate ReadCoordinate(ref Utf8JsonReader reader, JsonSerializerOptions options)
