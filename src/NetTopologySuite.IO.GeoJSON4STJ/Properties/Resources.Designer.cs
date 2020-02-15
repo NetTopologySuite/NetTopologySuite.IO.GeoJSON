@@ -61,6 +61,15 @@ namespace NetTopologySuite.IO.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;coordinates&quot; array is not compatible with &quot;type&quot; value of &quot;{0}&quot;.
+        /// </summary>
+        internal static string EX_CoordinatesIncompatibleWithType {
+            get {
+                return ResourceManager.GetString("EX_CoordinatesIncompatibleWithType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected token is &apos;]&apos; but was &apos;{0}&apos;..
         /// </summary>
         internal static string EX_EndArrayTokenExpected {
@@ -79,7 +88,7 @@ namespace NetTopologySuite.IO.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No coordinates defined for geometry if type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to No coordinates defined for geometry of type &apos;{0}&apos;.
         /// </summary>
         internal static string EX_NoCoordinatesDefined {
             get {
@@ -93,6 +102,15 @@ namespace NetTopologySuite.IO.Properties {
         internal static string EX_StartArrayTokenExpected {
             get {
                 return ResourceManager.GetString("EX_StartArrayTokenExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream ended unexpectedly..
+        /// </summary>
+        internal static string EX_UnexpectedEndOfStream {
+            get {
+                return ResourceManager.GetString("EX_UnexpectedEndOfStream", resourceCulture);
             }
         }
         

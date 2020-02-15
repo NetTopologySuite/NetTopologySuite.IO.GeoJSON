@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="EX_CoordinatesIncompatibleWithType" xml:space="preserve">
+    <value>"coordinates" array is not compatible with "type" value of "{0}"</value>
+  </data>
   <data name="EX_EndArrayTokenExpected" xml:space="preserve">
     <value>Expected token is ']' but was '{0}'.</value>
   </data>
@@ -124,10 +127,13 @@
     <value>No geometries defined to build a 'GeometryCollection'.</value>
   </data>
   <data name="EX_NoCoordinatesDefined" xml:space="preserve">
-    <value>No coordinates defined for geometry if type '{0}'</value>
+    <value>No coordinates defined for geometry of type '{0}'</value>
   </data>
   <data name="EX_StartArrayTokenExpected" xml:space="preserve">
     <value>Expected token is '[' but was '{0}'.</value>
+  </data>
+  <data name="EX_UnexpectedEndOfStream" xml:space="preserve">
+    <value>Stream ended unexpectedly.</value>
   </data>
   <data name="EX_UnexpectedToken" xml:space="preserve">
     <value>Expected token is '{0}' but was '{1}' (Value '{2}').</value>

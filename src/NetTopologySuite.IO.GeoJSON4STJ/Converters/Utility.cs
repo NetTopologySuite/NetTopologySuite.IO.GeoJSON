@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using NetTopologySuite.IO.Properties;
 
@@ -29,6 +28,31 @@ namespace NetTopologySuite.IO.Converters
             }
             return reader.Read();
         }
-    }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void ReadOrThrow(this ref Utf8JsonReader reader)
+        {
+            if (!reader.Read())
+            {
+                ThrowForUnexpectedEndOfStream();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void AssertToken(this ref Utf8JsonReader reader, JsonTokenType requiredCurrentTokenType)
+        {
+            if (reader.TokenType != requiredCurrentTokenType)
+            {
+                ThrowForUnexpectedToken(requiredCurrentTokenType, ref reader);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowForUnexpectedEndOfStream()
+            => throw new JsonException(Resources.EX_UnexpectedEndOfStream);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowForUnexpectedToken(JsonTokenType requiredNextTokenType, ref Utf8JsonReader reader)
+            => throw new JsonException(string.Format(Resources.EX_UnexpectedToken, requiredNextTokenType, reader.TokenType, reader.GetString()));
+    }
 }
