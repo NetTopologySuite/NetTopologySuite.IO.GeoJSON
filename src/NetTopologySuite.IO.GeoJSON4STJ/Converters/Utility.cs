@@ -23,7 +23,7 @@ namespace NetTopologySuite.IO.Converters
             if (reader.TokenType != tokenType)
             {
                 if (throwException)
-                    throw new JsonException(string.Format(Resources.EX_UnexpectedToken, tokenType, reader.TokenType, reader.GetString()));
+                    ThrowForUnexpectedToken(tokenType, ref reader);
                 return false;
             }
             return reader.Read();
