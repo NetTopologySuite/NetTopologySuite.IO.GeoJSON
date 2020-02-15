@@ -323,7 +323,7 @@ namespace NetTopologySuite.IO.Converters
         private static Polygon ToPolygon(IReadOnlyList<CoordinateSequence> ringSequences, GeometryFactory factory)
         {
             var shell = factory.CreateLinearRing(ringSequences[0]);
-            if (ringSequences.Count == 0)
+            if (ringSequences.Count == 1)
             {
                 return factory.CreatePolygon(shell);
             }
