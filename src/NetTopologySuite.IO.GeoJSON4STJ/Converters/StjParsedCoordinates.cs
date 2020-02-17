@@ -135,7 +135,7 @@ namespace NetTopologySuite.IO.Converters
 
         private static Point ParsePoint(ref Utf8JsonReader reader, GeometryFactory factory)
         {
-            var (x, y, zOrNull) = ReadXYZ(ref reader);
+            var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
 
             var seq = factory.CoordinateSequenceFactory.Create(1, zOrNull.HasValue ? 3 : 2, 0);
             seq.SetX(0, x);
@@ -155,7 +155,7 @@ namespace NetTopologySuite.IO.Converters
 
             // read the first coordinate to kick things off...
             {
-                var (x, y, zOrNull) = ReadXYZ(ref reader);
+                var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
 
                 ords.Add(x);
                 ords.Add(y);
@@ -174,7 +174,7 @@ namespace NetTopologySuite.IO.Converters
                 reader.ReadOrThrow();
 
                 reader.AssertToken(JsonTokenType.Number);
-                var (x, y, zOrNull) = ReadXYZ(ref reader);
+                var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
 
                 if (!sequenceHasZ && zOrNull.HasValue)
                 {
@@ -265,17 +265,17 @@ namespace NetTopologySuite.IO.Converters
             return factory.CreateMultiPolygon(polygons.ToArray());
         }
 
-        private static (double x, double y, double? zOrNull) ReadXYZ(ref Utf8JsonReader reader)
+        private static (double x, double y, double? zOrNull) ReadXYZ(ref Utf8JsonReader reader, PrecisionModel precisionModel)
         {
             Debug.Assert(reader.TokenType == JsonTokenType.Number, "ReadXYZ was supposed to be called with a reader positioned on the first Number token of the array.");
 
             // x
-            double x = reader.GetDouble();
+            double x = precisionModel.MakePrecise(reader.GetDouble());
 
             // y
             reader.ReadOrThrow();
             reader.AssertToken(JsonTokenType.Number);
-            double y = reader.GetDouble();
+            double y = precisionModel.MakePrecise(reader.GetDouble());
 
             // z?
             reader.ReadOrThrow();
