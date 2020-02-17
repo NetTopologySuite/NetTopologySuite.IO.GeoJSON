@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Algorithm;
@@ -16,15 +15,6 @@ namespace NetTopologySuite.IO.Converters
         /// Gets the default geometry factory to use with this converter.
         /// </summary>
         public static GeometryFactory DefaultGeometryFactory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
-
-        /// <summary>
-        /// Gets or sets an array pool to rent buffers from.
-        /// </summary>
-        public ArrayPool<byte> ArrayPool
-        {
-            get => _arrayPool ?? ArrayPool<byte>.Shared;
-            set => _arrayPool = value;
-        }
 
         /*
         private static readonly ReadOnlySequence<byte> Utf8Point;
@@ -48,7 +38,6 @@ namespace NetTopologySuite.IO.Converters
         }
         */
         private readonly GeometryFactory _geometryFactory;
-        private ArrayPool<byte> _arrayPool;
 
         /// <summary>
         /// Creates an instance of this class
@@ -71,7 +60,7 @@ namespace NetTopologySuite.IO.Converters
             reader.SkipComments();
 
             GeoJsonObjectType? geometryType = null;
-            byte[] coordinateData = null;
+            StjParsedCoordinates coordinateData = default;
             Geometry[] geometries = null;
 
             while (reader.TokenType == JsonTokenType.PropertyName)
@@ -89,7 +78,8 @@ namespace NetTopologySuite.IO.Converters
                         geometries = ReadGeometries(ref reader, options);
                         break;
                     case "coordinates":
-                        coordinateData = ReadCoordinateData(ref reader, ArrayPool);
+                        coordinateData = StjParsedCoordinates.Parse(ref reader, _geometryFactory);
+                        reader.ReadToken(JsonTokenType.EndArray);
                         break;
                     case "bbox":
                         var env = ReadBBox(ref reader, options);
@@ -101,35 +91,55 @@ namespace NetTopologySuite.IO.Converters
             }
             reader.ReadToken(JsonTokenType.EndObject);
 
-            var cdr = new Utf8JsonReader(); 
             if (geometryType != GeoJsonObjectType.GeometryCollection)
             {
-                if (coordinateData == null)
+                if (!geometryType.HasValue)
+                {
+                    throw new JsonException(Resources.EX_NoGeometryTypeDefined);
+                }
+
+                var supportedTypes = coordinateData.SupportedTypes;
+                if (supportedTypes.IsEmpty)
+                {
                     throw new JsonException(Resources.EX_NoCoordinatesDefined);
-                cdr = new Utf8JsonReader(coordinateData);
-                cdr.Read();
+                }
+
+                bool geometryTypeIsCompatible = false;
+                foreach (var supportedType in supportedTypes)
+                {
+                    if (supportedType == geometryType)
+                    {
+                        geometryTypeIsCompatible = true;
+                        break;
+                    }
+                }
+
+                if (!geometryTypeIsCompatible)
+                {
+                    throw new JsonException(string.Format(Resources.EX_CoordinatesIncompatibleWithType, geometryType));
+                }
             }
 
             Geometry geometry;
             switch (geometryType)
             {
                 case GeoJsonObjectType.Point:
-                    geometry = _geometryFactory.CreatePoint(ReadCoordinateSequence(ref cdr, options, true));
+                    geometry = coordinateData.ToPoint();
                     break;
                 case GeoJsonObjectType.LineString:
-                    geometry = _geometryFactory.CreateLineString(ReadCoordinateSequence(ref cdr, options, false));
+                    geometry = coordinateData.ToLineString(_geometryFactory);
                     break;
                 case GeoJsonObjectType.Polygon:
-                    geometry = CreatePolygon(ReadCoordinateSequences1(ref cdr, options));
+                    geometry = coordinateData.ToPolygon(_geometryFactory);
                     break;
                 case GeoJsonObjectType.MultiPoint:
-                    geometry = _geometryFactory.CreateMultiPoint(ReadCoordinateSequence(ref cdr, options, false));
+                    geometry = coordinateData.ToMultiPoint(_geometryFactory);
                     break;
                 case GeoJsonObjectType.MultiLineString:
-                    geometry = CreateMultiLineString(ReadCoordinateSequences1(ref cdr, options));
+                    geometry = coordinateData.ToMultiLineString(_geometryFactory);
                     break;
                 case GeoJsonObjectType.MultiPolygon:
-                    geometry = CreateMultiPolygon(ReadCoordinateSequences2(ref cdr, options));
+                    geometry = coordinateData.ToMultiPolygon();
                     break;
                 case GeoJsonObjectType.GeometryCollection:
                     if (geometries == null)
@@ -139,10 +149,6 @@ namespace NetTopologySuite.IO.Converters
                 default:
                     throw new NotSupportedException();
             }
-
-            // Return coordinate data.
-            if (coordinateData != null)
-                ArrayPool.Return(coordinateData);
 
             return geometry;
         }
@@ -157,47 +163,6 @@ namespace NetTopologySuite.IO.Converters
 
             reader.ReadToken(JsonTokenType.EndArray);
             return geometries.ToArray();
-        }
-
-        private Polygon CreatePolygon(IReadOnlyList<CoordinateSequence> ringData)
-        {
-            var shell = _geometryFactory.CreateLinearRing(ringData[0]);
-            LinearRing[] holes = null;
-            if (ringData.Count > 1)
-            {
-                holes = new LinearRing[ringData.Count - 1];
-                for (int i = 1; i < ringData.Count; i++)
-                    holes[i - 1] = _geometryFactory.CreateLinearRing(ringData[i]);
-            }
-            return _geometryFactory.CreatePolygon(shell, holes);
-        }
-
-        /// <summary>
-        /// Utility function to create a <see cref="MultiLineString"/> of a set of <see cref="CoordinateSequence"/>s.
-        /// </summary>
-        /// <param name="multiLineStringSequences">The sequences that make up the <c>MultiLineString</c>'s <c>LineString</c>s</param>
-        /// <returns>A <see cref="MultiLineString"/></returns>
-        private Geometry CreateMultiLineString(IReadOnlyList<CoordinateSequence> multiLineStringSequences)
-        {
-            var lineStrings = new LineString[multiLineStringSequences.Count];
-            for (int i = 0; i < multiLineStringSequences.Count; i++)
-                lineStrings[i] = _geometryFactory.CreateLineString(multiLineStringSequences[i]);
-
-            return _geometryFactory.CreateMultiLineString(lineStrings);
-        }
-
-        /// <summary>
-        /// Utility function to create a <see cref="MultiPolygon"/> of a set of <see cref="CoordinateSequence"/>s.
-        /// </summary>
-        /// <param name="multiPolygonSequences">The sequences that make up the <c>MultiPolygon</c>'s <c>Polygon</c>s</param>
-        /// <returns>A <see cref="MultiPolygon"/></returns>
-        private Geometry CreateMultiPolygon(IReadOnlyList<CoordinateSequence[]> multiPolygonSequences)
-        {
-            var polygons = new Polygon[multiPolygonSequences.Count];
-            for (int i = 0; i < multiPolygonSequences.Count; i++)
-                polygons[i] = CreatePolygon(multiPolygonSequences[i]);
-
-            return _geometryFactory.CreateMultiPolygon(polygons);
         }
 
         public override void Write(Utf8JsonWriter writer, Geometry value, JsonSerializerOptions options)
