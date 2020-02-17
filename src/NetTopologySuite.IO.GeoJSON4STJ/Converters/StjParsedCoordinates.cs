@@ -231,6 +231,8 @@ namespace NetTopologySuite.IO.Converters
 
                 ords.Clear();
                 seqs.Add(ParseCoordinateSequence(ref reader, factory, ords));
+
+                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ParseCoordinateSequence was supposed to leave us at the EndArray token just past the last coordinate of the sequence.");
                 reader.ReadOrThrow();
             }
 
@@ -259,9 +261,12 @@ namespace NetTopologySuite.IO.Converters
                 seqs.Clear();
                 ords.Clear();
                 polygons.Add(ToPolygon(ParseCoordinateSequenceList(ref reader, factory, seqs, ords), factory));
+
+                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ParseCoordinateSequenceList was supposed to leave us at the EndArray token just past the last ring of the polygon.");
                 reader.ReadOrThrow();
             }
 
+            reader.AssertToken(JsonTokenType.EndArray);
             return factory.CreateMultiPolygon(polygons.ToArray());
         }
 
@@ -304,20 +309,20 @@ namespace NetTopologySuite.IO.Converters
             reader.AssertToken(JsonTokenType.EndArray);
         }
 
-        private static List<double> ConvertXYToXYZ(List<double> ords)
+        private static List<double> ConvertXYToXYZ(List<double> xys)
         {
-            Debug.Assert(ords.Count % 2 == 0, "This was only supposed to be called with XY values.");
+            Debug.Assert(xys.Count % 2 == 0, "This was only supposed to be called with XY values.");
 
-            var result = new List<double>(ords.Capacity);
+            var xyzs = new List<double>(xys.Capacity);
             int i = 0;
-            while (i < ords.Count)
+            while (i < xys.Count)
             {
-                result.Add(ords[i++]);
-                result.Add(ords[i++]);
-                result.Add(Coordinate.NullOrdinate);
+                xyzs.Add(xys[i++]);
+                xyzs.Add(xys[i++]);
+                xyzs.Add(Coordinate.NullOrdinate);
             }
 
-            return result;
+            return xyzs;
         }
 
         private static Polygon ToPolygon(IReadOnlyList<CoordinateSequence> ringSequences, GeometryFactory factory)

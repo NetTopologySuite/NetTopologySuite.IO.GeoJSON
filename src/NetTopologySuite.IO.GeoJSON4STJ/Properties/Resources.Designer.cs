@@ -97,6 +97,15 @@ namespace NetTopologySuite.IO.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing &quot;type&quot; property.
+        /// </summary>
+        internal static string EX_NoGeometryTypeDefined {
+            get {
+                return ResourceManager.GetString("EX_NoGeometryTypeDefined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected token is &apos;[&apos; but was &apos;{0}&apos;..
         /// </summary>
         internal static string EX_StartArrayTokenExpected {

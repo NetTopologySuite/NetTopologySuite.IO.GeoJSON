@@ -129,6 +129,9 @@
   <data name="EX_NoCoordinatesDefined" xml:space="preserve">
     <value>No coordinates defined for geometry of type '{0}'</value>
   </data>
+  <data name="EX_NoGeometryTypeDefined" xml:space="preserve">
+    <value>Missing "type" property</value>
+  </data>
   <data name="EX_StartArrayTokenExpected" xml:space="preserve">
     <value>Expected token is '[' but was '{0}'.</value>
   </data>

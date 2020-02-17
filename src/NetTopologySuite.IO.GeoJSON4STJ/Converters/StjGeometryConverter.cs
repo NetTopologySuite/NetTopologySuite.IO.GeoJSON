@@ -93,27 +93,30 @@ namespace NetTopologySuite.IO.Converters
 
             if (geometryType != GeoJsonObjectType.GeometryCollection)
             {
+                if (!geometryType.HasValue)
+                {
+                    throw new JsonException(Resources.EX_NoGeometryTypeDefined);
+                }
+
                 var supportedTypes = coordinateData.SupportedTypes;
                 if (supportedTypes.IsEmpty)
                 {
                     throw new JsonException(Resources.EX_NoCoordinatesDefined);
                 }
-                else
-                {
-                    bool geometryTypeIsCompatible = false;
-                    foreach (var supportedType in supportedTypes)
-                    {
-                        if (supportedType == geometryType)
-                        {
-                            geometryTypeIsCompatible = true;
-                            break;
-                        }
-                    }
 
-                    if (!geometryTypeIsCompatible)
+                bool geometryTypeIsCompatible = false;
+                foreach (var supportedType in supportedTypes)
+                {
+                    if (supportedType == geometryType)
                     {
-                        throw new JsonException(string.Format(Resources.EX_CoordinatesIncompatibleWithType, "geometryType"));
+                        geometryTypeIsCompatible = true;
+                        break;
                     }
+                }
+
+                if (!geometryTypeIsCompatible)
+                {
+                    throw new JsonException(string.Format(Resources.EX_CoordinatesIncompatibleWithType, geometryType));
                 }
             }
 
