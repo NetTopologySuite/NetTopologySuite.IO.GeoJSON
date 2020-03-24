@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
@@ -9,27 +10,27 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts Feature object to its JSON representation.
     /// </summary>
-    public class StjFeatureConverter : JsonConverter<IFeature>
+    internal sealed class StjFeatureConverter : JsonConverter<IFeature>
     {
         private readonly Func<IFeature> _createFeatureFunction;
         private readonly Func<IAttributesTable> _createAttributesTableFunction;
-        private readonly StjGeometryConverter _geometryConverter;
-        private readonly StjAttributesTableConverter _attributeTableConverter;
+        //private readonly StjGeometryConverter _geometryConverter;
+        //private readonly StjAttributesTableConverter _attributeTableConverter;
+
         private readonly string _idPropertyName;
-        
+
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
-        /// <param name="factory"></param>
         /// <param name="idPropertyName"></param>
         /// <param name="createFeatureFunction"></param>
         /// <param name="createAttributesTableFunction"></param>
-        /// 
-        public StjFeatureConverter(GeometryFactory factory = null, string idPropertyName = null,
+        // /// <param name="factory"></param>
+        internal StjFeatureConverter(/*GeometryFactory factory = null, */string idPropertyName = null,
             Func<IFeature> createFeatureFunction = null,
             Func<IAttributesTable> createAttributesTableFunction = null)
         {
-            _geometryConverter = new StjGeometryConverter(factory);
+            //_geometryConverter = new StjGeometryConverter(factory);
             _idPropertyName = string.IsNullOrWhiteSpace(idPropertyName) ? "id" : idPropertyName;
 
             if (createFeatureFunction != null)
@@ -42,10 +43,8 @@ namespace NetTopologySuite.IO.Converters
             else
                 _createAttributesTableFunction = () => new AttributesTable();
             
-            _attributeTableConverter = new StjAttributesTableConverter();
+            //_attributeTableConverter = new StjAttributesTableConverter();
         }
-
-
 
         /// <summary>
         /// Writes the JSON representation of the object.
@@ -70,34 +69,24 @@ namespace NetTopologySuite.IO.Converters
             // It will be skipped in serialization of properties
             object id = null;
             if (value.Attributes?.TryGetId(out id) == true)
-            {
-                writer.WritePropertyName(_idPropertyName);
                 writer.WriteString(_idPropertyName, JsonSerializer.Serialize(id, id.GetType(), options));
-            }
 
             // bbox (optional)
-            var bbox = value.BoundingBox ?? value.Geometry?.EnvelopeInternal;
-            if (bbox != null || !options.IgnoreNullValues)
-            {
-                if (bbox == null)
-                    bbox = value.Geometry?.EnvelopeInternal;
-
-                writer.WritePropertyName("bbox");
-                _geometryConverter.WriteBBox(writer, bbox, options);
-            }
+            var bbox = value.BoundingBox;
+            StjGeometryConverter.WriteBBox(writer, bbox, options, value.Geometry);
 
             // geometry
             if (value.Geometry != null || !options.IgnoreNullValues)
             {
                 writer.WritePropertyName("geometry");
-                _geometryConverter.Write(writer, value.Geometry, options);
+                JsonSerializer.Serialize(writer, value.Geometry, options);
             }
 
             // properties
             if (value.Attributes != null || ! options.IgnoreNullValues)
             {
                 writer.WritePropertyName("properties");
-                _attributeTableConverter.Write(writer, value.Attributes, options);
+                JsonSerializer.Serialize(writer, value.Attributes, options);
             }
 
             writer.WriteEndObject();
@@ -147,7 +136,7 @@ namespace NetTopologySuite.IO.Converters
                         {
                             if (reader.TryGetInt32(out int i4))
                                 featureId = i4;
-                            else if (reader.TryGetInt32(out int i8))
+                            else if (reader.TryGetInt64(out long i8))
                                 featureId = i8;
                             else
                                 throw new JsonException();
@@ -175,20 +164,27 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     case "bbox":
-                        var bbox = _geometryConverter.ReadBBox(ref reader, options);
+                        var bbox = JsonSerializer.Deserialize<Envelope>(ref reader, options);
+                            //_geometryConverter.ReadBBox(ref reader, options);
                         feature.BoundingBox = bbox;
                         //Debug.WriteLine("BBOX: {0}", bbox.ToString());
                         break;
 
                     case "geometry":
-                        var geometry = _geometryConverter.Read(ref reader, typeof(Geometry), options);
+                        var geometry = JsonSerializer.Deserialize<Geometry>(ref reader, options);
                         feature.Geometry = geometry;
+                        reader.ReadToken(JsonTokenType.EndObject);
                         break;
 
                     case "properties":
-                        var attributeTable = _attributeTableConverter.Read(ref reader, typeof(IAttributesTable), feature, options);
+                        var attributeTable = JsonSerializer.Deserialize<IAttributesTable>(ref reader, options);
+                        if (attributeTable != null)
+                            reader.ReadToken(JsonTokenType.EndObject);
+
                         if (feature.Attributes == null)
                             feature.Attributes = attributeTable;
+                        else
+                            MergeAttributes(feature.Attributes, attributeTable);
                         break;
 
                     default:
@@ -206,6 +202,25 @@ namespace NetTopologySuite.IO.Converters
 
             reader.ReadToken(JsonTokenType.EndObject);
             return feature;
+        }
+
+        private void MergeAttributes(IAttributesTable at1, IAttributesTable at2)
+        {
+            object id = null;
+            foreach (string name in at2.GetNames())
+            {
+                if (name == _idPropertyName)
+                {
+                    id = at2[name];
+                    continue;
+                }
+
+                if (!at1.Exists(name))
+                    at1.Add(name, at2[name]);
+            }
+
+            if (!at1.Exists(_idPropertyName) && id != null)
+                at1.Add(_idPropertyName, id);
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ using NetTopologySuite.IO.Properties;
 
 namespace NetTopologySuite.IO.Converters
 {
-    public partial class StjGeometryConverter : JsonConverter<Geometry>
+    internal partial class StjGeometryConverter : JsonConverter<Geometry>
     {
         /// <summary>
         /// Gets the default geometry factory to use with this converter.
@@ -89,7 +89,6 @@ namespace NetTopologySuite.IO.Converters
                 // Skip comments
                 reader.SkipComments();
             }
-            reader.ReadToken(JsonTokenType.EndObject);
 
             if (geometryType != GeoJsonObjectType.GeometryCollection)
             {
@@ -217,7 +216,8 @@ namespace NetTopologySuite.IO.Converters
                         break;
                 }
             }
-            WriteBBox(writer, value.EnvelopeInternal, options);
+
+            WriteBBox(writer, value.EnvelopeInternal, options, value);
 
             writer.WriteEndObject();
         }

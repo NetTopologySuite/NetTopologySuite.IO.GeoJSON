@@ -1,38 +1,71 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using NetTopologySuite.IO.Converters;
+using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
 {
     public abstract class SandDTest<T>
     {
-        protected void Serialize(JsonConverter<T> converter, Stream stream, T value,
-            JsonSerializerOptions options, bool valueIsObject = true)
+        protected GeoJsonConverterFactory GeoJsonConverterFactory { get; private set; }
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
-            using (var writer = new Utf8JsonWriter(stream))
+            GeoJsonConverterFactory = new GeoJsonConverterFactory
             {
-                if (!valueIsObject)
-                    writer.WriteStartObject();
-                converter.Write(writer, value, options);
-                if (!valueIsObject)
-                    writer.WriteEndObject();
+                NestedObjectsAsJsonElement = NestedObjectsAsJsonElement
+            };
+        }
+
+        protected JsonSerializerOptions DefaultOptions
+        {
+            get
+            {
+                var res = new JsonSerializerOptions
+                    {ReadCommentHandling = JsonCommentHandling.Skip};
+                res.Converters.Add(GeoJsonConverterFactory);
+                return res;
             }
         }
 
-        protected T Deserialize(JsonConverter<T> converter, MemoryStream stream,
-            JsonSerializerOptions options, bool valueIsObject = true)
+        public bool NestedObjectsAsJsonElement { get; set; }
+
+        protected void Serialize(Stream stream, T value, JsonSerializerOptions options)
+        {
+            using (var writer = new Utf8JsonWriter(stream))
+                JsonSerializer.Serialize(writer, value, options);
+        }
+
+        protected string ToJsonString(T value, JsonSerializerOptions options = null)
+        {
+            if (options == null)
+                options = DefaultOptions;
+
+            using (var ms = new MemoryStream())
+            {
+                Serialize(ms, value, options);
+                return Encoding.UTF8.GetString(ms.ToArray());
+            }
+
+        }
+
+        protected T Deserialize(string geoJson, JsonSerializerOptions options)
+        {
+            using(var ms = new MemoryStream(Encoding.UTF8.GetBytes(geoJson)))
+                return Deserialize(ms, options);
+        }
+
+        protected T Deserialize(MemoryStream stream, JsonSerializerOptions options)
         {
             var b = new ReadOnlySpan<byte>(stream.ToArray());
             var r = new Utf8JsonReader(b);
 
             // we are at None
             r.Read();
-            if (!valueIsObject)
-                r.Read();
-            var res = converter.Read(ref r, typeof(T), options);
-            if (!valueIsObject)
-                r.Read();
+            var res = JsonSerializer.Deserialize<T>(ref r, options);
 
             return res;
         }

@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO.Converters
 {
-    public partial class StjGeometryConverter
+    internal partial class StjGeometryConverter
     {
         private void WriteCoordinateSequence(Utf8JsonWriter writer, CoordinateSequence sequence, JsonSerializerOptions options, bool multiple = true, OrientationIndex orientation = OrientationIndex.None)
         {

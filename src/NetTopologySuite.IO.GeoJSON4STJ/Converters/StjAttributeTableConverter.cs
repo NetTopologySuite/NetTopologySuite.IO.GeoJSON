@@ -13,12 +13,21 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts IAttributesTable object to its JSON representation.
     /// </summary>
-    public class StjAttributesTableConverter : JsonConverter<IAttributesTable>
+    internal class StjAttributesTableConverter : JsonConverter<IAttributesTable>
     {
+        private readonly Func<IAttributesTable> _createAttributeTable;
+
+        public StjAttributesTableConverter(Func<IAttributesTable> createAttributeTable)
+        {
+            _createAttributeTable = createAttributeTable;
+        }
+
         /// <summary>
         /// Gets or sets a value indicating that a feature's id property should be written to the properties block as well
         /// </summary>
         public static bool WriteIdToProperties { get; set; } = false;
+
+        public bool NestedObjectsAsJsonElement { get; set; }
 
         /// <summary>
         /// Writes the JSON representation of the object.
@@ -34,9 +43,6 @@ namespace NetTopologySuite.IO.Converters
                 return;
             }
 
-            var c = options.GetConverter(typeof(IAttributesTable));
-            if (c == null) options.Converters.Add(new StjAttributesTableConverter());
-
             writer.WriteStartObject();
             string[] names = value.GetNames();
             foreach (string propertyName in names)
@@ -50,7 +56,7 @@ namespace NetTopologySuite.IO.Converters
                 {
                     if (!options.IgnoreNullValues)
                         writer.WriteNull(propertyName);
-                    return;
+                    continue;
                 }
                 var type = value.GetType(propertyName);
                 writer.WritePropertyName(propertyName);
@@ -85,17 +91,7 @@ namespace NetTopologySuite.IO.Converters
                         if (type == typeof(Guid))
                             writer.WriteStringValue((Guid) val);
                         else
-                        {
-                            var converterType = typeof(IAttributesTable).IsAssignableFrom(type)
-                                ? typeof(IAttributesTable)
-                                : type; 
-                            var useConverter = options.GetConverter(converterType);
-                            if (useConverter == null)
-                                throw new JsonException();
-
-                            var util = JsonConverterUtility.GetConverterUtility(converterType);
-                            util.Write(useConverter, writer, val, options);
-                        }
+                            JsonSerializer.Serialize(writer, val, options);
                         break;
                 }
             }
@@ -131,7 +127,7 @@ namespace NetTopologySuite.IO.Converters
             IFeature forFeature, JsonSerializerOptions options)
         {
             // Get or create the return value
-            var attributesTable = forFeature?.Attributes ?? new AttributesTable();
+            var attributesTable = forFeature?.Attributes ?? _createAttributeTable();
             if (reader.TokenType == JsonTokenType.Null)
             {
                 reader.Read();
@@ -140,7 +136,6 @@ namespace NetTopologySuite.IO.Converters
 
             // Advance reader, skip comments
             reader.ReadToken(JsonTokenType.StartObject);
-            reader.SkipComments();
 
             while (reader.TokenType == JsonTokenType.PropertyName)
             {
@@ -239,10 +234,19 @@ namespace NetTopologySuite.IO.Converters
 
                     // This is going to be another attribute table
                     case JsonTokenType.StartObject:
-                        attributeType = typeof(IAttributesTable);
-                        var jcu = JsonConverterUtility.GetConverterUtility(attributeType);
-                        //var jc = options.GetConverter(attributeType);
-                        attributeValue = jcu.Read(this, ref reader, attributeType, options);
+                        if (NestedObjectsAsJsonElement)
+                        {
+                            // Use JsonElement as fallback.
+                            // Newtonsoft uses JArray or JObject.
+                            using (var document = JsonDocument.ParseValue(ref reader))
+                            {
+                                attributeValue = document.RootElement.Clone();
+                            }
+                        }
+                        else
+                        {
+                            attributeValue = JsonSerializer.Deserialize(ref reader, typeof(IAttributesTable), options);
+                        }
 
                         break;
                 }
@@ -256,16 +260,13 @@ namespace NetTopologySuite.IO.Converters
                 reader.SkipComments();
             }
 
-            reader.ReadToken(JsonTokenType.EndObject);
-
             return attributesTable;
         }
 
-        private static IList<object> InternalReadJsonArray(ref Utf8JsonReader reader, JsonSerializerOptions serializer)
+        private IList<object> InternalReadJsonArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             // We need to have a start array token!
             reader.ReadToken(JsonTokenType.StartArray);
-            reader.SkipComments();
 
             // create result object
             var res = new List<object>();
@@ -275,16 +276,16 @@ namespace NetTopologySuite.IO.Converters
                 switch (reader.TokenType)
                 {
                     case JsonTokenType.StartObject:
-                        var vs = reader.ValueSequence;
-                        var spStart = reader.Position;
-                        reader.Skip();
-                        var spEnd = reader.Position;
-                        res.Add(JsonSerializer.Deserialize(vs.Slice(spStart, spEnd).ToArray(), typeof(AttributesTable)));
+                        if (NestedObjectsAsJsonElement)
+                            res.Add(JsonSerializer.Deserialize<JsonElement>(ref reader, options));
+                        else
+                            res.Add(JsonSerializer.Deserialize<IAttributesTable>(ref reader, options));
+                        reader.ReadToken(JsonTokenType.EndObject);
                         break;
 
                     case JsonTokenType.StartArray:
                         // add new array to result
-                        res.Add(InternalReadJsonArray(ref reader, serializer));
+                        res.Add(InternalReadJsonArray(ref reader, options));
                         break;
 
                     case JsonTokenType.Comment:
@@ -301,11 +302,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         break;
                 }
-                reader.SkipComments();
             }
-
-            // Read past end array
-            reader.Read();
 
             return res;
         }
