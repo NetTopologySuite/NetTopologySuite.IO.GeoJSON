@@ -5,7 +5,7 @@ using System.Text.Json;
 using NetTopologySuite.IO.Converters;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
+namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public abstract class SandDTest<T>
     {

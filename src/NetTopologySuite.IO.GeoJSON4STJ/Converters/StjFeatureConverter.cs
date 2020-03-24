@@ -14,8 +14,6 @@ namespace NetTopologySuite.IO.Converters
     {
         private readonly Func<IFeature> _createFeatureFunction;
         private readonly Func<IAttributesTable> _createAttributesTableFunction;
-        //private readonly StjGeometryConverter _geometryConverter;
-        //private readonly StjAttributesTableConverter _attributeTableConverter;
 
         private readonly string _idPropertyName;
 
@@ -30,7 +28,6 @@ namespace NetTopologySuite.IO.Converters
             Func<IFeature> createFeatureFunction = null,
             Func<IAttributesTable> createAttributesTableFunction = null)
         {
-            //_geometryConverter = new StjGeometryConverter(factory);
             _idPropertyName = string.IsNullOrWhiteSpace(idPropertyName) ? "id" : idPropertyName;
 
             if (createFeatureFunction != null)
@@ -42,8 +39,6 @@ namespace NetTopologySuite.IO.Converters
                 _createAttributesTableFunction = createAttributesTableFunction;
             else
                 _createAttributesTableFunction = () => new AttributesTable();
-            
-            //_attributeTableConverter = new StjAttributesTableConverter();
         }
 
         /// <summary>
@@ -164,10 +159,8 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     case "bbox":
-                        var bbox = JsonSerializer.Deserialize<Envelope>(ref reader, options);
-                            //_geometryConverter.ReadBBox(ref reader, options);
+                        var bbox = StjGeometryConverter.ReadBBox(ref reader, options);
                         feature.BoundingBox = bbox;
-                        //Debug.WriteLine("BBOX: {0}", bbox.ToString());
                         break;
 
                     case "geometry":
@@ -200,7 +193,7 @@ namespace NetTopologySuite.IO.Converters
                 reader.SkipComments();
             }
 
-            reader.ReadToken(JsonTokenType.EndObject);
+            //reader.ReadToken(JsonTokenType.EndObject);
             return feature;
         }
 

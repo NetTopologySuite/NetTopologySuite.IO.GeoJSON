@@ -37,9 +37,10 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         public bool NestedObjectsAsJsonElement { get; set; }
 
-        public bool WriteBBox { get; set; } = true;
-
-        public string OrdinateFormatString { get; set; } = "0.0###############";
+        /// <summary>
+        /// Gets or sets a value indicating if the bounding box should be exported for geometry definition
+        /// </summary>
+        public bool WriteGeometryBBox { get; set; }
 
         ///<inheritdoc cref="JsonConverter.CanConvert(Type)"/>
         public override bool CanConvert(Type typeToConvert)
@@ -47,15 +48,14 @@ namespace NetTopologySuite.IO.Converters
             return typeToConvert == typeof(Geometry)
                    || typeof(IFeature).IsAssignableFrom(typeToConvert)
                    || typeToConvert == typeof(FeatureCollection)
-                   || typeof(IAttributesTable).IsAssignableFrom(typeToConvert)
-                ;
+                   || typeof(IAttributesTable).IsAssignableFrom(typeToConvert);
         }
 
         ///<inheritdoc cref="JsonConverterFactory.CreateConverter(Type, JsonSerializerOptions)"/>
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             if (typeToConvert == typeof(Geometry))
-                return new StjGeometryConverter(_factory);
+                return new StjGeometryConverter(_factory) {WriteGeometryBBox = WriteGeometryBBox};
             if (typeToConvert == typeof(FeatureCollection))
                 return new StjFeatureCollectionConverter();
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))

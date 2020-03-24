@@ -6,6 +6,11 @@ namespace NetTopologySuite.IO.Converters
 {
     internal partial class StjGeometryConverter
     {
+        /// <summary>
+        /// Gets or sets a value indicating if the bounding box should be written for geometries
+        /// </summary>
+        public bool WriteGeometryBBox { get; set; }
+
         internal static Envelope ReadBBox(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             Envelope res = null;
@@ -44,6 +49,10 @@ namespace NetTopologySuite.IO.Converters
         {
             // if we don't want to write "null" bounding boxes, bail out.
             if ((value == null || value.IsNull) && options.IgnoreNullValues)
+                return;
+
+            // Don't clutter export with bounding box if geometry is a point!
+            if (geometry is Point)
                 return;
 
             // if value == null, try to get it from geometry

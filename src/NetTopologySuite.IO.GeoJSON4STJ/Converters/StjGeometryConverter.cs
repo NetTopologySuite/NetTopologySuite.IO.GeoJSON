@@ -158,7 +158,10 @@ namespace NetTopologySuite.IO.Converters
 
             var geometries = new List<Geometry>();
             while (reader.TokenType != JsonTokenType.EndArray)
+            {
                 geometries.Add(Read(ref reader, typeof(Geometry), options));
+                reader.ReadToken(JsonTokenType.EndObject);
+            }
 
             reader.ReadToken(JsonTokenType.EndArray);
             return geometries.ToArray();
@@ -217,7 +220,8 @@ namespace NetTopologySuite.IO.Converters
                 }
             }
 
-            WriteBBox(writer, value.EnvelopeInternal, options, value);
+            if (WriteGeometryBBox)
+                WriteBBox(writer, value.EnvelopeInternal, options, value);
 
             writer.WriteEndObject();
         }

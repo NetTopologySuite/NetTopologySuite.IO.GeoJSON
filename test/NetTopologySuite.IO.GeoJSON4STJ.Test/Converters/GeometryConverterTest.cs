@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
+namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public class GeometryConverterTest : SandDTest<Geometry>
     {

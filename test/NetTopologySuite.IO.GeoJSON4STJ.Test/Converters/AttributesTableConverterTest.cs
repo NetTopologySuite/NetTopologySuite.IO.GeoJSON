@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
+namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     ///<summary>
     ///    This is a test class for AttributesTableConverterTest and is intended
@@ -21,6 +21,20 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
         public AttributesTableConverterTest(bool nestedAsJsonElement)
         {
             NestedObjectsAsJsonElement = nestedAsJsonElement;
+        }
+
+        ///<summary>
+        ///A test for CanConvert
+        ///</summary>
+        [Test]
+        public void CanConvertTest()
+        {
+            var options = DefaultOptions;
+            var target = (JsonConverter<IAttributesTable>)GeoJsonConverterFactory.CreateConverter(typeof(IAttributesTable), options);
+            var objectType = typeof(IAttributesTable);
+            const bool expected = true;
+            bool actual = target.CanConvert(objectType);
+            Assert.AreEqual(expected, actual);
         }
 
         ///<summary>
@@ -252,12 +266,13 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Converters.System.Text.Json
             }
         }
 
-        public static void TestEquality(IAttributesTable s, IAttributesTable d, bool nestedObjectsAsJsonElement)
+        public static void TestEquality(IAttributesTable s, IAttributesTable d, bool nestedObjectsAsJsonElement, string idPropertyName = "")
         {
             Assert.That(d, Is.Not.Null);
             //Assert.That(d.Count, Is.EqualTo(s.Count));
-            string[] names = s.GetNames();
-            for (int i = 0; i < names.Length; i++)
+            var names = new List<string>(s.GetNames());
+            names.Remove(idPropertyName);
+            for (int i = 0; i < names.Count; i++)
             {
                 object sitem = s[names[i]];
                 if (sitem == null) continue;

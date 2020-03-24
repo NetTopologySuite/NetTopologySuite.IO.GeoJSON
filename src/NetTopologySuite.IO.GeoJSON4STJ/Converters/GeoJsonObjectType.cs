@@ -1,4 +1,4 @@
-﻿namespace NetTopologySuite.IO
+﻿namespace NetTopologySuite.IO.Converters
 {
     /// <summary>
     /// Defines the GeoJSON Objects types as defined in the <a href="https://tools.ietf.org/html/rfc7946#section-3.1">RFC7946 of the Internet Engineering Task Force (IETF)</a>.
