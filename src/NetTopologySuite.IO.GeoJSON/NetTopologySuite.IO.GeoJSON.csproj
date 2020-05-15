@@ -16,7 +16,6 @@
     <Authors>NetTopologySuite - Team</Authors>
     <Owners>NetTopologySuite - Team</Owners>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
-    <PackageIconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</PackageIconUrl>
     <Description>This package contains the GeoJSON IO library.</Description>
     <PackageTags>NTS;GeoJSON</PackageTags>
   </PropertyGroup>

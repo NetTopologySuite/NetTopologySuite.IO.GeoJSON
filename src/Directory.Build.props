@@ -92,7 +92,7 @@
 
   <ItemGroup>
     <!-- SourceLink adds stuff to let debuggers step into our code. -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
