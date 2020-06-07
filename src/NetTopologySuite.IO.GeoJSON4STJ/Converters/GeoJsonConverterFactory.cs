@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
@@ -9,43 +11,81 @@ namespace NetTopologySuite.IO.Converters
     /// <inheritdoc cref="JsonConverterFactory"/>>
     public class GeoJsonConverterFactory : JsonConverterFactory
     {
+        /// <summary>
+        /// The default name that, when seen on <see cref="IAttributesTable"/> or the "properties"
+        /// object of a feature, indicates that it should "really" be the feature's "id", not stored
+        /// in "properties" as-is.
+        /// </summary>
+        public static readonly string DefaultIdPropertyName = "_NetTopologySuite_id";
+
+        private static readonly HashSet<Type> GeometryTypes = new HashSet<Type>
+        {
+            typeof(Geometry),
+            typeof(Point),
+            typeof(LineString),
+            typeof(Polygon),
+            typeof(MultiPoint),
+            typeof(MultiLineString),
+            typeof(MultiPolygon),
+            typeof(GeometryCollection),
+        };
+
         private readonly GeometryFactory _factory;
 
+        private readonly bool _writeGeometryBBox;
+
+        private readonly string _idPropertyName;
+
         /// <summary>
-        /// Creates an instance of this class using the (possibly) provided <see cref="IGeometryFilter"/>.
+        /// Creates an instance of this class using the defaults.
         /// </summary>
-        /// <param name="factory"></param>
-        public GeoJsonConverterFactory(GeometryFactory factory = null)
+        public GeoJsonConverterFactory()
+            : this(NtsGeometryServices.Instance.CreateGeometryFactory(4326), false)
         {
-            _factory = factory ?? NtsGeometryServices.Instance.CreateGeometryFactory(4326);
         }
 
         /// <summary>
-        /// A delegate function to create a feature
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> and
+        /// defaults for other values.
         /// </summary>
-        public Func<IFeature> CreateFeatureFunction { get; set; } = () => new Feature();
-
-
-        /// <summary>
-        /// A function to create an attribute table
-        /// </summary>
-        public Func<IAttributesTable> CreateAttributeTable { get; set; } = () => new AttributesTable();
-
-        /// <summary>
-        /// Gets or sets a value indicating if nested objects should be treated as <see cref="JsonElement"/>s.
-        /// If set to <c>false</c>, nested objects will be converted to <see cref="IAttributesTable"/>s.
-        /// </summary>
-        public bool NestedObjectsAsJsonElement { get; set; }
+        /// <param name="factory"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory)
+            : this(factory, false)
+        {
+        }
 
         /// <summary>
-        /// Gets or sets a value indicating if the bounding box should be exported for geometry definition
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
+        /// given value for whether or not we should write out a "bbox" for a plain geometry, and
+        /// defaults for all other values.
         /// </summary>
-        public bool WriteGeometryBBox { get; set; }
+        /// <param name="factory"></param>
+        /// <param name="writeGeometryBBox"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox)
+            : this(factory, writeGeometryBBox, DefaultIdPropertyName)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
+        /// given value for whether or not we should write out a "bbox" for a plain geometry, and
+        /// the given "magic" string to signal when an <see cref="IAttributesTable"/> property is
+        /// actually filling in for a Feature's "id".
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName)
+        {
+            _factory = factory;
+            _writeGeometryBBox = writeGeometryBBox;
+            _idPropertyName = idPropertyName ?? DefaultIdPropertyName;
+        }
 
         ///<inheritdoc cref="JsonConverter.CanConvert(Type)"/>
         public override bool CanConvert(Type typeToConvert)
         {
-            return typeToConvert == typeof(Geometry)
+            return GeometryTypes.Contains(typeToConvert)
                    || typeof(IFeature).IsAssignableFrom(typeToConvert)
                    || typeToConvert == typeof(FeatureCollection)
                    || typeof(IAttributesTable).IsAssignableFrom(typeToConvert);
@@ -54,14 +94,14 @@ namespace NetTopologySuite.IO.Converters
         ///<inheritdoc cref="JsonConverterFactory.CreateConverter(Type, JsonSerializerOptions)"/>
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            if (typeToConvert == typeof(Geometry))
-                return new StjGeometryConverter(_factory) {WriteGeometryBBox = WriteGeometryBBox};
+            if (GeometryTypes.Contains(typeToConvert))
+                return new StjGeometryConverter(_factory, _writeGeometryBBox);
             if (typeToConvert == typeof(FeatureCollection))
                 return new StjFeatureCollectionConverter();
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))
-                return new StjFeatureConverter("id", CreateFeatureFunction, CreateAttributeTable);
+                return new StjFeatureConverter(_idPropertyName);
             if (typeof(IAttributesTable).IsAssignableFrom(typeToConvert))
-                return new StjAttributesTableConverter(CreateAttributeTable) { NestedObjectsAsJsonElement = NestedObjectsAsJsonElement };
+                return new StjAttributesTableConverter(_idPropertyName);
 
             throw new ArgumentException(nameof(typeToConvert));
         }

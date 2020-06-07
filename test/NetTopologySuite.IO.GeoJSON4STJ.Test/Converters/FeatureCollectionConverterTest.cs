@@ -7,15 +7,9 @@ using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
-    [TestFixture(true)]
-    [TestFixture(false)]
+    [TestFixture]
     public class FeatureCollectionConverterTest : SandDTest<FeatureCollection>
     {
-        public FeatureCollectionConverterTest(bool nestedObjectsAsJsonElement)
-        {
-            NestedObjectsAsJsonElement = nestedObjectsAsJsonElement;
-        }
-
         ///<summary>
         ///A test for CanConvert
         ///</summary>
@@ -61,7 +55,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             {
                 fc.Add(FeatureFactory.Create(type, ("id", TypeCode.Int32),
                     ("label", TypeCode.String), ("number1", TypeCode.Double),
-                    ("date", TypeCode.DateTime), ("number2", TypeCode.Int64)
+                    ("number2", TypeCode.Int64)
                     ));
             }
 
@@ -73,7 +67,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(d, Is.Not.Null);
             Assert.That(d.Count, Is.EqualTo(fc.Count));
             for (int i = 0; i < fc.Count; i++)
-                FeatureConverterTest.CheckEquality(fc[i], d[i], NestedObjectsAsJsonElement, false);
+                FeatureConverterTest.CheckEquality(fc[i], d[i]);
         }
     }
 }
