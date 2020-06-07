@@ -1,9 +1,6 @@
-﻿
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using NetTopologySuite.IO.Properties;
-
-[assembly:InternalsVisibleTo("NetTopologySuite.IO.GeoJSON4STJ.Test", AllInternalsVisible = true)]
 
 namespace NetTopologySuite.IO.Converters
 {

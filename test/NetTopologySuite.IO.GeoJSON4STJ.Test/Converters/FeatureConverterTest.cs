@@ -10,15 +10,9 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
     ///    This is a test class for FeatureConverterTest and is intended
     ///    to contain all FeatureConverterTest Unit Tests
     ///</summary>
-    [TestFixture(true)]
-    [TestFixture(false)]
+    [TestFixture]
     public class FeatureConverterTest : SandDTest<IFeature>
     {
-        public FeatureConverterTest(bool nestedObjectsAsJsonElement)
-        {
-            NestedObjectsAsJsonElement = nestedObjectsAsJsonElement;
-        }
-
         ///<summary>
         ///A test for CanConvert
         ///</summary>
@@ -45,12 +39,11 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             var options = DefaultOptions;
             options.WriteIndented = false;
             options.IgnoreNullValues = true;
-            GeoJsonConverterFactory.WriteGeometryBBox = false;
             //GeoJsonConverterFactory.OrdinateFormatString = "0.{}";
 
             string json = ToJsonString(value, options);
             var deserialized = Deserialize(json, options);
-            CheckEquality(value, deserialized, true);
+            CheckEquality(value, deserialized);
             //Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.1,56.2]},\"properties\":{\"test1\":\"value1\"}}", ToJson(value));
         }
 
@@ -70,25 +63,17 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
             string json = ToJsonString(value, options);
             var deserialized = Deserialize(json, options);
-            CheckEquality(value, deserialized, true);
+            CheckEquality(value, deserialized);
             //Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.1,56.2]},\"properties\":{\"test1\":[\"value1\",\"value2\"]}}", ToJson(value));
         }
 
-        private void CheckEquality(IFeature s, IFeature d, bool checkType = false)
-        {
-            CheckEquality(s, d, NestedObjectsAsJsonElement, checkType);
-        }
-
-        public static void CheckEquality(IFeature s, IFeature d, bool nestedObjectsAsJsonElement, bool checkType = false, string idPropertyName = "id")
+        public static void CheckEquality(IFeature s, IFeature d, string idPropertyName = "id")
         {
             Assert.That(d, Is.Not.Null);
 
-            if (checkType)
-                Assert.That(d.GetType(), Is.EqualTo(s.GetType()));
-
             Assert.That(s.Geometry.EqualsExact(d.Geometry));
 
-            AttributesTableConverterTest.TestEquality(s.Attributes, d.Attributes, nestedObjectsAsJsonElement, idPropertyName);
+            AttributesTableConverterTest.TestEquality(s.Attributes, d.Attributes, idPropertyName);
 
             if (s.BoundingBox != null)
                 Assert.That(d.BoundingBox, Is.EqualTo(s.BoundingBox));

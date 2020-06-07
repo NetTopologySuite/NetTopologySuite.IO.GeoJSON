@@ -14,15 +14,9 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
     ///    This is a test class for AttributesTableConverterTest and is intended
     ///    to contain all AttributesTableConverterTest Unit Tests
     ///</summary>
-    [TestFixture(true)]
-    [TestFixture(false)]
+    [TestFixture]
     public class AttributesTableConverterTest : SandDTest<IAttributesTable>
     {
-        public AttributesTableConverterTest(bool nestedAsJsonElement)
-        {
-            NestedObjectsAsJsonElement = nestedAsJsonElement;
-        }
-
         ///<summary>
         ///A test for CanConvert
         ///</summary>
@@ -92,28 +86,14 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(atD.GetNames()[0], Is.EqualTo(atS.GetNames()[0]));
             Assert.That(atD.GetNames()[1], Is.EqualTo(atS.GetNames()[1]));
             Assert.That(atD[atD.GetNames()[0]], Is.EqualTo(atS[atS.GetNames()[0]]));
-            if (NestedObjectsAsJsonElement)
-            {
-                Assert.That(atD[atD.GetNames()[1]], Is.InstanceOf<JsonElement>());
-                var atdInner = (JsonElement) atD[atD.GetNames()[1]];
-                var atdInnerTest1 = atdInner.GetProperty("innerTest1");
-                Assert.That(atdInnerTest1.ValueKind, Is.EqualTo(JsonValueKind.String));
-                Assert.That(atdInnerTest1.GetString(), Is.EqualTo((string) inner["innerTest1"]));
-                var atdInnerTest2 = atdInner.GetProperty("innerTest2");
-                Assert.That(atdInnerTest2.ValueKind, Is.EqualTo(JsonValueKind.String));
-                Assert.That(atdInnerTest2.GetString(), Is.EqualTo((string) inner["innerTest2"]));
-            }
-            else
-            {
-                Assert.That(atD[atD.GetNames()[1]], Is.InstanceOf<IAttributesTable>());
-                var atdInner = (IAttributesTable)atD[atD.GetNames()[1]];
-                object atdInnerTest1 = atdInner["innerTest1"];
-                Assert.That(atdInnerTest1, Is.InstanceOf<string>());
-                Assert.That((string)atdInnerTest1, Is.EqualTo((string)inner["innerTest1"]));
-                object atdInnerTest2 = atdInner["innerTest2"];
-                Assert.That(atdInnerTest2, Is.InstanceOf<string>());
-                Assert.That((string)atdInnerTest2, Is.EqualTo((string)inner["innerTest2"]));
-            }
+            Assert.That(atD[atD.GetNames()[1]], Is.InstanceOf<IAttributesTable>());
+            var atdInner = (IAttributesTable)atD[atD.GetNames()[1]];
+            object atdInnerTest1 = atdInner["innerTest1"];
+            Assert.That(atdInnerTest1, Is.InstanceOf<string>());
+            Assert.That((string)atdInnerTest1, Is.EqualTo((string)inner["innerTest1"]));
+            object atdInnerTest2 = atdInner["innerTest2"];
+            Assert.That(atdInnerTest2, Is.InstanceOf<string>());
+            Assert.That((string)atdInnerTest2, Is.EqualTo((string)inner["innerTest2"]));
         }
 
         [Test]
@@ -126,7 +106,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             
             // read start object token and prepare the next token
             reader.Read();
-            var result = (AttributesTable) converter.Read(ref reader, typeof(IAttributesTable), options);
+            var result = converter.Read(ref reader, typeof(IAttributesTable), options);
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("value1", result["test1"]);
@@ -135,22 +115,10 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             var list = (IList<object>)result["test2"];
             Assert.IsNotEmpty(list);
             Assert.AreEqual(1, list.Count);
-            if (NestedObjectsAsJsonElement)
-            {
-                Assert.IsInstanceOf<JsonElement>(list[0]);
-                var inner = (JsonElement)list[0];
-                Assert.AreEqual(JsonValueKind.Object, inner.ValueKind);
-                Assert.IsTrue(inner.TryGetProperty("innertest1", out var innerProperty));
-                Assert.AreEqual(JsonValueKind.String, innerProperty.ValueKind);
-                Assert.AreEqual("innervalue1", innerProperty.GetString());
-            }
-            else
-            {
-                Assert.IsInstanceOf<IAttributesTable>(list[0]);
-                var inner = (IAttributesTable) list[0];
-                Assert.AreEqual(1, inner.Count);
-                Assert.AreEqual("innervalue1", inner["innertest1"]);
-            }
+            Assert.IsInstanceOf<IAttributesTable>(list[0]);
+            var inner = (IAttributesTable) list[0];
+            Assert.AreEqual(1, inner.Count);
+            Assert.AreEqual("innervalue1", inner["innertest1"]);
         }
 
         [Test]
@@ -163,7 +131,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
             // read start object token and prepare the next token
             reader.Read();
-            var result = (AttributesTable)converter.Read(ref reader, typeof(IAttributesTable), options);
+            var result = converter.Read(ref reader, typeof(IAttributesTable), options);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count);
@@ -173,36 +141,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             var list = (IList<object>)result["test2"];
             Assert.IsNotEmpty(list);
             Assert.AreEqual(2, list.Count);
-            if (NestedObjectsAsJsonElement)
-            {
-                Assert.IsInstanceOf<JsonElement>(list[0]);
-                Assert.IsInstanceOf<JsonElement>(list[1]);
-                var first = (JsonElement)list[0];
-                Assert.AreEqual(JsonValueKind.Object, first.ValueKind);
-                var firstProperty = first.GetProperty("innertest1");
-                Assert.AreEqual(JsonValueKind.String, firstProperty.ValueKind);
-                Assert.AreEqual("innervalue1", firstProperty.GetString());
-                var second = (JsonElement)list[1];
-                Assert.AreEqual(JsonValueKind.Object, second.ValueKind);
-                var secondProperty1 = second.GetProperty("innertest2");
-                Assert.AreEqual(JsonValueKind.String, secondProperty1.ValueKind);
-                Assert.AreEqual("innervalue2", secondProperty1.GetString());
-                var secondProperty2 = second.GetProperty("innertest3");
-                Assert.AreEqual(JsonValueKind.String, secondProperty2.ValueKind);
-                Assert.AreEqual("innervalue3", secondProperty2.GetString());
-            }
-            else
-            {
-                Assert.IsInstanceOf<IAttributesTable>(list[0]);
-                Assert.IsInstanceOf<IAttributesTable>(list[1]);
-                var first = (IAttributesTable) list[0];
-                Assert.AreEqual(1, first.Count);
-                Assert.AreEqual("innervalue1", first["innertest1"]);
-                var second = (IAttributesTable) list[1];
-                Assert.AreEqual(2, second.Count);
-                Assert.AreEqual("innervalue2", second["innertest2"]);
-                Assert.AreEqual("innervalue3", second["innertest3"]);
-            }
+            Assert.IsInstanceOf<IAttributesTable>(list[0]);
+            Assert.IsInstanceOf<IAttributesTable>(list[1]);
+            var first = (IAttributesTable) list[0];
+            Assert.AreEqual(1, first.Count);
+            Assert.AreEqual("innervalue1", first["innertest1"]);
+            var second = (IAttributesTable) list[1];
+            Assert.AreEqual(2, second.Count);
+            Assert.AreEqual("innervalue2", second["innertest2"]);
+            Assert.AreEqual("innervalue3", second["innertest3"]);
         }
 
         [Test]
@@ -215,7 +162,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
             // read start object token and prepare the next token
             reader.Read();
-            var result = (AttributesTable)converter.Read(ref reader, typeof(IAttributesTable), options);
+            var result = converter.Read(ref reader, typeof(IAttributesTable), options);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count);
@@ -226,47 +173,25 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.IsNotEmpty(list);
             Assert.AreEqual(2, list.Count);
             Assert.IsInstanceOf<IList<object>>(list[1]);
-            if (NestedObjectsAsJsonElement)
-            {
-                Assert.IsInstanceOf<JsonElement>(list[0]);
-                var first = (JsonElement)list[0];
-                Assert.AreEqual(JsonValueKind.Object, first.ValueKind);
-                Assert.IsTrue(first.TryGetProperty("innertest1", out var firstProperty));
-                Assert.AreEqual("innervalue1", firstProperty.GetString());
-                var innerList = (IList<object>)list[1];
-                Assert.IsNotNull(innerList);
-                Assert.IsNotEmpty(innerList);
-                Assert.AreEqual(1, innerList.Count);
-                Assert.IsInstanceOf<JsonElement>(innerList[0]);
-                var inner = (JsonElement)innerList[0];
-                Assert.AreEqual(JsonValueKind.Object, inner.ValueKind);
-                Assert.IsTrue(inner.TryGetProperty("innertest2", out var innerProperty1));
-                Assert.AreEqual("innervalue2", innerProperty1.GetString());
-                Assert.IsTrue(inner.TryGetProperty("innertest3", out var innerProperty2));
-                Assert.AreEqual("innervalue3", innerProperty2.GetString());
-            }
-            else
-            {
-                Assert.IsInstanceOf<IAttributesTable>(list[0]);
-                var first = (IAttributesTable) list[0];
-                Assert.AreEqual(1, first.Count);
-                Assert.IsTrue(first.Exists("innertest1"));
-                Assert.AreEqual("innervalue1", first["innertest1"]);
-                var innerList = (IList<object>) list[1];
-                Assert.IsNotNull(innerList);
-                Assert.IsNotEmpty(innerList);
-                Assert.AreEqual(1, innerList.Count);
-                Assert.IsInstanceOf<IAttributesTable>(innerList[0]);
-                var inner = (IAttributesTable) innerList[0];
-                Assert.AreEqual(2, inner.Count);
-                Assert.IsTrue(inner.Exists("innertest2"));
-                Assert.AreEqual("innervalue2", inner["innertest2"]);
-                Assert.IsTrue(inner.Exists("innertest3"));
-                Assert.AreEqual("innervalue3", inner["innertest3"]);
-            }
+            Assert.IsInstanceOf<IAttributesTable>(list[0]);
+            var first = (IAttributesTable) list[0];
+            Assert.AreEqual(1, first.Count);
+            Assert.IsTrue(first.Exists("innertest1"));
+            Assert.AreEqual("innervalue1", first["innertest1"]);
+            var innerList = (IList<object>) list[1];
+            Assert.IsNotNull(innerList);
+            Assert.IsNotEmpty(innerList);
+            Assert.AreEqual(1, innerList.Count);
+            Assert.IsInstanceOf<IAttributesTable>(innerList[0]);
+            var inner = (IAttributesTable) innerList[0];
+            Assert.AreEqual(2, inner.Count);
+            Assert.IsTrue(inner.Exists("innertest2"));
+            Assert.AreEqual("innervalue2", inner["innertest2"]);
+            Assert.IsTrue(inner.Exists("innertest3"));
+            Assert.AreEqual("innervalue3", inner["innertest3"]);
         }
 
-        public static void TestEquality(IAttributesTable s, IAttributesTable d, bool nestedObjectsAsJsonElement, string idPropertyName = "")
+        public static void TestEquality(IAttributesTable s, IAttributesTable d, string idPropertyName = "")
         {
             Assert.That(d, Is.Not.Null);
             //Assert.That(d.Count, Is.EqualTo(s.Count));
@@ -282,10 +207,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
                 if (sitem is IAttributesTable sAtItem)
                 {
-                    if (ditem is IAttributesTable dAtTable)
-                        TestEquality(sAtItem, dAtTable, nestedObjectsAsJsonElement);
-                    else
-                        TestEquality(sAtItem, ditem as JsonElement?);
+                    TestEquality(sAtItem, ditem as IAttributesTable);
                 }
                 else if (sitem is IEnumerable sEnumItem)
                 {

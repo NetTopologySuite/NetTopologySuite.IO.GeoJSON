@@ -9,16 +9,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public abstract class SandDTest<T>
     {
-        protected GeoJsonConverterFactory GeoJsonConverterFactory { get; private set; }
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            GeoJsonConverterFactory = new GeoJsonConverterFactory
-            {
-                NestedObjectsAsJsonElement = NestedObjectsAsJsonElement
-            };
-        }
+        protected GeoJsonConverterFactory GeoJsonConverterFactory { get; } = new GeoJsonConverterFactory();
 
         protected JsonSerializerOptions DefaultOptions
         {
@@ -30,8 +21,6 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                 return res;
             }
         }
-
-        public bool NestedObjectsAsJsonElement { get; set; }
 
         protected void Serialize(Stream stream, T value, JsonSerializerOptions options)
         {

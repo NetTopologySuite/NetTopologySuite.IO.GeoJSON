@@ -33,11 +33,8 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                     case TypeCode.Boolean:
                         value = RND.NextDouble() > 0.5d;
                         break;
-                    case TypeCode.DateTime:
-                        value = DateTime.Now;
-                        break;
                     case TypeCode.Double:
-                        value = 500d * RND.NextDouble();
+                        value = (decimal)(500d * RND.NextDouble());
                         break;
                     case TypeCode.Single:
                         value = 500f * (float)RND.NextDouble();
