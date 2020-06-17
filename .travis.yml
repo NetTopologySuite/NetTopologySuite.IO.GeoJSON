@@ -1,8 +1,8 @@
 language: csharp
 mono: none
 sudo: false
-dotnet: 2.2
-dist: xenial
+dotnet: 3.1
+dist: bionic
 
 
 script:
@@ -26,7 +26,7 @@ deploy:
       branch: develop
     provider: script
     script:
-      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v3/index.json -k $MYGET_API_KEY
     skip_cleanup: true
 
 env:

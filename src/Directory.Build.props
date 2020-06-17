@@ -36,11 +36,6 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Version numbers">
-    <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
-    <NtsMajorVersion>2</NtsMajorVersion>
-    <NtsMinorVersion>0</NtsMinorVersion>
-    <NtsPatchVersion>2</NtsPatchVersion>
-
     <NtsBuildTimestamp>$([System.DateTime]::UtcNow.Ticks)</NtsBuildTimestamp>
     <NtsDaysSinceEpoch>$([System.DateTime]::op_Subtraction($([System.DateTime]::new($(NtsBuildTimestamp)).Date),$([System.DateTime]::new(621355968000000000))).TotalDays.ToString("00000"))</NtsDaysSinceEpoch>
 
@@ -92,7 +87,7 @@
 
   <ItemGroup>
     <!-- SourceLink adds stuff to let debuggers step into our code. -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

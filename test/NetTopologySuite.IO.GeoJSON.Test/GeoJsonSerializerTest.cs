@@ -169,5 +169,29 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.IsNotNull(features);
             Assert.AreEqual(1, features.Count);
         }
+
+        public static MemoryStream Serialize(JsonSerializer serializer, object item)
+        {
+            var res = new MemoryStream();
+
+            using (var sw = new StreamWriter(res, Encoding.UTF8, 1024, true))
+            {
+                var jw = new JsonTextWriter(sw);
+                serializer.Serialize(jw, item);
+            }
+
+            res.Position = 0;
+            return res;
+        }
+
+        public static object Deserialize(JsonSerializer serializer, Stream stream, Type type = null)
+        {
+            using (var sr = new StreamReader(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true))
+            {
+                var jr = new JsonTextReader(sr);
+                return (type != null) ? serializer.Deserialize(jr, type) : serializer.Deserialize(jr);
+            }
+        }
+
     }
 }
