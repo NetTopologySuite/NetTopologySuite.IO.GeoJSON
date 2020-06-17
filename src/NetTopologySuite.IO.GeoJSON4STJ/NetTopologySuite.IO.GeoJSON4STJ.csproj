@@ -31,8 +31,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
-    <PackageReference Include="NetTopologySuite.Features" Version="2.1.0" />
+    <PackageReference Include="NetTopologySuite" Version="[2.0.0, 3.0.0-A)" />
+    <PackageReference Include="NetTopologySuite.Features" Version="[2.1.0, 3.0.0-A)" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
