@@ -1,5 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+
+  <!-- Set these very early in the process, before Directory.Build.props is imported. -->
+  <PropertyGroup Label="Version numbers">
+    <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
+    <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">2</NtsMajorVersion>
+    <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">0</NtsMinorVersion>
+    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">3</NtsPatchVersion>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>NetTopologySuite.IO</RootNamespace>
@@ -25,4 +36,7 @@
     <PackageReference Include="NetTopologySuite.Features" Version="[2.0.0, 3.0.0-A)" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
 </Project>
