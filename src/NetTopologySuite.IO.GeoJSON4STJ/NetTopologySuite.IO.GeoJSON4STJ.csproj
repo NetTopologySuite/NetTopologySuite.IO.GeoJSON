@@ -6,7 +6,7 @@
     <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
     <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">2</NtsMajorVersion>
     <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">0</NtsMinorVersion>
-    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">0</NtsPatchVersion>
+    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">1</NtsPatchVersion>
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -26,13 +26,14 @@
     <Title>NTS - Topology Suite - IO Library for GeoJSON (System.Text.Json)</Title>
     <Authors>NetTopologySuite - Team</Authors>
     <Owners>NetTopologySuite - Team</Owners>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <Description>This package contains the System.Text.Json version of the GeoJSON IO library.</Description>
     <PackageTags>NTS;GeoJSON</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
-    <PackageReference Include="NetTopologySuite.Features" Version="2.1.0" />
+    <PackageReference Include="NetTopologySuite" Version="[2.0.0, 3.0.0-A)" />
+    <PackageReference Include="NetTopologySuite.Features" Version="[2.1.0, 3.0.0-A)" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
