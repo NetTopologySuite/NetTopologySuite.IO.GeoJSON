@@ -41,7 +41,8 @@ namespace NetTopologySuite.IO.Converters
             // Add the id here if present.
             if (value.GetOptionalId(_idPropertyName) is object id)
             {
-                writer.WriteString(_idPropertyName, JsonSerializer.Serialize(id, id.GetType(), options));
+                writer.WritePropertyName("id");
+                JsonSerializer.Serialize(writer, id, id.GetType(), options);
             }
 
             // bbox (optional)
@@ -106,24 +107,19 @@ namespace NetTopologySuite.IO.Converters
                     case "id":
                         switch (reader.TokenType)
                         {
-                            case JsonTokenType.Number when reader.TryGetInt32(out int i4):
-                                feature.Id = i4;
+                            case JsonTokenType.Number when reader.TryGetDecimal(out decimal decimalValue):
+                                feature.Id = decimalValue;
                                 break;
 
-                            case JsonTokenType.Number when reader.TryGetInt64(out long i8):
-                                feature.Id = i8;
-                                break;
-
-                            case JsonTokenType.String when reader.TryGetGuid(out var guid):
-                                feature.Id = guid;
-                                break;
+                            case JsonTokenType.Number:
+                                throw new NotSupportedException("Number value cannot be boxed as a decimal: " + reader.GetString());
 
                             case JsonTokenType.String:
                                 feature.Id = reader.GetString();
                                 break;
 
                             default:
-                                throw new JsonException();
+                                throw new JsonException("A GeoJSON Feature's \"id\", if specified, must be either a JSON string or number, per RFC7946 section 3.2");
                         }
 
                         reader.Read();
