@@ -26,6 +26,7 @@
     <Title>NTS - Topology Suite - IO Library for GeoJSON (System.Text.Json)</Title>
     <Authors>NetTopologySuite - Team</Authors>
     <Owners>NetTopologySuite - Team</Owners>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <Description>This package contains the System.Text.Json version of the GeoJSON IO library.</Description>
     <PackageTags>NTS;GeoJSON</PackageTags>
   </PropertyGroup>
