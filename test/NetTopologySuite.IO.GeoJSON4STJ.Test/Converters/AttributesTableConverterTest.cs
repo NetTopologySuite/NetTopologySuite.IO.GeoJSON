@@ -224,8 +224,17 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                     Assert.That(dIt.MoveNext(), Is.False);
 
                 }
+                else if (sitem is Guid sGuidItem)
+                {
+                    // we box ALL string values as strings, even those that can
+                    // be converted to Guid, to simplify the number of cases
+                    // callers need to be able to deal with.
+                    Assert.That(ditem, Is.EqualTo(sGuidItem.ToString()));
+                }
                 else
+                {
                     Assert.That(ditem, Is.EqualTo(sitem));
+                }
             }
         }
 

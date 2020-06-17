@@ -1,7 +1,12 @@
-﻿using System.Buffers.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO.Converters;
+
 using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
@@ -67,8 +72,59 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             //Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.1,56.2]},\"properties\":{\"test1\":[\"value1\",\"value2\"]}}", ToJson(value));
         }
 
-        public static void CheckEquality(IFeature s, IFeature d, string idPropertyName = "id")
+        [TestCaseSource(nameof(FeatureIdTestCases))]
+        public void WriteJsonWithIdTest(string idPropertyName, object id)
         {
+            var value = new Feature
+            {
+                Geometry = GeometryFactory.Default.CreatePoint(new Coordinate(23.1, 56.2)),
+                Attributes = new AttributesTable
+                {
+                    { idPropertyName, id },
+                    { TestContext.CurrentContext.Random.GetString(), TestContext.CurrentContext.Random.NextGuid() },
+                },
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new GeoJsonConverterFactory(GeometryFactory.Default, false, idPropertyName),
+                },
+            };
+
+            string json = ToJsonString(value, options);
+            var deserialized = Deserialize(json, options);
+            CheckEquality(value, deserialized, idPropertyName);
+        }
+
+        public static IEnumerable<object[]> FeatureIdTestCases
+        {
+            get
+            {
+                var ctx = TestContext.CurrentContext;
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextByte() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextSByte() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextShort() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextUShort() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.Next() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextUInt() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextLong() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextULong() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextFloat() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextDouble() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextDecimal() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.GetString() };
+                yield return new object[] { ctx.Random.GetString(), ctx.Random.NextGuid() };
+                yield return new object[] { ctx.Random.GetString(), new DateTime(ctx.Random.NextLong(DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks + 1)) };
+                yield return new object[] { ctx.Random.GetString(), new DateTimeOffset(ctx.Random.NextLong(DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks + 1), TimeSpan.FromHours(ctx.Random.Next(-14, 15))) };
+            }
+        }
+
+        public static void CheckEquality(IFeature s, IFeature d, string idPropertyName = null)
+        {
+            idPropertyName ??= GeoJsonConverterFactory.DefaultIdPropertyName;
+
             Assert.That(d, Is.Not.Null);
 
             Assert.That(s.Geometry.EqualsExact(d.Geometry));
@@ -76,8 +132,44 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             AttributesTableConverterTest.TestEquality(s.Attributes, d.Attributes, idPropertyName);
 
             if (s.BoundingBox != null)
+            {
                 Assert.That(d.BoundingBox, Is.EqualTo(s.BoundingBox));
+            }
 
+            if (s.GetOptionalId(idPropertyName) is object sId)
+            {
+                if (d.GetOptionalId(idPropertyName) is object dId)
+                {
+                    switch (dId)
+                    {
+                        // ALL number values get boxed as decimals.
+                        case decimal _:
+                            sId = JsonSerializer.Deserialize<decimal>(JsonSerializer.Serialize(sId));
+                            break;
+
+                        // ALL string values get boxed as strings.
+                        case string _:
+                            sId = JsonSerializer.Deserialize<string>(JsonSerializer.Serialize(sId));
+                            break;
+
+                        // RFC7946, 3.2 says "the value of this member is either
+                        // a JSON string or number.
+                        default:
+                            Assert.Fail("Feature IDs must be either a string or number.");
+                            break;
+                    }
+
+                    Assert.That(dId, Is.EqualTo(sId));
+                }
+                else
+                {
+                    Assert.Fail("s had ID, but d did not.");
+                }
+            }
+            else
+            {
+                Assert.That(d.GetOptionalId(idPropertyName) is null);
+            }
         }
 
     }
