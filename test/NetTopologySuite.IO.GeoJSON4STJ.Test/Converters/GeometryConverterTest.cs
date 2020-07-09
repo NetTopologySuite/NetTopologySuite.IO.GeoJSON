@@ -6,6 +6,22 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public class GeometryConverterTest : SandDTest<Geometry>
     {
+        [TestCase("Point")]
+        [TestCase("LineString")]
+        [TestCase("Polygon")]
+        [TestCase("MultiPoint")]
+        [TestCase("MultiLineString")]
+        [TestCase("MultiPolygon")]
+        public void TestReadWithEmptyCoordinatesArray(string type)
+        {
+            string geoJson = @$"{{ ""type"" : ""{type}"", ""coordinates"": [] }}";
+            var options = DefaultOptions;
+            var geom = Deserialize(geoJson, options);
+
+            Assert.That(geom != null);
+            Assert.That(geom.IsEmpty);
+        }
+
         [Test]
         public void TestReadPoint2D()
         {
@@ -118,16 +134,26 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(geom.NumGeometries, Is.EqualTo(3));
         }
 
-
+        [TestCase("POINT EMPTY")]
+        [TestCase("POINT Z EMPTY")]
         [TestCase("POINT (1 2)")]
         [TestCase("POINT Z (1 2 3)")]
+        [TestCase("LINESTRING EMPTY")]
+        [TestCase("LINESTRING Z EMPTY")]
         [TestCase("LINESTRING (1 2, 2 2)")]
         [TestCase("LINESTRING Z (1 2 0, 2 2 0)")]
+        [TestCase("POLYGON EMPTY")]
+        [TestCase("POLYGON Z EMPTY")]
         [TestCase("POLYGON ((0 0, 10 10, 0 10, 0 0))")]
         [TestCase("POLYGON Z ((0 0 1, 10 10 1, 0 10 1, 0 0 1))")]
         [TestCase("POLYGON ((0 0, 10 10, 0 10, 0 0), (1 2, 1 9, 8 9, 1 2))")]
         [TestCase("POLYGON Z ((0 0 1, 10 10 1, 0 10 1, 0 0 1), (1 2.4 1, 1 9 1, 7.6 9 1, 1 2.4 1))")]
-
+        [TestCase("MULTIPOINT EMPTY")]
+        [TestCase("MULTIPOINT Z EMPTY")]
+        [TestCase("MULTILINESTRING EMPTY")]
+        [TestCase("MULTILINESTRING Z EMPTY")]
+        [TestCase("MULTIPOLYGON EMPTY")]
+        [TestCase("MULTIPOLYGON Z EMPTY")]
         public void TestWriteReadWkt(string wkt)
         {
             var wktReader = new WKTReader(NtsGeometryServices.Instance.CreateGeometryFactory(4326));
@@ -141,7 +167,8 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                 geomD = Deserialize(ms, options);
 
             }
-            Assert.That(geomS.EqualsTopologically(geomD));
+
+            Assert.That(geomS.IsEmpty ? geomD.IsEmpty : geomS.EqualsTopologically(geomD));
         }
     }
 }
