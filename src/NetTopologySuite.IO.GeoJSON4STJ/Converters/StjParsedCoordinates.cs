@@ -17,6 +17,8 @@ namespace NetTopologySuite.IO.Converters
 
         private static readonly GeoJsonObjectType[] SupportedTypesForMultiPolygon = { GeoJsonObjectType.MultiPolygon };
 
+        private static readonly GeoJsonObjectType[] SupportedTypesForEmpty = { GeoJsonObjectType.Point, GeoJsonObjectType.LineString, GeoJsonObjectType.Polygon, GeoJsonObjectType.MultiPoint, GeoJsonObjectType.MultiLineString, GeoJsonObjectType.MultiPolygon };
+
         private readonly object _obj;
 
         private StjParsedCoordinates(object obj)
@@ -39,6 +41,11 @@ namespace NetTopologySuite.IO.Converters
             if (reader.TokenType == JsonTokenType.Number)
             {
                 return new StjParsedCoordinates(ParsePoint(ref reader, factory));
+            }
+
+            if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                return default;
             }
 
             reader.AssertToken(JsonTokenType.StartArray);
@@ -71,7 +78,7 @@ namespace NetTopologySuite.IO.Converters
                 switch (_obj)
                 {
                     case null:
-                        return default;
+                        return SupportedTypesForEmpty;
 
                     case Point _:
                         return SupportedTypesForPoint;
@@ -92,45 +99,94 @@ namespace NetTopologySuite.IO.Converters
             }
         }
 
-        public Point ToPoint()
+        public Point ToPoint(GeometryFactory factory)
         {
-            return _obj as Point ??
-                   throw new InvalidOperationException("Point is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreatePoint();
+
+                case Point point:
+                    return point;
+
+                default:
+                    throw new InvalidOperationException("Point is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
         public LineString ToLineString(GeometryFactory factory)
         {
-            return _obj is CoordinateSequence seq
-                ? factory.CreateLineString(seq)
-                : throw new InvalidOperationException("LineString is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreateLineString();
+
+                case CoordinateSequence seq:
+                    return factory.CreateLineString(seq);
+
+                default:
+                    throw new InvalidOperationException("LineString is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
         public MultiPoint ToMultiPoint(GeometryFactory factory)
         {
-            return _obj is CoordinateSequence seq
-                ? factory.CreateMultiPoint(seq)
-                : throw new InvalidOperationException("MultiPoint is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreateMultiPoint();
+
+                case CoordinateSequence seq:
+                    return factory.CreateMultiPoint(seq);
+
+                default:
+                    throw new InvalidOperationException("MultiPoint is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
         public Polygon ToPolygon(GeometryFactory factory)
         {
-            return _obj is CoordinateSequence[] seqs
-                ? ToPolygon(seqs, factory)
-                : throw new InvalidOperationException("Polygon is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreatePolygon();
+
+                case CoordinateSequence[] seqs:
+                    return ToPolygon(seqs, factory);
+
+                default:
+                    throw new InvalidOperationException("Polygon is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
         public MultiLineString ToMultiLineString(GeometryFactory factory)
         {
-            return _obj is CoordinateSequence[] seqs
-                ? factory.CreateMultiLineString(Array.ConvertAll(seqs, factory.CreateLineString))
-                : throw new InvalidOperationException("MultiLineString is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreateMultiLineString();
+
+                case CoordinateSequence[] seqs:
+                    return factory.CreateMultiLineString(Array.ConvertAll(seqs, factory.CreateLineString));
+
+                default:
+                    throw new InvalidOperationException("MultiLineString is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
-        public MultiPolygon ToMultiPolygon()
+        public MultiPolygon ToMultiPolygon(GeometryFactory factory)
         {
-            return _obj is MultiPolygon multiPolygon
-                ? multiPolygon
-                : throw new InvalidOperationException("MultiPolygon is not supported (check SupportedTypes before calling any ToX methods)");
+            switch (_obj)
+            {
+                case null:
+                    return factory.CreateMultiPolygon();
+
+                case MultiPolygon multiPolygon:
+                    return multiPolygon;
+
+                default:
+                    throw new InvalidOperationException("MultiPolygon is not supported (check SupportedTypes before calling any ToX methods)");
+            }
         }
 
         private static Point ParsePoint(ref Utf8JsonReader reader, GeometryFactory factory)

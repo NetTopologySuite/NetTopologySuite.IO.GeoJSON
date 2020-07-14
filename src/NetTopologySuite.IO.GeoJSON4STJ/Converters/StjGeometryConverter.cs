@@ -82,7 +82,7 @@ namespace NetTopologySuite.IO.Converters
                         break;
                     case "coordinates":
                         coordinateData = StjParsedCoordinates.Parse(ref reader, _geometryFactory);
-                        reader.ReadToken(JsonTokenType.EndArray);
+                        reader.Read();
                         break;
                     case "bbox":
                         var env = ReadBBox(ref reader, options);
@@ -126,7 +126,7 @@ namespace NetTopologySuite.IO.Converters
             switch (geometryType)
             {
                 case GeoJsonObjectType.Point:
-                    geometry = coordinateData.ToPoint();
+                    geometry = coordinateData.ToPoint(_geometryFactory);
                     break;
                 case GeoJsonObjectType.LineString:
                     geometry = coordinateData.ToLineString(_geometryFactory);
@@ -141,7 +141,7 @@ namespace NetTopologySuite.IO.Converters
                     geometry = coordinateData.ToMultiLineString(_geometryFactory);
                     break;
                 case GeoJsonObjectType.MultiPolygon:
-                    geometry = coordinateData.ToMultiPolygon();
+                    geometry = coordinateData.ToMultiPolygon(_geometryFactory);
                     break;
                 case GeoJsonObjectType.GeometryCollection:
                     if (geometries == null)
@@ -187,6 +187,10 @@ namespace NetTopologySuite.IO.Converters
                 for (int i = 0; i < value.NumGeometries; i++)
                     Write(writer, value.GetGeometryN(i), options);
                 writer.WriteEndArray();
+            }
+            else if (value.IsEmpty)
+            {
+                writer.WriteNull("coordinates");
             }
             else
             {
