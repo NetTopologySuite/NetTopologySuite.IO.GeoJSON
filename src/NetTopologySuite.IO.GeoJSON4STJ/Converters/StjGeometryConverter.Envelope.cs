@@ -14,7 +14,12 @@ namespace NetTopologySuite.IO.Converters
         {
             Envelope res = null;
 
-            if (reader.TokenType != JsonTokenType.Null)
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                // #57: callers expect us to have read past the last token
+                reader.Read();
+            }
+            else
             {
                 reader.ReadToken(JsonTokenType.StartArray);
 
