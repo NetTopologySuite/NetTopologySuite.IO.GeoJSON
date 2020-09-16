@@ -19,6 +19,19 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         }
 
         [Test]
+        public void TryDeserializeJsonObjectShouldFailGracefullyWhenAttributesTableWasNotCreatedHere()
+        {
+            var table = new AttributesTable
+            {
+                { nameof(GasStation.Id), Guid.NewGuid() },
+                { nameof(GasStation.Name), "Name" },
+                { nameof(GasStation.Location), null },
+                { nameof(GasStation.Owner), null },
+            };
+            Assert.That(!table.TryDeserializeJsonObject(new JsonSerializerOptions(), out GasStation _));
+        }
+
+        [Test]
         public void TryGetJsonObjectPropertyValueShouldFailGracefullyWhenPropertyIsAbsent()
         {
             const string Json = @"{
@@ -46,6 +59,54 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(heightInFeet, Is.EqualTo(305));
 
             Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("nearestGasStation", options, out GasStation _));
+        }
+
+        [Test]
+        public void TryDeserializeJsonObjectShouldActAppropriatelyWhenDeserializationSucceeds()
+        {
+            const string Json = @"{
+    ""type"": ""Feature"",
+    ""geometry"": {
+        ""type"": ""Point"",
+        ""coordinates"": [-74.0445, 40.6892]
+    },
+    ""properties"": {
+        ""id"": ""F44EC407-B5C2-4A1E-9D4A-0D8CE930E742"",
+        ""name"": ""Cavenpoint Exxon"",
+        ""location"": {
+            ""type"": ""Point"",
+            ""coordinates"": [-74.0737, 40.7060]
+        },
+        ""owner"": {
+            ""id"": ""B0536C0C-0577-4046-A98C-224758BD245C"",
+            ""name"": ""Fakey McNamerson"",
+            ""age"": 41
+        }
+    }
+}";
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new GeoJsonConverterFactory() },
+                PropertyNameCaseInsensitive = true,
+            };
+
+            var feature = JsonSerializer.Deserialize<IFeature>(Json, options);
+
+            Assert.That(feature.Geometry, Is.InstanceOf<Point>());
+            Assert.That(feature.Geometry.Coordinate, Is.EqualTo(new Coordinate(-74.0445, 40.6892)));
+            Assert.That(feature.Attributes, Is.Not.Null);
+
+            // complex type, with two properties: one of a user-defined complex type, and one that
+            // also should be treated as GeoJSON.
+            Assert.That(feature.Attributes.TryDeserializeJsonObject(options, out GasStation gasStation));
+            Assert.That(gasStation.Id, Is.EqualTo(new Guid("F44EC407-B5C2-4A1E-9D4A-0D8CE930E742")));
+            Assert.That(gasStation.Name, Is.EqualTo("Cavenpoint Exxon"));
+            Assert.That(gasStation.Location, Is.Not.Null);
+            Assert.That(gasStation.Location.Coordinate, Is.EqualTo(new Coordinate(-74.0737, 40.7060)));
+            Assert.That(gasStation.Owner, Is.Not.Null);
+            Assert.That(gasStation.Owner.Id, Is.EqualTo(new Guid("B0536C0C-0577-4046-A98C-224758BD245C")));
+            Assert.That(gasStation.Owner.Name, Is.EqualTo("Fakey McNamerson"));
+            Assert.That(gasStation.Owner.Age, Is.EqualTo(41));
         }
 
         [Test]
