@@ -131,14 +131,32 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     case "geometry":
-                        var geometry = JsonSerializer.Deserialize<Geometry>(ref reader, options);
-                        feature.Geometry = geometry;
-                        reader.ReadToken(JsonTokenType.EndObject);
+                        if (reader.TokenType == JsonTokenType.Null)
+                        {
+                            // #57: we're expected to read past the last token
+                            reader.Read();
+                        }
+                        else
+                        {
+                            var geometry = JsonSerializer.Deserialize<Geometry>(ref reader, options);
+                            feature.Geometry = geometry;
+                            reader.ReadToken(JsonTokenType.EndObject);
+                        }
+
                         break;
 
                     case "properties":
-                        feature.Attributes = JsonSerializer.Deserialize<IAttributesTable>(ref reader, options);
-                        reader.ReadToken(JsonTokenType.EndObject);
+                        if (reader.TokenType == JsonTokenType.Null)
+                        {
+                            // #57: we're expected to read past the last token
+                            reader.Read();
+                        }
+                        else
+                        {
+                            feature.Attributes = JsonSerializer.Deserialize<IAttributesTable>(ref reader, options);
+                            reader.ReadToken(JsonTokenType.EndObject);
+                        }
+
                         break;
 
                     default:

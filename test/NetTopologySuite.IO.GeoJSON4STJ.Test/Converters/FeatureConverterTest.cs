@@ -32,6 +32,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.AreEqual(expected, actual);
         }
 
+        [GeoJsonIssueNumber(57)]
+        [TestCase("{\"type\": \"Feature\", \"bbox\": null}")]
+        [TestCase("{\"type\": \"Feature\", \"geometry\": null}")]
+        [TestCase("{\"type\": \"Feature\", \"properties\": null}")]
+        public void DeserializationShouldAllowNullInputValues(string serializedFeature)
+        {
+            Assert.That(() => JsonSerializer.Deserialize<IFeature>(serializedFeature, DefaultOptions), Throws.Nothing);
+        }
+
         ///<summary>
         ///    A test for WriteJson
         ///</summary>

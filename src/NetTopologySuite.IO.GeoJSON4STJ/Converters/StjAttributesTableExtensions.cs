@@ -14,6 +14,49 @@ namespace NetTopologySuite.IO.Converters
     public static class StjAttributesTableExtensions
     {
         /// <summary>
+        /// Attempts to convert this table to a strongly-typed value, if the table came from this
+        /// library.
+        /// <para>
+        /// This is essentially just a way of calling
+        /// <see cref="JsonSerializer.Deserialize{TValue}(ref Utf8JsonReader, JsonSerializerOptions)"/>
+        /// on a Feature's <c>"properties"</c> object.
+        /// </para>
+        /// <para>
+        /// <c>System.Text.Json</c> intentionally omits the functionality that would let us do this
+        /// automatically, for security reasons, so this is the workaround for now.
+        /// </para>
+        /// <para>
+        /// This will always return <see langword="false"/> for tables that were not created by the
+        /// converters that this library adds via <see cref="GeoJsonConverterFactory"/>.
+        /// </para>
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of object to convert to.
+        /// </typeparam>
+        /// <param name="table">
+        /// This table.
+        /// </param>
+        /// <param name="options">
+        /// The <see cref="JsonSerializerOptions"/> to use for the deserialization.
+        /// </param>
+        /// <param name="deserialized">
+        /// Receives the converted value on success, or the default value on failure.
+        /// </param>
+        /// <returns>
+        /// A value indicating whether or not the conversion succeeded.
+        /// </returns>
+        public static bool TryDeserializeJsonObject<T>(this IAttributesTable table, JsonSerializerOptions options, out T deserialized)
+        {
+            if (!(table is StjAttributesTable ourAttributesTable))
+            {
+                deserialized = default;
+                return false;
+            }
+
+            return TryDeserializeElement(ourAttributesTable.RootElement, options, out deserialized);
+        }
+
+        /// <summary>
         /// Attempts to get a strongly-typed value for that corresponds to a property of this table,
         /// if the table came from this library.
         /// <para>
@@ -50,13 +93,19 @@ namespace NetTopologySuite.IO.Converters
         /// </returns>
         public static bool TryGetJsonObjectPropertyValue<T>(this IAttributesTable table, string propertyName, JsonSerializerOptions options, out T deserialized)
         {
-            deserialized = default;
-
             if (!(table is StjAttributesTable ourAttributesTable &&
                   ourAttributesTable.RootElement.TryGetProperty(propertyName, out var elementToTransform)))
             {
+                deserialized = default;
                 return false;
             }
+
+            return TryDeserializeElement(elementToTransform, options, out deserialized);
+        }
+
+        private static bool TryDeserializeElement<T>(JsonElement elementToTransform, JsonSerializerOptions options, out T deserialized)
+        {
+            deserialized = default;
 
             // try the types that the framework has builtins for.  all but one of these top-level
             // branches should go away at JIT time.

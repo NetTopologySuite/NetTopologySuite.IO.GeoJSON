@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text.Json;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 
@@ -20,6 +21,19 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
             Assert.That(geom != null);
             Assert.That(geom.IsEmpty);
+        }
+
+        [GeoJsonIssueNumber(57)]
+        [TestCase("{\"type\": \"Point\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"LineString\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"Polygon\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"MultiPoint\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"MultiLineString\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"MultiPolygon\", \"coordinates\": [], \"bbox\": null}")]
+        [TestCase("{\"type\": \"GeometryCollection\", \"geometries\": [], \"bbox\": null}")]
+        public void DeserializationShouldAllowNullBoundingBox(string serializedGeometry)
+        {
+            Assert.That(() => JsonSerializer.Deserialize<Geometry>(serializedGeometry, DefaultOptions), Throws.Nothing);
         }
 
         [Test]
