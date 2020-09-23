@@ -188,6 +188,9 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
+# JetBrains Rider
+.idea/
+
 # Data generated from unit tests
 NetTopologySuite.Samples.Shapefiles/ZMtest.shp
 NetTopologySuite.Samples.Shapefiles/ZMtest.shx
@@ -203,4 +206,3 @@ NetTopologySuite.Samples.Shapefiles/tmp*.shx
 NetTopologySuite.Samples.Shapefiles/tmp*.dbf
 NetTopologySuite.Samples.Shapefiles/test_arcview.shp
 NetTopologySuite.Samples.Shapefiles/test_buffer.shp
-.idea/
