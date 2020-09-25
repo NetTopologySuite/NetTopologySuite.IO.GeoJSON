@@ -148,20 +148,10 @@ namespace NetTopologySuite.IO.Converters
             // Advance reader
             reader.Read();
             reader.SkipComments();
-
-            IAttributesTable attributesTable = null;
-            if (!innerObject && serializer.Context.Context is IFeature feature)
-            {
-                attributesTable = feature.Attributes;
-            }
+            var attributesTable = new AttributesTable();
 
             if (reader.TokenType != JsonToken.Null)
             {
-                if (attributesTable is null)
-                {
-                    attributesTable = new AttributesTable();
-                }
-
                 while (reader.TokenType == JsonToken.PropertyName)
                 {
                     string attributeName = (string)reader.Value;
