@@ -441,6 +441,35 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(mc.ValueInt32, Is.EqualTo(17));
             Assert.That(mc.ValueDouble, Is.EqualTo(Math.PI));
         }
+        
+        [GeoJsonIssueNumber(59)]
+        [Test]
+        public void TestGeoJsonWithNestedObjectsInProperties()
+        {
+            const string geojson =
+                @"{
+    ""type"": ""Feature"",
+    ""geometry"": {
+      ""type"": ""Point"",
+      ""coordinates"": [1, 2]
+    },
+    ""properties"": {
+      ""complex"": {
+        ""a"": [""b"", ""c""],
+        ""d"": [""e"", ""f""]
+      }
+    } 
+  }
+}";
+
+            Feature f = null;
+            Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Attributes["complex"], Is.InstanceOf<AttributesTable>());
+            var innerTable = f.Attributes["complex"] as AttributesTable;
+            Assert.That(innerTable["a"], Is.InstanceOf<List<object>>());
+            Assert.That(innerTable["d"], Is.InstanceOf<List<object>>());
+        }
     }
 
     class MyClass
