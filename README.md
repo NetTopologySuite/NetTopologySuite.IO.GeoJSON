@@ -2,13 +2,13 @@
 
 GeoJSON IO module for NTS. 
 
-## Usage
+## GeoJSON4STJ Usage
 
-### ASP.NET Core
+This is the package for System.Text.Json serialization and deserialization.
+
+### ASP.NET Core Example
 
 Add the `System.Text.Json.Serializer.JsonConverterFactory`, `GeoJsonConverterFactory`, to the `JsonSerializerOptions` when you configure your controllers, MVC, etc in the `ConfigureServices` method of your `Startup.cs` class.
-
-#### example
 
 ```csharp
 public void ConfigureServices(IServiceCollection services) {
