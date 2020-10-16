@@ -190,7 +190,8 @@ namespace NetTopologySuite.IO.Converters
             }
             else if (value.IsEmpty)
             {
-                writer.WriteNull("coordinates");
+                writer.WriteStartArray("coordinates");
+                writer.WriteEndArray();
             }
             else
             {
