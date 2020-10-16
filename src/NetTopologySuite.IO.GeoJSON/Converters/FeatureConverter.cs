@@ -173,10 +173,23 @@ namespace NetTopologySuite.IO.Converters
                                 throw new ArgumentException("Expected token '{' not found.");
                             }
 
-                            var context = serializer.Context;
-                            serializer.Context = new StreamingContext(serializer.Context.State, feature);
-                            feature.Attributes = serializer.Deserialize<AttributesTable>(reader);
-                            serializer.Context = context;
+                            var attributes = serializer.Deserialize<AttributesTable>(reader);
+
+                            if (feature.Attributes is null)
+                            {
+                                feature.Attributes = attributes;
+                            }
+                            else
+                            {
+                                foreach (var attribute in attributes)
+                                {
+                                    if (!feature.Attributes.Exists(attribute.Key))
+                                    {
+                                        feature.Attributes.Add(attribute.Key, attribute.Value);
+                                    }
+                                }
+                            }
+
                             if (reader.TokenType != JsonToken.EndObject)
                             {
                                 throw new ArgumentException("Expected token '}' not found.");

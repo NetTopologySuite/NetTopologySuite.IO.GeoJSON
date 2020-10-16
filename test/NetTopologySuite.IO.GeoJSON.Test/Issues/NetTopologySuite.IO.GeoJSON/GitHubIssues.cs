@@ -441,6 +441,54 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(mc.ValueInt32, Is.EqualTo(17));
             Assert.That(mc.ValueDouble, Is.EqualTo(Math.PI));
         }
+        
+        [GeoJsonIssueNumber(59)]
+        [Test]
+        public void TestGeoJsonWithNestedObjectsInProperties()
+        {
+            const string geojson =
+                @"{
+    ""type"": ""Feature"",
+    ""geometry"": {
+      ""type"": ""Point"",
+      ""coordinates"": [1, 2]
+    },
+    ""properties"": {
+      ""complex"": {
+        ""a"": [""b"", ""c""],
+        ""d"": [""e"", ""f""]
+      }
+    } 
+  }
+}";
+
+            Feature f = null;
+            Assert.That(() => f = new GeoJsonReader().Read<Feature>(geojson), Throws.Nothing);
+            Assert.That(f, Is.Not.Null);
+            Assert.That(f.Attributes["complex"], Is.InstanceOf<AttributesTable>());
+            var innerTable = f.Attributes["complex"] as AttributesTable;
+            Assert.That(innerTable["a"], Is.InstanceOf<List<object>>());
+            Assert.That(innerTable["d"], Is.InstanceOf<List<object>>());
+        }
+
+        [GeoJsonIssueNumber(65)]
+        [TestCase("Point")]
+        [TestCase("LineString")]
+        [TestCase("Polygon")]
+        [TestCase("MultiPoint")]
+        [TestCase("MultiLineString")]
+        [TestCase("MultiPolygon")]
+        [TestCase("GeometryCollection")]
+        public void TestGeoJsonWithNullCoordinatesOrGeometries(string geometryType)
+        {
+            string tag = geometryType == "GeometryCollection" ? "geometries" : "coordinates";
+            string geojson = $"{{\"type\": \"{geometryType}\", \"{tag}\": null}}";
+
+            Geometry g = null;
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(geojson), Throws.Nothing);
+            Assert.That(g, Is.Not.Null);
+            Assert.That(g.IsEmpty);
+        }
     }
 
     class MyClass
