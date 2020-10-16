@@ -470,6 +470,25 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(innerTable["a"], Is.InstanceOf<List<object>>());
             Assert.That(innerTable["d"], Is.InstanceOf<List<object>>());
         }
+
+        [GeoJsonIssueNumber(65)]
+        [TestCase("Point")]
+        [TestCase("LineString")]
+        [TestCase("Polygon")]
+        [TestCase("MultiPoint")]
+        [TestCase("MultiLineString")]
+        [TestCase("MultiPolygon")]
+        [TestCase("GeometryCollection")]
+        public void TestGeoJsonWithNullCoordinatesOrGeometries(string geometryType)
+        {
+            string tag = geometryType == "GeometryCollection" ? "geometries" : "coordinates";
+            string geojson = $"{{\"type\": \"{geometryType}\", \"{tag}\": null}}";
+
+            Geometry g = null;
+            Assert.That(() => g = new GeoJsonReader().Read<Geometry>(geojson), Throws.Nothing);
+            Assert.That(g, Is.Not.Null);
+            Assert.That(g.IsEmpty);
+        }
     }
 
     class MyClass
