@@ -348,12 +348,28 @@ namespace NetTopologySuite.IO.Converters
                     case "geometries":
                         //only geom collection has "geometries"
                         reader.ReadOrThrow();  //read past start array tag
-                        coords = ParseGeomCollection(reader, serializer);
+                        if (reader.TokenType == JsonToken.Null)
+                        {
+                            reader.ReadOrThrow();
+                        }
+                        else
+                        {
+                            coords = ParseGeomCollection(reader, serializer);
+                        }
+
                         break;
 
                     case "coordinates":
                         reader.ReadOrThrow(); //read past start array tag
-                        coords = ReadCoordinates(reader);
+                        if (reader.TokenType == JsonToken.Null)
+                        {
+                            reader.ReadOrThrow();
+                        }
+                        else
+                        {
+                            coords = ReadCoordinates(reader);
+                        }
+
                         break;
 
                     case "bbox":
@@ -379,23 +395,44 @@ namespace NetTopologySuite.IO.Converters
 
             switch (geometryType)
             {
+                case GeoJsonObjectType.Point when coords is null:
+                    return _factory.CreatePoint();
+
                 case GeoJsonObjectType.Point:
                     return CreatePoint(reader, coords);
+
+                case GeoJsonObjectType.MultiPoint when coords is null:
+                    return _factory.CreateMultiPoint();
 
                 case GeoJsonObjectType.MultiPoint:
                     return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>)obj)).ToArray());
 
+                case GeoJsonObjectType.LineString when coords is null:
+                    return _factory.CreateLineString();
+
                 case GeoJsonObjectType.LineString:
                     return CreateLineString(reader, coords);
+
+                case GeoJsonObjectType.MultiLineString when coords is null:
+                    return _factory.CreateMultiLineString();
 
                 case GeoJsonObjectType.MultiLineString:
                     return _factory.CreateMultiLineString(coords.Select(obj => CreateLineString(reader, (List<object>)obj)).ToArray());
 
+                case GeoJsonObjectType.Polygon when coords is null:
+                    return _factory.CreatePolygon();
+
                 case GeoJsonObjectType.Polygon:
                     return CreatePolygon(reader, coords);
 
+                case GeoJsonObjectType.MultiPolygon when coords is null:
+                    return _factory.CreateMultiPolygon();
+
                 case GeoJsonObjectType.MultiPolygon:
                     return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>)obj)).ToArray());
+
+                case GeoJsonObjectType.GeometryCollection when coords is null:
+                    return _factory.CreateGeometryCollection();
 
                 case GeoJsonObjectType.GeometryCollection:
                     return _factory.CreateGeometryCollection(coords.Cast<Geometry>().ToArray());
