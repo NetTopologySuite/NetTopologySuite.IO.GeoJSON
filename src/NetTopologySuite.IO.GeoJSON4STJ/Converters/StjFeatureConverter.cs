@@ -160,6 +160,8 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     default:
+                        // If property name is not one of the above: skip it entirely
+                        reader.Skip();
                         // Advance
                         while (reader.Read())
                         {
