@@ -43,7 +43,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
         [TestCase("{\"type\": \"Feature\", \"id\": 1, \"extra\": {\"example\": \"value\"}}")]
         [TestCase("{\"type\": \"Feature\", \"id\": 1, \"extra\": {\"type\": \"Line\", \"id\": 2}}")]
-        public void DeserializationShouldAllowExtraValues(string serializedFeature)
+        public void DeserializationShouldAllowForeignMembers(string serializedFeature)
         {
             Assert.That(() => JsonSerializer.Deserialize<IFeature>(serializedFeature, DefaultOptions), Throws.Nothing);
         }
