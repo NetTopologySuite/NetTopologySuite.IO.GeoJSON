@@ -31,9 +31,9 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         public CoordinateConverter(PrecisionModel precisionModel, int dimension)
         {
-            if (dimension != 2 && dimension != 3)
+            if (dimension < 2 || dimension > 4)
             {
-                throw new ArgumentException("Must be either 2 or 3", nameof(dimension));
+                throw new ArgumentException("Must be between 2 and 4", nameof(dimension));
             }
 
             _precisionModel = precisionModel;
@@ -85,10 +85,18 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteValue(value);
             value = _precisionModel.MakePrecise(coordinate.Y);
             writer.WriteValue(value);
-
-            if (_dimension > 2 && !double.IsNaN(coordinate.Z))
+            if (coordinate.GetType() == typeof(CoordinateZ))
             {
                 writer.WriteValue(coordinate.Z);
+            }
+            if (coordinate.GetType() == typeof(CoordinateM))
+            {
+                writer.WriteValue(coordinate.M);
+            }
+            if (coordinate.GetType() == typeof(CoordinateZM))
+            {
+                writer.WriteValue(coordinate.Z);
+                writer.WriteValue(coordinate.M);
             }
 
             writer.WriteEndArray();

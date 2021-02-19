@@ -38,9 +38,9 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         public GeometryArrayConverter(GeometryFactory factory, int dimension)
         {
-            if (dimension != 2 && dimension != 3)
+            if (dimension < 2 || dimension > 4)
             {
-                throw new ArgumentException("Must be either 2 or 3", nameof(dimension));
+                throw new ArgumentException("Must be between 2 and 4", nameof(dimension));
             }
 
             _factory = factory;

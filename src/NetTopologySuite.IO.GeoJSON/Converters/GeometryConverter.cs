@@ -16,6 +16,7 @@ namespace NetTopologySuite.IO.Converters
     {
         private readonly GeometryFactory _factory;
         private readonly int _dimension;
+        private readonly bool _allowMeasurements;
 
         /// <summary>
         /// Creates an instance of this class using <see cref="GeoJsonSerializer.Wgs84Factory"/> to create geometries.
@@ -32,16 +33,25 @@ namespace NetTopologySuite.IO.Converters
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> to create geometries.
         /// </summary>
         /// <param name="geometryFactory">The geometry factory.</param>
-        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
-        public GeometryConverter(GeometryFactory geometryFactory, int dimension)
+        /// <param name="dimension">The number of dimensions to handle.  Must be between 2 and 4.</param>
+        public GeometryConverter(GeometryFactory geometryFactory, int dimension) : this(geometryFactory, dimension, false) { }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> to create geometries.
+        /// </summary>
+        /// <param name="geometryFactory">The geometry factory.</param>
+        /// <param name="dimension">The number of dimensions to handle.  Must be between 2 and 4.</param>
+        /// <param name="allowMeasurements">If the geometry allow measurement values or not, must be of dimension 3 or 4</param>
+        public GeometryConverter(GeometryFactory geometryFactory, int dimension, bool allowMeasurements)
         {
-            if (dimension != 2 && dimension != 3)
+            if (dimension < 2 || dimension > 4)
             {
-                throw new ArgumentException("Must be either 2 or 3", nameof(dimension));
+                throw new ArgumentException("Must be between 2 and 4", nameof(dimension));
             }
 
             _factory = geometryFactory;
             _dimension = dimension;
+            _allowMeasurements = allowMeasurements;
         }
 
         /// <summary>
@@ -158,16 +168,12 @@ namespace NetTopologySuite.IO.Converters
             // only OK if consumers just loop over them like they do now (airbreather 2019-08-24).
             IEnumerable<Coordinate> GetCoordinatesFromMultiPoint(MultiPoint multiPoint)
             {
-                var coord = Coordinates.Create(_dimension);
+                int measures = _allowMeasurements ? 1 : 0;
+                var coord = Coordinates.Create(_dimension, measures);
                 foreach (Point pt in multiPoint.Geometries)
                 {
                     var seq = pt.CoordinateSequence;
-                    coord.X = seq.GetX(0);
-                    coord.Y = seq.GetY(0);
-                    if (_dimension > 2)
-                    {
-                        coord.Z = seq.GetZ(0);
-                    }
+                    PopulateCoordinate(ref coord, seq, 0);
 
                     yield return coord;
                 }
@@ -175,16 +181,12 @@ namespace NetTopologySuite.IO.Converters
 
             IEnumerable<Coordinate> GetCoordinatesFromLineString(LineString lineString)
             {
+                int measures = _allowMeasurements ? 1 : 0;
                 var seq = lineString.CoordinateSequence;
-                var coord = Coordinates.Create(_dimension);
+                var coord = Coordinates.Create(_dimension, measures); //todo, dynamic measures
                 for (int i = 0, cnt = seq.Count; i < cnt; i++)
                 {
-                    coord.X = seq.GetX(i);
-                    coord.Y = seq.GetY(i);
-                    if (_dimension > 2)
-                    {
-                        coord.Z = seq.GetZ(i);
-                    }
+                    PopulateCoordinate(ref coord, seq, i);
 
                     yield return coord;
                 }
@@ -213,6 +215,25 @@ namespace NetTopologySuite.IO.Converters
                 {
                     yield return GetCoordinatesFromPolygon(polygon);
                 }
+            }
+        }
+
+        private static void PopulateCoordinate(ref Coordinate coord, CoordinateSequence seq, int i)
+        {
+            coord.X = seq.GetX(i);
+            coord.Y = seq.GetY(i);
+            if (coord.GetType() == typeof(CoordinateZ))
+            {
+                coord.Z = seq.GetZ(i);
+            }
+            else if (coord.GetType() == typeof(CoordinateM))
+            {
+                coord.M = seq.GetM(i);
+            }
+            else if (coord.GetType() == typeof(CoordinateZM))
+            {
+                coord.Z = seq.GetZ(i);
+                coord.M = seq.GetM(i);
             }
         }
 

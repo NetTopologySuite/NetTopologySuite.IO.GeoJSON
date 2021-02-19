@@ -31,12 +31,14 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.That(() => GeoJsonSerializer.Create(factory, 1), Throws.ArgumentException);
             Assert.That(() => GeoJsonSerializer.Create(factory, 2), Throws.Nothing);
             Assert.That(() => GeoJsonSerializer.Create(factory, 3), Throws.Nothing);
-            Assert.That(() => GeoJsonSerializer.Create(factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 4), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 5), Throws.ArgumentException);
             Assert.That(() => GeoJsonSerializer.Create(settings, factory), Throws.Nothing);
             Assert.That(() => GeoJsonSerializer.Create(settings, factory, 1), Throws.ArgumentException);
             Assert.That(() => GeoJsonSerializer.Create(settings, factory, 2), Throws.Nothing);
             Assert.That(() => GeoJsonSerializer.Create(settings, factory, 3), Throws.Nothing);
-            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 4), Throws.Nothing);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 5), Throws.ArgumentException);
         }
 
         ///<summary>

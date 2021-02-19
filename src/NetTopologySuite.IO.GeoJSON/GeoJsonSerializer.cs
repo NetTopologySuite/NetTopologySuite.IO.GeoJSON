@@ -44,7 +44,7 @@ namespace NetTopologySuite.IO
             var s = JsonSerializer.CreateDefault();
             s.NullValueHandling = NullValueHandling.Ignore;
 
-            AddGeoJsonConverters(s, Wgs84Factory, 2);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false);
             return s;
         }
 
@@ -60,7 +60,7 @@ namespace NetTopologySuite.IO
         public new static JsonSerializer CreateDefault(JsonSerializerSettings settings)
         {
             var s = Create(settings);
-            AddGeoJsonConverters(s, Wgs84Factory, 2);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false);
 
             return s;
         }
@@ -80,7 +80,7 @@ namespace NetTopologySuite.IO
         /// </remarks>
         public static JsonSerializer Create(GeometryFactory factory)
         {
-            return Create(factory, 2);
+            return Create(factory, 2, false);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace NetTopologySuite.IO
         /// is also used to format <see cref="Coordinate.X"/> and <see cref="Coordinate.Y"/> of the coordinates.
         /// </param>
         /// <param name="dimension">
-        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// A number of dimensions that are handled.  Must be between 2 and 4.
         /// </param>
         /// <returns>
         /// A <see cref="JsonSerializer"/>.
@@ -101,7 +101,31 @@ namespace NetTopologySuite.IO
         /// </remarks>
         public static JsonSerializer Create(GeometryFactory factory, int dimension)
         {
-            return Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory, dimension);
+            return Create(factory, dimension, false);
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
+        /// <param name="factory">
+        /// A factory to use when creating geometries. The factories <see cref="PrecisionModel"/>
+        /// is also used to format <see cref="Coordinate.X"/> and <see cref="Coordinate.Y"/> of the coordinates.
+        /// </param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be between 2 and 4.
+        /// </param>
+        /// <param name="allowMeasurements">
+        /// If the coordiantes should allow measurement values
+        /// </param>
+        /// <returns>
+        /// A <see cref="JsonSerializer"/>.
+        /// </returns>
+        /// <remarks>
+        /// Creates a serializer using <see cref="Create(JsonSerializerSettings,GeometryFactory,int,bool)"/> internally.
+        /// </remarks>
+        public static JsonSerializer Create(GeometryFactory factory, int dimension, bool allowMeasurements)
+        {
+            return Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory, dimension, allowMeasurements);
         }
 
         /// <summary>
@@ -112,7 +136,7 @@ namespace NetTopologySuite.IO
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory)
         {
-            return Create(settings, factory, 2);
+            return Create(settings, factory, 2, false);
         }
 
         /// <summary>
@@ -132,17 +156,40 @@ namespace NetTopologySuite.IO
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension)
         {
-            if (dimension != 2 && dimension != 3)
+            return Create(settings, factory, dimension, false);
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer using the provider serializer settings and geometry factory
+        /// </summary>
+        /// <param name="settings">
+        /// Serializer settings
+        /// </param>
+        /// <param name="factory">
+        /// The factory to use when creating a new geometry
+        /// </param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="allowMeasurements">
+        /// If the coordiantes should allow measurement values
+        /// </param>
+        /// <returns>
+        /// A <see cref="JsonSerializer"/>.
+        /// </returns>
+        public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension, bool allowMeasurements)
+        {
+            if (dimension < 2 || dimension > 4)
             {
-                throw new ArgumentException("Must be 2 or 3", nameof(dimension));
+                throw new ArgumentException("Must be between 2 and 4", nameof(dimension));
             }
 
             var s = Create(settings);
-            AddGeoJsonConverters(s, factory, dimension);
+            AddGeoJsonConverters(s, factory, dimension, allowMeasurements);
             return s;
         }
 
-        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension)
+        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension, bool allowMeasurements)
         {
             if (factory.SRID != 4326)
             {
@@ -153,7 +200,7 @@ namespace NetTopologySuite.IO
             c.Add(new FeatureCollectionConverter());
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
-            c.Add(new GeometryConverter(factory, dimension));
+            c.Add(new GeometryConverter(factory, dimension, allowMeasurements));
             c.Add(new GeometryArrayConverter(factory, dimension));
             c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter());
