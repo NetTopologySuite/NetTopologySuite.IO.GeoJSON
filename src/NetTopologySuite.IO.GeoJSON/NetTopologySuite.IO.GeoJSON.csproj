@@ -26,8 +26,9 @@
     <Title>NTS - Topology Suite - IO Library for GeoJSON</Title>
     <Authors>NetTopologySuite - Team</Authors>
     <Owners>NetTopologySuite - Team</Owners>
-    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
-    <Description>This package contains the GeoJSON IO library.</Description>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <Description>This package contains the GeoJSON IO library. Portions of this library were 
+	    inspired from an early version of GeoJSON.Net by Jörg Battermann.</Description>
     <PackageTags>NTS;GeoJSON</PackageTags>
   </PropertyGroup>
 
