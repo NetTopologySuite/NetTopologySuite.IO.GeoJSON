@@ -181,5 +181,29 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             }
         }
 
+        [GeoJsonIssueNumber(79)]
+        [Test]
+        public void TestFeatureIdSerializedToRoot()
+        {
+            var feature = new Feature
+            {
+                Geometry = new Point(0, 0),
+                Attributes = new AttributesTable(new Dictionary<string, object> {
+                    { "name", "Test feature" },
+                    { "id", 1 }
+                })
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new GeoJsonConverterFactory(GeometryFactory.Default, false, "id"),
+                },
+            };
+
+            string expected = "{\"type\":\"Feature\",\"id\":1,\"geometry\":{\"type\":\"Point\",\"coordinates\":[0,0]},\"properties\":{\"name\":\"Test feature\"}}";
+            Assert.That(expected, Is.EqualTo(expected));
+        }
     }
 }

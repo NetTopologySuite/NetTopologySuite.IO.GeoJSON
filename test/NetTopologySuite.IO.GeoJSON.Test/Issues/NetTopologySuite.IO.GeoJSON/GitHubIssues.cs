@@ -489,6 +489,29 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(g, Is.Not.Null);
             Assert.That(g.IsEmpty);
         }
+
+        [GeoJsonIssueNumber(79)]
+        [Test]
+        public void TestFeatureIdSerializedToRoot()
+        {
+            var feature = new Feature
+            {
+                Geometry = new Point(0, 0),
+                Attributes = new AttributesTable(new Dictionary<string, object> {
+                    { "name", "Test feature" },
+                    { "id", 1 }
+                })
+            };
+
+            var serializer = GeoJsonSerializer.Create();
+            using var stringWriter = new StringWriter();
+            using var jsonWriter = new JsonTextWriter(stringWriter);
+            serializer.Serialize(jsonWriter, feature);
+
+            string expected = "{\"type\":\"Feature\",\"id\":1,\"geometry\":{\"type\":\"Point\",\"coordinates\":[0.0,0.0]},\"properties\":{\"name\":\"Test feature\"}}";
+            Assert.That(stringWriter.ToString(), Is.EqualTo(expected));
+        }
+
     }
 
     class MyClass
