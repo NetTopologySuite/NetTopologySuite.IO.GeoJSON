@@ -12,6 +12,25 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     public class EnvelopeConverter : JsonConverter
     {
+        private readonly PrecisionModel _precisionModel;
+
+        /// <summary>
+        /// Creates an instance of this class that is using a <see cref="PrecisionModels.Floating"/> precision model.
+        /// </summary>
+        public EnvelopeConverter()
+            :this(new PrecisionModel(PrecisionModels.Floating))
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided precision model
+        /// </summary>
+        /// <param name="precisionModel">A precision model</param>
+        internal EnvelopeConverter(PrecisionModel precisionModel)
+        {
+            _precisionModel = precisionModel;
+        }
+
         /// <summary>
         /// Writes an <see cref="Envelope"/> to JSON
         /// </summary>
@@ -27,10 +46,10 @@ namespace NetTopologySuite.IO.Converters
             }
 
             writer.WriteStartArray();
-            writer.WriteValue(envelope.MinX);
-            writer.WriteValue(envelope.MinY);
-            writer.WriteValue(envelope.MaxX);
-            writer.WriteValue(envelope.MaxY);
+            writer.WriteValue(_precisionModel.MakePrecise(envelope.MinX));
+            writer.WriteValue(_precisionModel.MakePrecise(envelope.MinY));
+            writer.WriteValue(_precisionModel.MakePrecise(envelope.MaxX));
+            writer.WriteValue(_precisionModel.MakePrecise(envelope.MaxY));
             writer.WriteEndArray();
         }
 
@@ -53,10 +72,10 @@ namespace NetTopologySuite.IO.Converters
                 var envelope = serializer.Deserialize<JArray>(reader);
                 Debug.Assert(envelope.Count == 4);
 
-                double minX = double.Parse((string)envelope[0], NumberFormatInfo.InvariantInfo);
-                double minY = double.Parse((string)envelope[1], NumberFormatInfo.InvariantInfo);
-                double maxX = double.Parse((string)envelope[2], NumberFormatInfo.InvariantInfo);
-                double maxY = double.Parse((string)envelope[3], NumberFormatInfo.InvariantInfo);
+                double minX = _precisionModel.MakePrecise(double.Parse((string)envelope[0], NumberFormatInfo.InvariantInfo));
+                double minY = _precisionModel.MakePrecise(double.Parse((string)envelope[1], NumberFormatInfo.InvariantInfo));
+                double maxX = _precisionModel.MakePrecise(double.Parse((string)envelope[2], NumberFormatInfo.InvariantInfo));
+                double maxY = _precisionModel.MakePrecise(double.Parse((string)envelope[3], NumberFormatInfo.InvariantInfo));
 
                 Debug.Assert(minX <= maxX);
                 Debug.Assert(minY <= maxY);

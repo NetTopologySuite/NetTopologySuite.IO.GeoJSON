@@ -519,7 +519,32 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(mc.ValueInt32, Is.EqualTo(17));
             Assert.That(mc.ValueDouble, Is.EqualTo(Math.PI));
         }
-        
+
+        [Test, GeoJsonIssueNumber(51)]
+        public void TestPrecisedEnvelope()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var file = asm.GetManifestResourceStream("NetTopologySuite.IO.GeoJSON.Test.Issue51.GeoJson");
+            if (file == null)
+                throw new IgnoreException("Resource Issue51.json not found");
+
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings(),
+                NtsGeometryServices.Instance.CreateGeometryFactory(new PrecisionModel(1000), 4326));
+
+            FeatureCollection fc = null;
+            Assert.That(() => fc = serializer.Deserialize<FeatureCollection>(new JsonTextReader(new StreamReader(file))), Throws.Nothing);
+            Assert.That(fc, Is.Not.Null);
+
+            serializer = GeoJsonSerializer.Create(new JsonSerializerSettings(),
+                NtsGeometryServices.Instance.CreateGeometryFactory(new PrecisionModel(1000), 4326));
+            var sw = new StringWriter(new StringBuilder());
+
+            serializer.Serialize(sw, fc);
+            sw.Flush();
+
+            Assert.That(sw.ToString(), Is.EqualTo("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"bbox\":[-72.331,41.296,-72.277,41.611],\"geometry\":{\"type\":\"LineString\",\"coordinates\":[[-72.316,41.296],[-72.316,41.296],[-72.317,41.297],[-72.318,41.298],[-72.318,41.298]]},\"properties\":{\"cumulativeDistance\":42.3458,\"distance\":42.3458,\"cumulativeTime\":42.3458,\"time\":42.3458}}],\"bbox\":[-72.331,41.296,-72.277,41.611]}"));
+        }
+
         [GeoJsonIssueNumber(59)]
         [Test]
         public void TestGeoJsonWithNestedObjectsInProperties()

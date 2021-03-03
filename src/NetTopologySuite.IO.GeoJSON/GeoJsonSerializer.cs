@@ -178,7 +178,7 @@ namespace NetTopologySuite.IO
             c.Add(new GeometryConverter(factory, dimension, enforceRingOrientation));
             c.Add(new GeometryArrayConverter(factory, dimension));
             //c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
-            c.Add(new EnvelopeConverter());
+            c.Add(new EnvelopeConverter(factory.PrecisionModel));
         }
     }
 }
