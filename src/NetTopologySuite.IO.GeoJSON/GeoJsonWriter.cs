@@ -116,8 +116,9 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature collection.
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
+        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         /// <returns>A string representing the feature collection's JSON representation</returns>
-        public string Write(FeatureCollection featureCollection)
+        public string Write(FeatureCollection featureCollection, int dimension = 2)
         {
             if (featureCollection is null)
             {
@@ -127,7 +128,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(featureCollection, writer);
+                Write(featureCollection, writer, dimension);
             }
 
             return sb.ToString();
@@ -138,7 +139,8 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        public void Write(FeatureCollection featureCollection, JsonWriter writer)
+        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
+        public void Write(FeatureCollection featureCollection, JsonWriter writer, int dimension = 2)
         {
             if (featureCollection is null)
             {
@@ -151,7 +153,7 @@ namespace NetTopologySuite.IO
             }
 
             var factory = SearchForFactory(featureCollection) ?? GeoJsonSerializer.Wgs84Factory;
-            var g = GeoJsonSerializer.Create(SerializerSettings, factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, factory, dimension);
             g.Serialize(writer, featureCollection);
         }
 
