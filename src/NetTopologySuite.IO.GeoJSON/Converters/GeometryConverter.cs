@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 
 using Newtonsoft.Json;
@@ -12,21 +11,28 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts a <see cref="Geometry"/> to and from its JSON representation
     /// </summary>
-    public class GeometryConverter : JsonConverter
+    public partial class GeometryConverter : JsonConverter
     {
         private readonly GeometryFactory _factory;
         private readonly int _dimension;
 
+        private readonly OrientationIndex _exteriorRingOrientation = OrientationIndex.None;
+        private readonly OrientationIndex _interiorRingOrientation = OrientationIndex.None;
+
         /// <summary>
         /// Creates an instance of this class using <see cref="GeoJsonSerializer.Wgs84Factory"/> to create geometries.
         /// </summary>
-        public GeometryConverter() : this(GeoJsonSerializer.Wgs84Factory) { }
+        public GeometryConverter() : this(GeoJsonSerializer.Wgs84Factory)
+        {
+        }
 
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> to create geometries.
         /// </summary>
         /// <param name="geometryFactory">The geometry factory.</param>
-        public GeometryConverter(GeometryFactory geometryFactory) : this(geometryFactory, 2) { }
+        public GeometryConverter(GeometryFactory geometryFactory) : this(geometryFactory, 2)
+        {
+        }
 
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> to create geometries.
@@ -42,6 +48,17 @@ namespace NetTopologySuite.IO.Converters
 
             _factory = geometryFactory;
             _dimension = dimension;
+        }
+
+
+        internal GeometryConverter(GeometryFactory geometryFactory, int dimension, bool enforceRingOrientation)
+            : this(geometryFactory, dimension)
+        {
+            if (enforceRingOrientation)
+            {
+                _exteriorRingOrientation = OrientationIndex.Clockwise;
+                _interiorRingOrientation = OrientationIndex.CounterClockwise;
+            }
         }
 
         /// <summary>
@@ -64,14 +81,14 @@ namespace NetTopologySuite.IO.Converters
 
             switch (geom)
             {
-                case Point pt:
+                case Point point:
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.Point));
 
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, pt.Coordinate);
+                        WriteCoordinates(writer, point.CoordinateSequence, false);
                     }
 
                     break;
@@ -83,7 +100,10 @@ namespace NetTopologySuite.IO.Converters
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, GetCoordinatesFromMultiPoint(multiPoint));
+                        writer.WriteStartArray();
+                        for (int i = 0; i < multiPoint.NumGeometries; i++)
+                            WriteCoordinates(writer, ((Point) multiPoint.GetGeometryN(i)).CoordinateSequence, false);
+                        writer.WriteEndArray();
                     }
 
                     break;
@@ -95,7 +115,7 @@ namespace NetTopologySuite.IO.Converters
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, GetCoordinatesFromLineString(lineString));
+                        WriteCoordinates(writer, lineString.CoordinateSequence);
                     }
 
                     break;
@@ -107,7 +127,10 @@ namespace NetTopologySuite.IO.Converters
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, GetCoordinatesFromMultiLineString(multiLineString));
+                        writer.WriteStartArray();
+                        for (int i = 0; i < multiLineString.NumGeometries; i++)
+                            WriteCoordinates(writer, ((LineString) multiLineString.GetGeometryN(i)).CoordinateSequence);
+                        writer.WriteEndArray();
                     }
 
                     break;
@@ -115,11 +138,10 @@ namespace NetTopologySuite.IO.Converters
                 case Polygon polygon:
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.Polygon));
-
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, GetCoordinatesFromPolygon(polygon));
+                        WritePolygonCoordinates(polygon);
                     }
 
                     break;
@@ -131,7 +153,10 @@ namespace NetTopologySuite.IO.Converters
                     if (writeCoordinateData)
                     {
                         writer.WritePropertyName("coordinates");
-                        serializer.Serialize(writer, GetCoordinatesFromMultiPolygon(multiPolygon));
+                        writer.WriteStartArray();
+                        for (int i = 0; i < multiPolygon.NumGeometries; i++)
+                            WritePolygonCoordinates((Polygon) multiPolygon.GetGeometryN(i));
+                        writer.WriteEndArray();
                     }
 
                     break;
@@ -156,104 +181,78 @@ namespace NetTopologySuite.IO.Converters
             // be careful when moving these methods around: they reuse the Coordinate objects, in
             // order to reduce allocations (because Json.NET allocates a TON already), and so it's
             // only OK if consumers just loop over them like they do now (airbreather 2019-08-24).
-            IEnumerable<Coordinate> GetCoordinatesFromMultiPoint(MultiPoint multiPoint)
-            {
-                var coord = Coordinates.Create(_dimension);
-                foreach (Point pt in multiPoint.Geometries)
-                {
-                    var seq = pt.CoordinateSequence;
-                    coord.X = seq.GetX(0);
-                    coord.Y = seq.GetY(0);
-                    if (_dimension > 2)
-                    {
-                        coord.Z = seq.GetZ(0);
-                    }
+            //IEnumerable<Coordinate> GetCoordinatesFromMultiPoint(MultiPoint multiPoint)
+            //{
+            //    var coord = Coordinates.Create(_dimension);
+            //    foreach (Point pt in multiPoint.Geometries)
+            //    {
+            //        var seq = pt.CoordinateSequence;
+            //        coord.X = seq.GetX(0);
+            //        coord.Y = seq.GetY(0);
+            //        if (_dimension > 2)
+            //        {
+            //            coord.Z = seq.GetZ(0);
+            //        }
 
-                    yield return coord;
-                }
+            //        yield return coord;
+            //    }
+            //}
+
+            //IEnumerable<Coordinate> GetCoordinatesFromLineString(LineString lineString)
+            //{
+            //    var seq = lineString.CoordinateSequence;
+            //    var coord = Coordinates.Create(_dimension);
+            //    for (int i = 0, cnt = seq.Count; i < cnt; i++)
+            //    {
+            //        coord.X = seq.GetX(i);
+            //        coord.Y = seq.GetY(i);
+            //        if (_dimension > 2)
+            //        {
+            //            coord.Z = seq.GetZ(i);
+            //        }
+
+            //        yield return coord;
+            //    }
+            //}
+
+            //IEnumerable<IEnumerable<Coordinate>> GetCoordinatesFromMultiLineString(MultiLineString multiLineString)
+            //{
+            //    foreach (LineString lineString in multiLineString.Geometries)
+            //    {
+            //        yield return GetCoordinatesFromLineString(lineString);
+            //    }
+            //}
+
+            //IEnumerable<IEnumerable<Coordinate>> GetCoordinatesFromPolygon(Polygon polygon)
+            //{
+            //    var interiorRings = polygon.InteriorRings;
+            //    var allRings = new LineString[interiorRings.Length + 1];
+            //    allRings[0] = polygon.Shell;
+            //    Array.Copy(interiorRings, 0, allRings, 1, interiorRings.Length);
+            //    return allRings.Select(GetCoordinatesFromLineString);
+            //}
+
+            //IEnumerable<IEnumerable<IEnumerable<Coordinate>>> GetCoordinatesFromMultiPolygon(MultiPolygon multiPolygon)
+            //{
+            //    foreach (Polygon polygon in multiPolygon.Geometries)
+            //    {
+            //        yield return GetCoordinatesFromPolygon(polygon);
+            //    }
+            //}
+
+            void WritePolygonCoordinates(Polygon polygon)
+            {
+                writer.WriteStartArray();
+                WriteCoordinates(writer, polygon.ExteriorRing.CoordinateSequence,
+                    orientation: _exteriorRingOrientation);
+
+                for (int i = 0; i < polygon.NumInteriorRings; i++)
+                    WriteCoordinates(writer, polygon.GetInteriorRingN(i).CoordinateSequence,
+                        orientation: _interiorRingOrientation);
+
+                writer.WriteEndArray();
             }
 
-            IEnumerable<Coordinate> GetCoordinatesFromLineString(LineString lineString)
-            {
-                var seq = lineString.CoordinateSequence;
-                var coord = Coordinates.Create(_dimension);
-                for (int i = 0, cnt = seq.Count; i < cnt; i++)
-                {
-                    coord.X = seq.GetX(i);
-                    coord.Y = seq.GetY(i);
-                    if (_dimension > 2)
-                    {
-                        coord.Z = seq.GetZ(i);
-                    }
-
-                    yield return coord;
-                }
-            }
-
-            IEnumerable<IEnumerable<Coordinate>> GetCoordinatesFromMultiLineString(MultiLineString multiLineString)
-            {
-                foreach (LineString lineString in multiLineString.Geometries)
-                {
-                    yield return GetCoordinatesFromLineString(lineString);
-                }
-            }
-
-            IEnumerable<IEnumerable<Coordinate>> GetCoordinatesFromPolygon(Polygon polygon)
-            {
-                var interiorRings = polygon.InteriorRings;
-                var allRings = new LineString[interiorRings.Length + 1];
-                allRings[0] = polygon.Shell;
-                Array.Copy(interiorRings, 0, allRings, 1, interiorRings.Length);
-                return allRings.Select(GetCoordinatesFromLineString);
-            }
-
-            IEnumerable<IEnumerable<IEnumerable<Coordinate>>> GetCoordinatesFromMultiPolygon(MultiPolygon multiPolygon)
-            {
-                foreach (Polygon polygon in multiPolygon.Geometries)
-                {
-                    yield return GetCoordinatesFromPolygon(polygon);
-                }
-            }
-        }
-
-        private List<object> ReadCoordinates(JsonReader reader)
-        {
-            var coords = new List<object>(3);
-            bool startArray = reader.TokenType == JsonToken.StartArray;
-            reader.ReadOrThrow();
-
-            while (reader.TokenType != JsonToken.EndArray)
-            {
-                switch (reader.TokenType)
-                {
-                    case JsonToken.StartArray:
-                        coords.Add(ReadCoordinates(reader));
-                        break;
-
-                    case JsonToken.Integer:
-                    case JsonToken.Float:
-                        coords.Add(reader.Value);
-                        reader.ReadOrThrow();
-                        break;
-
-                    case JsonToken.Null:
-                        coords.Add(Coordinate.NullOrdinate);
-                        reader.ReadOrThrow();
-                        break;
-
-                    default:
-                        reader.ReadOrThrow();
-                        break;
-                }
-            }
-
-            if (startArray)
-            {
-                Debug.Assert(reader.TokenType == JsonToken.EndArray);
-                reader.ReadOrThrow();
-            }
-
-            return coords;
         }
 
         private List<object> ParseGeomCollection(JsonReader reader, JsonSerializer serializer)
@@ -332,14 +331,15 @@ namespace NetTopologySuite.IO.Converters
             while (reader.TokenType == JsonToken.PropertyName)
             {
                 //read the tokens, type may come before coordinates or geometries as pr spec
-                string prop = (string)reader.Value;
+                string prop = (string) reader.Value;
                 switch (prop)
                 {
                     case "type":
                         if (geometryType == null)
                         {
                             reader.ReadOrThrow();
-                            geometryType = (GeoJsonObjectType)Enum.Parse(typeof(GeoJsonObjectType), (string)reader.Value, true);
+                            geometryType = (GeoJsonObjectType) Enum.Parse(typeof(GeoJsonObjectType),
+                                (string) reader.Value, true);
                             reader.ReadOrThrow();
                         }
 
@@ -347,7 +347,7 @@ namespace NetTopologySuite.IO.Converters
 
                     case "geometries":
                         //only geom collection has "geometries"
-                        reader.ReadOrThrow();  //read past start array tag
+                        reader.ReadOrThrow(); //read past start array tag
                         if (reader.TokenType == JsonToken.Null)
                         {
                             reader.ReadOrThrow();
@@ -405,7 +405,8 @@ namespace NetTopologySuite.IO.Converters
                     return _factory.CreateMultiPoint();
 
                 case GeoJsonObjectType.MultiPoint:
-                    return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>)obj)).ToArray());
+                    return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>) obj))
+                        .ToArray());
 
                 case GeoJsonObjectType.LineString when coords is null:
                     return _factory.CreateLineString();
@@ -417,7 +418,8 @@ namespace NetTopologySuite.IO.Converters
                     return _factory.CreateMultiLineString();
 
                 case GeoJsonObjectType.MultiLineString:
-                    return _factory.CreateMultiLineString(coords.Select(obj => CreateLineString(reader, (List<object>)obj)).ToArray());
+                    return _factory.CreateMultiLineString(coords
+                        .Select(obj => CreateLineString(reader, (List<object>) obj)).ToArray());
 
                 case GeoJsonObjectType.Polygon when coords is null:
                     return _factory.CreatePolygon();
@@ -429,7 +431,8 @@ namespace NetTopologySuite.IO.Converters
                     return _factory.CreateMultiPolygon();
 
                 case GeoJsonObjectType.MultiPolygon:
-                    return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>)obj)).ToArray());
+                    return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>) obj))
+                        .ToArray());
 
                 case GeoJsonObjectType.GeometryCollection when coords is null:
                     return _factory.CreateGeometryCollection();
@@ -450,18 +453,21 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="existingValue"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+            JsonSerializer serializer)
         {
             return ParseGeometry(reader, serializer);
         }
 
-        private Point CreatePoint(JsonReader reader, List<object> list) => _factory.CreatePoint(CreateCoordinate(reader, list));
+        private Point CreatePoint(JsonReader reader, List<object> list) =>
+            _factory.CreatePoint(CreateCoordinate(reader, list));
 
-        private LineString CreateLineString(JsonReader reader, List<object> list) => _factory.CreateLineString(CreateCoordinateArray(reader, list));
+        private LineString CreateLineString(JsonReader reader, List<object> list) =>
+            _factory.CreateLineString(CreateCoordinateArray(reader, list));
 
         private Polygon CreatePolygon(JsonReader reader, List<object> list)
         {
-            var shell = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>)list[0]));
+            var shell = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>) list[0]));
             if (list.Count == 1)
             {
                 return _factory.CreatePolygon(shell);
@@ -470,7 +476,7 @@ namespace NetTopologySuite.IO.Converters
             var holes = new LinearRing[list.Count - 1];
             for (int i = 0; i < holes.Length; i++)
             {
-                holes[i] = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>)list[i + 1]));
+                holes[i] = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>) list[i + 1]));
             }
 
             return _factory.CreatePolygon(shell, holes);

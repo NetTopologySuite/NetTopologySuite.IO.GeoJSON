@@ -24,14 +24,14 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         {
             var point = factory.CreatePoint(new Coordinate(1, 1));
             var linestring = factory.CreateLineString(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), });
-            var shell = factory.CreateLinearRing(new[] { new Coordinate(1, 1), new Coordinate(2, 2), new Coordinate(3, 3), new Coordinate(1, 1) });
+            var shell = factory.CreateLinearRing(new[] { new Coordinate(1, 1), new Coordinate(3, 3), new Coordinate(2, 2), new Coordinate(1, 1) });
             var polygon = factory.CreatePolygon(shell);
             geometries = new Geometry[] { point, linestring, polygon };
             serializedGeometries = //"\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
-                "[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]";
+                "[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[3.0,3.0],[2.0,2.0],[1.0,1.0]]]}]";
 
             collection = factory.CreateGeometryCollection(geometries);
-            serializedCollection = "{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[2.0,2.0],[3.0,3.0],[1.0,1.0]]]}]}";
+            serializedCollection = "{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\",\"coordinates\":[1.0,1.0]},{\"type\":\"LineString\",\"coordinates\":[[1.0,1.0],[2.0,2.0],[3.0,3.0]]},{\"type\":\"Polygon\",\"coordinates\":[[[1.0,1.0],[3.0,3.0],[2.0,2.0],[1.0,1.0]]]}]}";
         }
 
         [Test]

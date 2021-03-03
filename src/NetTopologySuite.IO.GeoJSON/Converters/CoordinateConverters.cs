@@ -11,6 +11,7 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Convertes a <see cref="Coordinate"/> to and from JSON
     /// </summary>
+    [Obsolete("This is not a converter because a coordinate is not an object in GeoJson")]
     public class CoordinateConverter : JsonConverter
     {
         private readonly PrecisionModel _precisionModel;

@@ -381,9 +381,28 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 jss.Converters.Add(new FeatureConverter());
                 jss.Converters.Add(new GeometryConverter(factory, dimension));
                 jss.Converters.Add(new GeometryArrayConverter(factory, dimension));
-                jss.Converters.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
+                //jss.Converters.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
                 jss.Converters.Add(new EnvelopeConverter());
             }, Throws.Nothing);
+        }
+
+        [Test, GeoJsonIssueNumber(31), Explicit, Ignore("coordinates is not a real GeoJSON object, it is some sort of array, so a converter is not correct.")]
+        public void TestCoordinateConverter()
+        {
+            var geoSerializer = GeoJsonSerializer.CreateDefault();
+
+            var c1 = new Coordinate(1, 2);
+            var sb = new StringBuilder();
+            geoSerializer.Serialize(new JsonTextWriter(new StringWriter(sb)), c1);
+            string json = sb.ToString(); // it is equal to "[1.0,2.0]"
+
+            Coordinate c2 = null;
+            Assert.DoesNotThrow(() =>
+                c2 = geoSerializer.Deserialize<Coordinate>(new JsonTextReader(new StringReader(json))));
+
+            Assert.That(c2, Is.Not.Null);
+            Assert.That(c2, Is.EqualTo(c1));
+
         }
 
         [Test, GeoJsonIssueNumber(41)]

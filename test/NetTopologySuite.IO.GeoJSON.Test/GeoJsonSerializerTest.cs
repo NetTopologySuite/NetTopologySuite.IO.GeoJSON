@@ -80,7 +80,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         ///    A test for GeoJsonSerializer Serialize method
         ///</summary>
         [Test]
-        public void GeoJsonSerializerGeometryTest()
+        public void GeoJsonSerializerPointTest()
         {
             var sb = new StringBuilder();
             var writer = new StringWriter(sb);
@@ -88,6 +88,24 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             serializer.Serialize(writer, new Point(23, 56));
             writer.Flush();
             Assert.AreEqual("{\"type\":\"Point\",\"coordinates\":[23.0,56.0]}", sb.ToString());
+        }
+
+        ///<summary>
+        ///    A test for GeoJsonSerializer Serialize method
+        ///</summary>
+        [Test]
+        public void GeoJsonSerializerPolygonTest()
+        {
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            var factory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+            var polygon = factory.CreatePolygon(new[]
+                {new Coordinate(0, 0), new Coordinate(10, 0), new Coordinate(10, 10), new Coordinate(0, 0)});
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings(), GeometryFactory.Default, 2, true);
+
+            serializer.Serialize(writer, polygon);
+            writer.Flush();
+            Assert.AreEqual("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.0,10.0],[10.0,0.0],[0.0,0.0]]]}", sb.ToString());
         }
 
         ///<summary>

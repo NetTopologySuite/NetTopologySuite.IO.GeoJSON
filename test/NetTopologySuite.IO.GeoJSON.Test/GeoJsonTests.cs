@@ -122,7 +122,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.IsTrue(des.EqualsExact(geom));
         }
 
-        [Test]
+        [Test, Ignore("CoordinateConverter no longer added to serializer")]
         public void TestCoordinateSerialize()
         {
             var coordinate = new Coordinate(1, 1);
@@ -133,7 +133,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Console.WriteLine(sb.ToString());
         }
 
-        [Test]
+        [Test, Ignore("CoordinateConverter no longer added to serializer")]
         public void TestCoordinatesSerialize()
         {
             var coordinates = new Coordinate[4];

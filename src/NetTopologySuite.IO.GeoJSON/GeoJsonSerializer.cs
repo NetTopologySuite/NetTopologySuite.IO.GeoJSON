@@ -14,7 +14,7 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Gets a default GeometryFactory
         /// </summary>
-        internal static GeometryFactory Wgs84Factory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
+        internal static GeometryFactory Wgs84Factory { get => NtsGeometryServices.Instance.CreateGeometryFactory(4326); }
 
         /// <summary>
         /// Factory method to create a (Geo)JsonSerializer
@@ -44,7 +44,7 @@ namespace NetTopologySuite.IO
             var s = JsonSerializer.CreateDefault();
             s.NullValueHandling = NullValueHandling.Ignore;
 
-            AddGeoJsonConverters(s, Wgs84Factory, 2);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false);
             return s;
         }
 
@@ -60,7 +60,7 @@ namespace NetTopologySuite.IO
         public new static JsonSerializer CreateDefault(JsonSerializerSettings settings)
         {
             var s = Create(settings);
-            AddGeoJsonConverters(s, Wgs84Factory, 2);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false);
 
             return s;
         }
@@ -132,30 +132,52 @@ namespace NetTopologySuite.IO
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension)
         {
+            const bool enforceRingOrientation = false;
+            return Create(settings, factory, dimension, enforceRingOrientation);
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer using the provider serializer settings and geometry factory
+        /// </summary>
+        /// <param name="settings">
+        /// Serializer settings
+        /// </param>
+        /// <param name="factory">
+        /// The factory to use when creating a new geometry
+        /// </param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <returns>
+        /// A <see cref="JsonSerializer"/>.
+        /// </returns>
+        public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension, bool enforceRingOrientation)
+        {
             if (dimension != 2 && dimension != 3)
             {
                 throw new ArgumentException("Must be 2 or 3", nameof(dimension));
             }
 
             var s = Create(settings);
-            AddGeoJsonConverters(s, factory, dimension);
+            AddGeoJsonConverters(s, factory, dimension, enforceRingOrientation);
             return s;
         }
-
-        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension)
+        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension, bool enforceRingOrientation)
         {
+#if DEBUG
             if (factory.SRID != 4326)
             {
-                Trace.WriteLine("Factory with SRID of unsupported coordinate reference system.");
+                Trace.WriteLine($"Factory with SRID of unsupported coordinate reference system. Supposed to be 4326 (WGS84) but is {factory.SRID}", "Information");
             }
+#endif
 
             var c = s.Converters;
             c.Add(new FeatureCollectionConverter());
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
-            c.Add(new GeometryConverter(factory, dimension));
+            c.Add(new GeometryConverter(factory, dimension, enforceRingOrientation));
             c.Add(new GeometryArrayConverter(factory, dimension));
-            c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
+            //c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter());
         }
     }
