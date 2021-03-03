@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
 using NetTopologySuite.IO.Converters;
-using NetTopologySuite.Triangulate;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -403,6 +404,64 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             Assert.That(c2, Is.Not.Null);
             Assert.That(c2, Is.EqualTo(c1));
 
+        }
+
+        [Test, GeoJsonIssueNumber(37)]
+        public void TestSelfReferenceLoop()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var file = asm.GetManifestResourceStream("NetTopologySuite.IO.GeoJSON.Test.Issue37.GeoJson");
+            if (file == null)
+                throw new IgnoreException("Resource Issue37.json not found");
+
+            var reader = new GeoJsonReader();
+            var writer = new GeoJsonWriter();
+            AttributesTableConverter.WriteIdToProperties = true;
+
+            Assert.That(() =>
+            {
+                var data = reader.Read<Feature>(new JsonTextReader(new StreamReader(file)));
+
+                var admin = AdminType.City;
+                int id = Convert.ToInt32(data.Attributes["id"]);
+                if (id - 100000000 > 256)
+                {
+                    admin = AdminType.Distric;
+                }
+
+                if (!data.Attributes.Exists("wof:lang_x_official"))
+                    data.Attributes.Add("wof:lang_x_official", new List<string>() {"vnm", "eng"});
+
+
+                var result = AliasNames(data.Attributes["wof:name"].ToString(), admin);
+                if (result.Count > 0)
+                {
+                    if (data.Attributes.Exists("name:eng_x_preferred"))
+                        data.Attributes.DeleteAttribute("name:eng_x_preferred");
+                    if (data.Attributes.Exists("label:eng_x_preferred"))
+                        data.Attributes.DeleteAttribute("label:eng_x_preferred");
+                    if (data.Attributes.Exists("name:vnm_x_preferred"))
+                        data.Attributes.DeleteAttribute("name:vnm_x_preferred");
+
+
+                    result.Insert(0, data.Attributes["wof:name"].ToString());
+                    data.Attributes.Add("name:eng_x_preferred", result);
+                    data.Attributes.Add("name:vnm_x_preferred", result);
+                }
+
+                string json = writer.Write(data);
+                TestContext.WriteLine(json);
+            }, Throws.Nothing);
+        }
+
+        private IList<string> AliasNames(string key, AdminType adminType)
+        {
+            return new List<string>(new [] { $"{key}_{adminType}_1", $"{key}_{adminType}_2" });
+        }
+
+        private enum AdminType
+        {
+            City, Distric
         }
 
         [Test, GeoJsonIssueNumber(41)]
