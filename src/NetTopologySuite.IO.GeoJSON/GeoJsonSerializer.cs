@@ -77,7 +77,7 @@ namespace NetTopologySuite.IO
         public static JsonSerializer CreateDefault(JsonSerializerSettings settings, JsonSerializerSettings settingsForCoordinates)
         {
             var s = Create(settings);
-            AddGeoJsonConverters(s, Wgs84Factory, 2, false);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false, settingsForCoordinates);
 
             return s;
         }

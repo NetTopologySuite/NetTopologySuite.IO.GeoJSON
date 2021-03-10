@@ -73,24 +73,18 @@ namespace NetTopologySuite.IO.Converters
             _serializerSettingsForCoordinates = settingsForCoordinates;
         }
 
-        private JsonSerializerSettings BackupSerializerSettings(JsonSerializer serializer)
+        private JsonSerializerSettings BackupSerializerSettings(JsonWriter writer)
         {
             JsonSerializerSettings backupSettings = new JsonSerializerSettings
             {
-                Formatting = serializer.Formatting,
-                NullValueHandling = serializer.NullValueHandling,
-                ContractResolver = serializer.ContractResolver,
-                DefaultValueHandling = serializer.DefaultValueHandling
+                Formatting = writer.Formatting
             };
             return backupSettings;
         }
 
-        private void ApplySerializerSettings(JsonSerializer serializer, JsonSerializerSettings serializerSettings)
+        private void ApplySerializerSettings(JsonWriter writer, JsonSerializerSettings serializerSettings)
         {
-            serializer.Formatting = serializerSettings.Formatting;
-            serializer.NullValueHandling = serializerSettings.NullValueHandling;
-            serializer.ContractResolver = serializerSettings.ContractResolver;
-            serializer.DefaultValueHandling = serializerSettings.DefaultValueHandling;
+            writer.Formatting = serializerSettings.Formatting;
         }
 
         /// <summary>
@@ -120,16 +114,16 @@ namespace NetTopologySuite.IO.Converters
 
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         WriteCoordinates(writer, point.CoordinateSequence, false);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
@@ -141,10 +135,10 @@ namespace NetTopologySuite.IO.Converters
 
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
@@ -153,7 +147,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
@@ -165,16 +159,16 @@ namespace NetTopologySuite.IO.Converters
 
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         WriteCoordinates(writer, lineString.CoordinateSequence);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
@@ -186,10 +180,10 @@ namespace NetTopologySuite.IO.Converters
 
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
@@ -198,7 +192,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
@@ -209,16 +203,16 @@ namespace NetTopologySuite.IO.Converters
                     writer.WriteValue(nameof(GeoJsonObjectType.Polygon));
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         WritePolygonCoordinates(polygon);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
@@ -230,10 +224,10 @@ namespace NetTopologySuite.IO.Converters
 
                     if (writeCoordinateData)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(serializer);
+                        var currentSerializerSettings = BackupSerializerSettings(writer);
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, _serializerSettingsForCoordinates);
+                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
                         }
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
@@ -242,7 +236,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
-                            ApplySerializerSettings(serializer, currentSerializerSettings);
+                            ApplySerializerSettings(writer, currentSerializerSettings);
                         }
                     }
 
