@@ -51,19 +51,8 @@ namespace NetTopologySuite.IO.Converters
             _dimension = dimension;
         }
 
-
-        internal GeometryConverter(GeometryFactory geometryFactory, int dimension, bool enforceRingOrientation)
-            : this(geometryFactory, dimension)
-        {
-            if (enforceRingOrientation)
-            {
-                _exteriorRingOrientation = OrientationIndex.Clockwise;
-                _interiorRingOrientation = OrientationIndex.CounterClockwise;
-            }
-        }
-
         internal GeometryConverter(GeometryFactory geometryFactory, int dimension, bool enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
-            : this(geometryFactory, dimension, enforceRingOrientation)
+            : this(geometryFactory, dimension)
         {
             if (enforceRingOrientation)
             {
