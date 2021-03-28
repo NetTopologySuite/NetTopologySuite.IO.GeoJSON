@@ -68,6 +68,23 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Factory method to create a (Geo)JsonSerializer
         /// </summary>
+        /// <returns>
+        /// A <see cref="JsonSerializer"/>.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="GeometryFactory"/> uses WGS-84.
+        /// </remarks>
+        public static JsonSerializer CreateDefault(JsonSerializerSettings settings, JsonSerializerSettings settingsForCoordinates)
+        {
+            var s = Create(settings);
+            AddGeoJsonConverters(s, Wgs84Factory, 2, false, settingsForCoordinates);
+
+            return s;
+        }
+
+        /// <summary>
+        /// Factory method to create a (Geo)JsonSerializer
+        /// </summary>
         /// <param name="factory">
         /// A factory to use when creating geometries. The factories <see cref="PrecisionModel"/>
         /// is also used to format <see cref="Coordinate.X"/> and <see cref="Coordinate.Y"/> of the coordinates.
@@ -162,7 +179,7 @@ namespace NetTopologySuite.IO
             AddGeoJsonConverters(s, factory, dimension, enforceRingOrientation);
             return s;
         }
-        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension, bool enforceRingOrientation)
+        private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension, bool enforceRingOrientation, JsonSerializerSettings settingsForCoordinates = null)
         {
 #if DEBUG
             if (factory.SRID != 4326)
@@ -175,7 +192,7 @@ namespace NetTopologySuite.IO
             c.Add(new FeatureCollectionConverter());
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
-            c.Add(new GeometryConverter(factory, dimension, enforceRingOrientation));
+            c.Add(new GeometryConverter(factory, dimension, enforceRingOrientation, settingsForCoordinates));
             c.Add(new GeometryArrayConverter(factory, dimension));
             //c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter(factory.PrecisionModel));
