@@ -1,6 +1,6 @@
 # GeoJSON
 
-GeoJSON IO module for NTS. 
+[GeoJSON (RFC 7946)](https://geojson.org) IO module for NTS. 
 
 ## GeoJSON4STJ Usage
 
