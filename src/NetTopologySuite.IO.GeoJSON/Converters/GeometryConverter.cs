@@ -64,7 +64,7 @@ namespace NetTopologySuite.IO.Converters
 
         private JsonSerializerSettings BackupSerializerSettings(JsonWriter writer)
         {
-            JsonSerializerSettings backupSettings = new JsonSerializerSettings
+            var backupSettings = new JsonSerializerSettings
             {
                 Formatting = writer.Formatting
             };

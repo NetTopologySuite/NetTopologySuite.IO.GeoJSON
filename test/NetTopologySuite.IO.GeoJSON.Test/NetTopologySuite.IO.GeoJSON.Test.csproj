@@ -9,7 +9,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Issues\StackOverflow\Q69013006.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Issues\StackOverflow\Q69013006.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.GeoJSON\NetTopologySuite.IO.GeoJSON.csproj" />
+    <ProjectReference Include="..\..\src\NetTopologySuite.IO.GeoJSON4STJ\NetTopologySuite.IO.GeoJSON4STJ.csproj" />
   </ItemGroup>
 
 </Project>

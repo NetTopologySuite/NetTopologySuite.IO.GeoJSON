@@ -43,7 +43,7 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteValue(nameof(GeoJsonObjectType.FeatureCollection));
 
             writer.WritePropertyName("features");
-            var array = new Feature[coll.Count];
+            var array = new IFeature[coll.Count];
             coll.CopyTo(array, 0);
             serializer.Serialize(writer, array);
 
