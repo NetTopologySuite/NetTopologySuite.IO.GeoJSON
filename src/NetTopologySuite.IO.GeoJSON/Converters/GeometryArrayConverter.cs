@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -81,17 +82,21 @@ namespace NetTopologySuite.IO.Converters
         /// <returns>The geometry array read</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            //reader.Read();
-            //if (!(reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "geometries"))
-            //    throw new Exception();
-            reader.Read();
             if (reader.TokenType != JsonToken.StartArray)
             {
                 throw new Exception();
             }
 
             reader.Read();
-            var geoms = new List<Geometry>();
+
+            IList geoms = new List<Geometry>();
+            var innerType = objectType.GenericTypeArguments?.FirstOrDefault();
+            if (innerType != null)
+            {
+                var genericType = typeof(List<>).MakeGenericType(innerType);
+                geoms = (IList)Activator.CreateInstance(genericType);
+            }
+
             while (reader.TokenType != JsonToken.EndArray)
             {
                 var obj = (JObject)serializer.Deserialize(reader);
