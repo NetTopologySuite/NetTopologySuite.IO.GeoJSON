@@ -131,7 +131,9 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         ""array1"": [""aaa"", ""bbb""],
 		""complex1"": {
             ""aaa"": ""1"",
-            ""bbb"": 2
+            ""bbb"": {
+                ""zzzz"": 2
+            }
         },
         ""prop1"": true,
         ""prop2"": null
@@ -148,7 +150,59 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         ""array1"": [""aaa"", ""bbb""],
 		""complex1"": {
             ""aaa"": ""1"",
-            ""bbb"": 2
+            ""bbb"": {
+                ""zzzz"": 2
+            }
+        },
+        ""prop1"": true,
+        ""prop2"": null,
+        ""type"": ""Point"",
+		""coordinates"": [-117.267131, 32.959175]
+	}
+}";
+            DoTest(data);
+        }
+
+        [Test]
+        public void TestMixedPropertiesWithNullsAndKeywordsDeserializationInGeometry()
+        {
+            const string data = @"{
+	""geometry"": {
+		""type"": ""Point"",
+		""coordinates"": [-117.267131, 32.959175],
+        ""array1"": [""aaa"", ""bbb""],
+		""complex1"": {
+            ""aaa"": ""1"",
+            ""bbb"": {
+                ""zzzz"": 2,
+                ""irrelevant"": null
+            },
+            ""ccc"": 3,
+            ""ddd"": null,
+            ""type"": ""MultiPoint""
+        },
+        ""prop1"": true,
+        ""prop2"": null
+	}
+}";
+            DoTest(data);
+        }
+
+        [Test]
+        public void TestMixedPropertiesWithNullsAndKeywordsDeserializationInGeometryChangingPropertiesOrder()
+        {
+            const string data = @"{
+	""geometry"": {
+        ""array1"": [""aaa"", ""bbb""],
+		""complex1"": {
+            ""aaa"": ""1"",
+            ""bbb"": {
+                ""zzzz"": 2,
+                ""irrelevant"": null
+            },
+            ""ccc"": 3,
+            ""ddd"": null,
+            ""type"": ""MultiPoint""
         },
         ""prop1"": true,
         ""prop2"": null,
