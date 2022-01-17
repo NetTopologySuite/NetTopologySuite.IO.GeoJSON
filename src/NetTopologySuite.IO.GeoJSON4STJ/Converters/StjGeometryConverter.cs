@@ -85,7 +85,25 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         break;
                     case "bbox":
-                        var env = ReadBBox(ref reader, options);
+                        // see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry
+                        _ = ReadBBox(ref reader, options);
+                        break;
+                    default:
+                        // see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry
+                        switch (reader.TokenType)
+                        {
+                            case JsonTokenType.StartObject:
+
+                                while (reader.TokenType != JsonTokenType.EndObject)
+                                    reader.Read();
+                                break;
+                            case JsonTokenType.StartArray:
+
+                                while (reader.TokenType != JsonTokenType.EndArray)
+                                    reader.Read();
+                                break;
+                        }
+                        reader.Read();
                         break;
 
                 }
