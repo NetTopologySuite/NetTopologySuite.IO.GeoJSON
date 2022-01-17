@@ -132,7 +132,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
                         for (int i = 0; i < multiPoint.NumGeometries; i++)
-                            WriteCoordinates(writer, ((Point) multiPoint.GetGeometryN(i)).CoordinateSequence, false);
+                            WriteCoordinates(writer, ((Point)multiPoint.GetGeometryN(i)).CoordinateSequence, false);
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
@@ -177,7 +177,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
                         for (int i = 0; i < multiLineString.NumGeometries; i++)
-                            WriteCoordinates(writer, ((LineString) multiLineString.GetGeometryN(i)).CoordinateSequence);
+                            WriteCoordinates(writer, ((LineString)multiLineString.GetGeometryN(i)).CoordinateSequence);
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
@@ -221,7 +221,7 @@ namespace NetTopologySuite.IO.Converters
                         writer.WritePropertyName("coordinates");
                         writer.WriteStartArray();
                         for (int i = 0; i < multiPolygon.NumGeometries; i++)
-                            WritePolygonCoordinates((Polygon) multiPolygon.GetGeometryN(i));
+                            WritePolygonCoordinates((Polygon)multiPolygon.GetGeometryN(i));
                         writer.WriteEndArray();
                         if (customCoordinateSerializeSettings)
                         {
@@ -401,15 +401,15 @@ namespace NetTopologySuite.IO.Converters
             while (reader.TokenType == JsonToken.PropertyName)
             {
                 //read the tokens, type may come before coordinates or geometries as pr spec
-                string prop = (string) reader.Value;
+                string prop = (string)reader.Value;
                 switch (prop)
                 {
                     case "type":
                         if (geometryType == null)
                         {
                             reader.ReadOrThrow();
-                            geometryType = (GeoJsonObjectType) Enum.Parse(typeof(GeoJsonObjectType),
-                                (string) reader.Value, true);
+                            geometryType = (GeoJsonObjectType)Enum.Parse(typeof(GeoJsonObjectType),
+                                (string)reader.Value, true);
                             reader.ReadOrThrow();
                         }
 
@@ -442,16 +442,10 @@ namespace NetTopologySuite.IO.Converters
 
                         break;
 
-                    case "bbox":
-                        // Read, but can't do anything with it, assigning Envelopes is impossible without reflection
-                        /*var bbox = */
-                        serializer.Deserialize<Envelope>(reader);
-                        break;
-
-                    default:
+                    default: // included "bbox" property
+                        //read, but can't do anything with it
+                        reader.Skip();
                         reader.ReadOrThrow();
-                        /*var item = */
-                        serializer.Deserialize(reader);
                         break;
                 }
 
@@ -475,7 +469,7 @@ namespace NetTopologySuite.IO.Converters
                     return _factory.CreateMultiPoint();
 
                 case GeoJsonObjectType.MultiPoint:
-                    return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>) obj))
+                    return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>)obj))
                         .ToArray());
 
                 case GeoJsonObjectType.LineString when coords is null:
@@ -489,7 +483,7 @@ namespace NetTopologySuite.IO.Converters
 
                 case GeoJsonObjectType.MultiLineString:
                     return _factory.CreateMultiLineString(coords
-                        .Select(obj => CreateLineString(reader, (List<object>) obj)).ToArray());
+                        .Select(obj => CreateLineString(reader, (List<object>)obj)).ToArray());
 
                 case GeoJsonObjectType.Polygon when coords is null:
                     return _factory.CreatePolygon();
@@ -501,7 +495,7 @@ namespace NetTopologySuite.IO.Converters
                     return _factory.CreateMultiPolygon();
 
                 case GeoJsonObjectType.MultiPolygon:
-                    return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>) obj))
+                    return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>)obj))
                         .ToArray());
 
                 case GeoJsonObjectType.GeometryCollection when coords is null:
@@ -537,7 +531,7 @@ namespace NetTopologySuite.IO.Converters
 
         private Polygon CreatePolygon(JsonReader reader, List<object> list)
         {
-            var shell = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>) list[0]));
+            var shell = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>)list[0]));
             if (list.Count == 1)
             {
                 return _factory.CreatePolygon(shell);
@@ -546,7 +540,7 @@ namespace NetTopologySuite.IO.Converters
             var holes = new LinearRing[list.Count - 1];
             for (int i = 0; i < holes.Length; i++)
             {
-                holes[i] = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>) list[i + 1]));
+                holes[i] = _factory.CreateLinearRing(CreateCoordinateArray(reader, (List<object>)list[i + 1]));
             }
 
             return _factory.CreatePolygon(shell, holes);
