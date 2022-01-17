@@ -84,28 +84,11 @@ namespace NetTopologySuite.IO.Converters
                         coordinateData = StjParsedCoordinates.Parse(ref reader, _geometryFactory);
                         reader.Read();
                         break;
-                    case "bbox":
-                        // see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry
-                        _ = ReadBBox(ref reader, options);
-                        break;
-                    default:
-                        // see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry
-                        switch (reader.TokenType)
-                        {
-                            case JsonTokenType.StartObject:
-
-                                while (reader.TokenType != JsonTokenType.EndObject)
-                                    reader.Read();
-                                break;
-                            case JsonTokenType.StartArray:
-
-                                while (reader.TokenType != JsonTokenType.EndArray)
-                                    reader.Read();
-                                break;
-                        }
+                    default: // included "bbox" property
+                        //read, but can't do anything with it (see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry)
+                        reader.Skip();
                         reader.Read();
                         break;
-
                 }
                 // Skip comments
                 reader.SkipComments();
