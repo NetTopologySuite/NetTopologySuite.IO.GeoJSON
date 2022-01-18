@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -89,13 +88,14 @@ namespace NetTopologySuite.IO.Converters
 
             reader.Read();
 
-            IList geoms = new List<Geometry>();
+            IList<Geometry> geoms;
             var innerType = objectType.GenericTypeArguments?.FirstOrDefault();
             if (innerType != null)
             {
                 var genericType = typeof(List<>).MakeGenericType(innerType);
-                geoms = (IList)Activator.CreateInstance(genericType);
+                geoms = (List<Geometry>)Activator.CreateInstance(genericType);
             }
+            else { geoms = new List<Geometry>(); }
 
             while (reader.TokenType != JsonToken.EndArray)
             {
@@ -186,8 +186,9 @@ namespace NetTopologySuite.IO.Converters
         private Coordinate ToCoordinate(JArray array, IFormatProvider formatProvider)
         {
             var c = Coordinates.Create(_dimension);
-            c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(array[0], formatProvider));
-            c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(array[1], formatProvider));
+            object[] jarray = array.Cast<JValue>().Select(i => i.Value).ToArray();
+            c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(jarray[0], formatProvider));
+            c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(jarray[1], formatProvider));
 
             if (array.Count > 2 && _dimension > 2)
             {
