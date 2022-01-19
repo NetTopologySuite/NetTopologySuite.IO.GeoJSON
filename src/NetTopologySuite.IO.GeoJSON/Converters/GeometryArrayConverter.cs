@@ -12,6 +12,7 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts an array of <see cref="Geometry"/>s to and from JSON
     /// </summary>
+    [Obsolete("Does not do anything useful, actually", true)]
     public class GeometryArrayConverter : JsonConverter
     {
         private readonly GeometryFactory _factory;
@@ -81,16 +82,13 @@ namespace NetTopologySuite.IO.Converters
         /// <returns>The geometry array read</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            //reader.Read();
-            //if (!(reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "geometries"))
-            //    throw new Exception();
-            reader.Read();
             if (reader.TokenType != JsonToken.StartArray)
             {
                 throw new Exception();
             }
 
             reader.Read();
+
             var geoms = new List<Geometry>();
             while (reader.TokenType != JsonToken.EndArray)
             {
@@ -181,8 +179,9 @@ namespace NetTopologySuite.IO.Converters
         private Coordinate ToCoordinate(JArray array, IFormatProvider formatProvider)
         {
             var c = Coordinates.Create(_dimension);
-            c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(array[0], formatProvider));
-            c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(array[1], formatProvider));
+            object[] jarray = array.Cast<JValue>().Select(i => i.Value).ToArray();
+            c.X = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(jarray[0], formatProvider));
+            c.Y = _factory.PrecisionModel.MakePrecise(Convert.ToDouble(jarray[1], formatProvider));
 
             if (array.Count > 2 && _dimension > 2)
             {

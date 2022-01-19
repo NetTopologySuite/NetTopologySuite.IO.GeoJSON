@@ -229,7 +229,7 @@ namespace NetTopologySuite.IO
             c.Add(new FeatureConverter());
             c.Add(new AttributesTableConverter());
             c.Add(new GeometryConverter(factory, dimension, enforceRingOrientation, coordinateSerializerSettings));
-            c.Add(new GeometryArrayConverter(factory, dimension));
+            //c.Add(new GeometryArrayConverter(factory, dimension));
             //c.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
             c.Add(new EnvelopeConverter(factory.PrecisionModel));
         }
