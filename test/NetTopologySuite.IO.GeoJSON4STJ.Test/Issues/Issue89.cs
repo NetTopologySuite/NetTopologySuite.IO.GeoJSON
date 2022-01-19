@@ -1,7 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.GeoJSON4STJ.Test.Converters;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,23 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
     [GeoJsonIssueNumber(89)]
     public sealed class Issue89 : SandDTest<IEnumerable<Geometry>>
     {
-        private static Geometry[] CreateTestData()
+        private IEnumerable<T> DoTest<T>(IEnumerable<T> geoms)
+            where T : Geometry
+        {
+            using var ms = new MemoryStream();
+            Serialize(ms, geoms, DefaultOptions);
+            string json = Encoding.UTF8.GetString(ms.ToArray());
+            return Deserialize(json, DefaultOptions)
+                /*
+                 * needed to deserialize to the actual geometry type!
+                 * see: https://github.com/NetTopologySuite/NetTopologySuite.IO.GeoJSON/pull/90#discussion_r787875845
+                 */
+                .Cast<T>();
+        }
+
+        // NOTE: from here we use the same test code of GithubIssue99 in GeoJSON4.Test!
+
+        private static Polygon[] CreateTestData()
         {
             var fac = GeometryFactory.Default;
             var p1 = fac.CreatePolygon(
@@ -34,19 +49,22 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             return new[] { p1, p2 };
         }
 
-        private IEnumerable<Geometry> DoTest(IEnumerable<Geometry> geoms)
+        [Test]
+        public void TestPolygonsDeserializationAsGeometries()
         {
-            using var ms = new MemoryStream();
-            Serialize(ms, geoms, DefaultOptions);
-            string json = Encoding.UTF8.GetString(ms.ToArray());
-            return Deserialize(json, DefaultOptions);
+            IEnumerable<Geometry> geoms = CreateTestData();
+            var serializedData = DoTest<Geometry>(geoms);
+            Assert.That(serializedData, Is.Not.Null);
+            Assert.That(serializedData.All(p => p is Polygon), Is.True);
+            Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
+            Assert.That(serializedData.ElementAt(1).EqualsExact(geoms.ElementAt(1)), Is.True);
         }
 
         [Test]
         public void TestPolygonsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData();
-            var serializedData = DoTest(geoms);
+            IEnumerable<Polygon> geoms = CreateTestData();
+            var serializedData = DoTest<Polygon>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Polygon), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
@@ -56,12 +74,12 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
         [Test]
         public void TestLineStringsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData()
+            IEnumerable<LineString> geoms = CreateTestData()
                 .Cast<Polygon>()
                 .Select(p => p.Shell)
                 .Cast<LineString>()
                 .ToList();
-            var serializedData = DoTest(geoms);
+            var serializedData = DoTest<LineString>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is LineString), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
@@ -71,13 +89,13 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
         [Test]
         public void TestPointsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData()
+            IEnumerable<Point> geoms = CreateTestData()
                 .Cast<Polygon>()
                 .Select(p => p.Shell)
                 .Cast<LineString>()
                 .SelectMany(s => s.Coordinates.Select(c => s.Factory.CreatePoint(c)))
                 .ToList();
-            var serializedData = DoTest(geoms);
+            var serializedData = DoTest<Point>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Point), Is.True);
             Assert.That(serializedData.ElementAt(0).Coordinates[0]
@@ -108,7 +126,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
                 });
             var poly = fac.CreatePolygon(shell, new[] { hole });
             Assert.That(poly.IsValid, Is.True);
-            var serializedData = DoTest(new[] { poly });
+            var serializedData = DoTest<Polygon>(new[] { poly });
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Polygon), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(poly), Is.True);

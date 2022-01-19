@@ -11,7 +11,25 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
     [GeoJsonIssueNumber(89)]
     public sealed class GitHubIssue89
     {
-        private static Geometry[] CreateTestData()
+        private static IEnumerable<T> DoTest<T>(IEnumerable<Geometry> geoms) where T : Geometry
+        {
+            var serializer = GeoJsonSerializer.CreateDefault();
+            var sb = new StringBuilder();
+            using (var sw = new StringWriter(sb))
+            using (var jtw = new JsonTextWriter(sw))
+            {
+                serializer.Serialize(jtw, geoms);
+            }
+            string json = sb.ToString();
+            using var sr = new StringReader(json);
+            using var jtr = new JsonTextReader(sr);
+            {
+                return serializer.Deserialize<IEnumerable<T>>(jtr);
+            }
+        }
+
+        // NOTE: from here we use the same test code of Issue99 in GeoJSON4STJ.Test!
+        private static Polygon[] CreateTestData()
         {
             var fac = GeometryFactory.Default;
             var p1 = fac.CreatePolygon(
@@ -33,23 +51,6 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             return new[] { p1, p2 };
         }
 
-        private static IEnumerable<T> DoTest<T>(IEnumerable<Geometry> geoms) where T : Geometry
-        {
-            var serializer = GeoJsonSerializer.CreateDefault();
-            var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
-            using (var jtw = new JsonTextWriter(sw))
-            {
-                serializer.Serialize(jtw, geoms);
-            }
-            string json = sb.ToString();
-            using var sr = new StringReader(json);
-            using var jtr = new JsonTextReader(sr);
-            {
-                return serializer.Deserialize<IEnumerable<T>>(jtr);
-            }
-        }
-
         [Test]
         public void TestPolygonsDeserializationAsGeometries()
         {
@@ -64,7 +65,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         [Test]
         public void TestPolygonsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData();
+            IEnumerable<Polygon> geoms = CreateTestData();
             var serializedData = DoTest<Polygon>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Polygon), Is.True);
@@ -75,7 +76,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         [Test]
         public void TestLineStringsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData()
+            IEnumerable<LineString> geoms = CreateTestData()
                 .Cast<Polygon>()
                 .Select(p => p.Shell)
                 .Cast<LineString>()
@@ -90,7 +91,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         [Test]
         public void TestPointsDeserialization()
         {
-            IEnumerable<Geometry> geoms = CreateTestData()
+            IEnumerable<Point> geoms = CreateTestData()
                 .Cast<Polygon>()
                 .Select(p => p.Shell)
                 .Cast<LineString>()
