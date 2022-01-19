@@ -12,6 +12,7 @@ namespace NetTopologySuite.IO.Converters
     /// <summary>
     /// Converts an array of <see cref="Geometry"/>s to and from JSON
     /// </summary>
+    [Obsolete("Does not do anything useful, actually", true)]
     public class GeometryArrayConverter : JsonConverter
     {
         private readonly GeometryFactory _factory;

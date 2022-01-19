@@ -381,7 +381,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 jss.Converters.Add(new FeatureCollectionConverter());
                 jss.Converters.Add(new FeatureConverter());
                 jss.Converters.Add(new GeometryConverter(factory, dimension));
-                jss.Converters.Add(new GeometryArrayConverter(factory, dimension));
+                //jss.Converters.Add(new GeometryArrayConverter(factory, dimension));
                 //jss.Converters.Add(new CoordinateConverter(factory.PrecisionModel, dimension));
                 jss.Converters.Add(new EnvelopeConverter());
             }, Throws.Nothing);

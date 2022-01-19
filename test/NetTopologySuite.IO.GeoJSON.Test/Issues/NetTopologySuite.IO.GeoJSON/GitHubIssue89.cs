@@ -33,7 +33,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             return new[] { p1, p2 };
         }
 
-        private static IEnumerable<Geometry> DoTest(IEnumerable<Geometry> geoms)
+        private static IEnumerable<T> DoTest<T>(IEnumerable<Geometry> geoms) where T : Geometry
         {
             var serializer = GeoJsonSerializer.CreateDefault();
             var sb = new StringBuilder();
@@ -46,15 +46,26 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             using var sr = new StringReader(json);
             using var jtr = new JsonTextReader(sr);
             {
-                return serializer.Deserialize<IEnumerable<Geometry>>(jtr);
+                return serializer.Deserialize<IEnumerable<T>>(jtr);
             }
+        }
+
+        [Test]
+        public void TestPolygonsDeserializationAsGeometries()
+        {
+            IEnumerable<Geometry> geoms = CreateTestData();
+            var serializedData = DoTest<Geometry>(geoms);
+            Assert.That(serializedData, Is.Not.Null);
+            Assert.That(serializedData.All(p => p is Polygon), Is.True);
+            Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
+            Assert.That(serializedData.ElementAt(1).EqualsExact(geoms.ElementAt(1)), Is.True);
         }
 
         [Test]
         public void TestPolygonsDeserialization()
         {
             IEnumerable<Geometry> geoms = CreateTestData();
-            var serializedData = DoTest(geoms);
+            var serializedData = DoTest<Polygon>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Polygon), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
@@ -69,7 +80,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 .Select(p => p.Shell)
                 .Cast<LineString>()
                 .ToList();
-            var serializedData = DoTest(geoms);
+            var serializedData = DoTest<LineString>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is LineString), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(geoms.ElementAt(0)), Is.True);
@@ -85,7 +96,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 .Cast<LineString>()
                 .SelectMany(s => s.Coordinates.Select(c => s.Factory.CreatePoint(c)))
                 .ToList();
-            var serializedData = DoTest(geoms);
+            var serializedData = DoTest<Point>(geoms);
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Point), Is.True);
             Assert.That(serializedData.ElementAt(0).Coordinates[0]
@@ -116,7 +127,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
                 });
             var poly = fac.CreatePolygon(shell, new[] { hole });
             Assert.That(poly.IsValid, Is.True);
-            var serializedData = DoTest(new[] { poly });
+            var serializedData = DoTest<Polygon>(new[] { poly });
             Assert.That(serializedData, Is.Not.Null);
             Assert.That(serializedData.All(p => p is Polygon), Is.True);
             Assert.That(serializedData.ElementAt(0).EqualsExact(poly), Is.True);
