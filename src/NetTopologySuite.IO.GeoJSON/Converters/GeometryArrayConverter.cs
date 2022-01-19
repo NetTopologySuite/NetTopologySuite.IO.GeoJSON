@@ -88,15 +88,7 @@ namespace NetTopologySuite.IO.Converters
 
             reader.Read();
 
-            IList<Geometry> geoms;
-            var innerType = objectType.GenericTypeArguments?.FirstOrDefault();
-            if (innerType != null)
-            {
-                var genericType = typeof(List<>).MakeGenericType(innerType);
-                geoms = (List<Geometry>)Activator.CreateInstance(genericType);
-            }
-            else { geoms = new List<Geometry>(); }
-
+            var geoms = new List<Geometry>();
             while (reader.TokenType != JsonToken.EndArray)
             {
                 var obj = (JObject)serializer.Deserialize(reader);
