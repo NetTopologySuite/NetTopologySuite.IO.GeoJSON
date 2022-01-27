@@ -1,10 +1,9 @@
 ﻿using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO.GeoJSON4STJ.Test;
 using NetTopologySuite.IO.GeoJSON4STJ.Test.Converters;
 using NUnit.Framework;
 
-namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
+namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
 {
     [GeoJsonIssueNumber(94)]
     public sealed class Issue94 : SandDTest<IFeature>
