@@ -457,48 +457,50 @@ namespace NetTopologySuite.IO.Converters
                 throw new ArgumentException("Expected token '}' not found.");
             }
 
+            bool CoordsIsNullOrEmpty() => coords is null || coords.Count == 0;
+
             switch (geometryType)
             {
-                case GeoJsonObjectType.Point when coords is null:
+                case GeoJsonObjectType.Point when CoordsIsNullOrEmpty():
                     return _factory.CreatePoint();
 
                 case GeoJsonObjectType.Point:
                     return CreatePoint(reader, coords);
 
-                case GeoJsonObjectType.MultiPoint when coords is null:
+                case GeoJsonObjectType.MultiPoint when CoordsIsNullOrEmpty():
                     return _factory.CreateMultiPoint();
 
                 case GeoJsonObjectType.MultiPoint:
                     return _factory.CreateMultiPoint(coords.Select(obj => CreatePoint(reader, (List<object>)obj))
                         .ToArray());
 
-                case GeoJsonObjectType.LineString when coords is null:
+                case GeoJsonObjectType.LineString when CoordsIsNullOrEmpty():
                     return _factory.CreateLineString();
 
                 case GeoJsonObjectType.LineString:
                     return CreateLineString(reader, coords);
 
-                case GeoJsonObjectType.MultiLineString when coords is null:
+                case GeoJsonObjectType.MultiLineString when CoordsIsNullOrEmpty():
                     return _factory.CreateMultiLineString();
 
                 case GeoJsonObjectType.MultiLineString:
                     return _factory.CreateMultiLineString(coords
                         .Select(obj => CreateLineString(reader, (List<object>)obj)).ToArray());
 
-                case GeoJsonObjectType.Polygon when coords is null:
+                case GeoJsonObjectType.Polygon when CoordsIsNullOrEmpty():
                     return _factory.CreatePolygon();
 
                 case GeoJsonObjectType.Polygon:
                     return CreatePolygon(reader, coords);
 
-                case GeoJsonObjectType.MultiPolygon when coords is null:
+                case GeoJsonObjectType.MultiPolygon when CoordsIsNullOrEmpty():
                     return _factory.CreateMultiPolygon();
 
                 case GeoJsonObjectType.MultiPolygon:
                     return _factory.CreateMultiPolygon(coords.Select(obj => CreatePolygon(reader, (List<object>)obj))
                         .ToArray());
 
-                case GeoJsonObjectType.GeometryCollection when coords is null:
+                case GeoJsonObjectType.GeometryCollection when CoordsIsNullOrEmpty():
                     return _factory.CreateGeometryCollection();
 
                 case GeoJsonObjectType.GeometryCollection:
