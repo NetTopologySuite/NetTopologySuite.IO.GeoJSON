@@ -93,7 +93,34 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         }
 
         [Test]
-        public void TestSerializeEmptyPointCustomSettings()
+        public void TestSerializeEmptyPointCustomSettingsNullsDefault()
+        {
+            var fac = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = { new GeometryConverter(fac) }
+            };
+            string json = JsonConvert.SerializeObject(fac.CreatePoint(), settings);
+            Console.WriteLine(json);
+            Assert.AreEqual(@"{""type"":""Point"",""coordinates"":[]}", json);
+        }
+
+        [Test]
+        public void TestSerializeEmptyPointCustomSettingsNullsIgnored()
+        {
+            var fac = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = { new GeometryConverter(fac) },
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            string json = JsonConvert.SerializeObject(fac.CreatePoint(), settings);
+            Console.WriteLine(json);
+            Assert.AreEqual(@"{""type"":""Point"",""coordinates"":[]}", json);
+        }
+
+        [Test]
+        public void TestSerializeEmptyPointCustomSettingsNullsIncluded()
         {
             var fac = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
             var settings = new JsonSerializerSettings()

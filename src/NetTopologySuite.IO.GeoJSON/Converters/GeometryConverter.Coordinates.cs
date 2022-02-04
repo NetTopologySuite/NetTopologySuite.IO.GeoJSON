@@ -52,9 +52,10 @@ namespace NetTopologySuite.IO.Converters
             bool multiple = true, OrientationIndex orientation = OrientationIndex.None)
         {
             //writer.WritePropertyName("coordinates");
-            if (sequence == null)
+            if (sequence == null || sequence.Count == 0)
             {
-                writer.WriteNull();
+                writer.WriteStartArray();
+                writer.WriteEndArray();
                 return;
             }
 
