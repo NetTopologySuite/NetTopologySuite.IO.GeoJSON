@@ -73,6 +73,11 @@ namespace NetTopologySuite.IO.Converters
 
         private void ApplySerializerSettings(JsonWriter writer, JsonSerializerSettings serializerSettings)
         {
+            if (serializerSettings is null)
+            {
+                throw new ArgumentNullException(nameof(serializerSettings));
+            }
+
             writer.Formatting = serializerSettings.Formatting;
         }
 
@@ -93,24 +98,23 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteStartObject();
 
             bool customCoordinateSerializeSettings = _serializerSettingsForCoordinates != null;
+            JsonSerializerSettings currentSerializerSettings = null;
             switch (geom)
             {
                 case Point point:
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.Point));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        WriteCoordinates(writer, point.CoordinateSequence, false);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    WriteCoordinates(writer, point.CoordinateSequence, false);
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
@@ -119,21 +123,19 @@ namespace NetTopologySuite.IO.Converters
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.MultiPoint));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        writer.WriteStartArray();
-                        for (int i = 0; i < multiPoint.NumGeometries; i++)
-                            WriteCoordinates(writer, ((Point)multiPoint.GetGeometryN(i)).CoordinateSequence, false);
-                        writer.WriteEndArray();
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    writer.WriteStartArray();
+                    for (int i = 0; i < multiPoint.NumGeometries; i++)
+                        WriteCoordinates(writer, ((Point)multiPoint.GetGeometryN(i)).CoordinateSequence, false);
+                    writer.WriteEndArray();
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
@@ -142,18 +144,16 @@ namespace NetTopologySuite.IO.Converters
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.LineString));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        WriteCoordinates(writer, lineString.CoordinateSequence);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    WriteCoordinates(writer, lineString.CoordinateSequence);
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
@@ -162,21 +162,19 @@ namespace NetTopologySuite.IO.Converters
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.MultiLineString));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        writer.WriteStartArray();
-                        for (int i = 0; i < multiLineString.NumGeometries; i++)
-                            WriteCoordinates(writer, ((LineString)multiLineString.GetGeometryN(i)).CoordinateSequence);
-                        writer.WriteEndArray();
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    writer.WriteStartArray();
+                    for (int i = 0; i < multiLineString.NumGeometries; i++)
+                        WriteCoordinates(writer, ((LineString)multiLineString.GetGeometryN(i)).CoordinateSequence);
+                    writer.WriteEndArray();
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
@@ -185,18 +183,16 @@ namespace NetTopologySuite.IO.Converters
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.Polygon));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        WritePolygonCoordinates(polygon);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    WritePolygonCoordinates(polygon);
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
@@ -205,21 +201,19 @@ namespace NetTopologySuite.IO.Converters
                     writer.WritePropertyName("type");
                     writer.WriteValue(nameof(GeoJsonObjectType.MultiPolygon));
 
+                    if (customCoordinateSerializeSettings)
                     {
-                        var currentSerializerSettings = BackupSerializerSettings(writer);
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
-                        }
-                        writer.WritePropertyName("coordinates");
-                        writer.WriteStartArray();
-                        for (int i = 0; i < multiPolygon.NumGeometries; i++)
-                            WritePolygonCoordinates((Polygon)multiPolygon.GetGeometryN(i));
-                        writer.WriteEndArray();
-                        if (customCoordinateSerializeSettings)
-                        {
-                            ApplySerializerSettings(writer, currentSerializerSettings);
-                        }
+                        currentSerializerSettings = BackupSerializerSettings(writer);
+                        ApplySerializerSettings(writer, _serializerSettingsForCoordinates);
+                    }
+                    writer.WritePropertyName("coordinates");
+                    writer.WriteStartArray();
+                    for (int i = 0; i < multiPolygon.NumGeometries; i++)
+                        WritePolygonCoordinates((Polygon)multiPolygon.GetGeometryN(i));
+                    writer.WriteEndArray();
+                    if (customCoordinateSerializeSettings)
+                    {
+                        ApplySerializerSettings(writer, currentSerializerSettings);
                     }
 
                     break;
