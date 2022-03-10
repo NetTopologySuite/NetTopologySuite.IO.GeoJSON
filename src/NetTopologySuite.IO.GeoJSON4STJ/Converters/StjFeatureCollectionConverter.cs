@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO.Converters
 {
@@ -78,7 +79,15 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteString("type", nameof(GeoJsonObjectType.FeatureCollection));
 
             if (_writeBBox)
-                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, null);
+            {
+                var env = value.BoundingBox ?? new Envelope();
+                foreach (var features in value)
+                {
+                    var curr = features.BoundingBox ?? features.Geometry?.EnvelopeInternal ?? new Envelope();
+                    env.ExpandToInclude(curr);
+                }
+                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, env);
+            }
 
             writer.WriteStartArray("features");
             foreach (var feature in value)

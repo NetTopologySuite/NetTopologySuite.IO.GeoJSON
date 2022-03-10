@@ -45,9 +45,33 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             var feature = new Feature(geom, new AttributesTable { { "id", 1 }, { "test", "2" } });
             string featureJson = JsonSerializer.Serialize(feature, options);
             Assert.AreEqual(writeBBOX, featureJson.Contains("bbox", StrCmp));
+            if (writeBBOX)
+                Assert.That(featureJson.IndexOf("null", StrCmp), Is.EqualTo(-1));
             var featureColl = new FeatureCollection { feature };
             string featureCollJson = JsonSerializer.Serialize(featureColl, options);
             Assert.AreEqual(writeBBOX, featureCollJson.Contains("bbox", StrCmp));
+            if (writeBBOX)
+                Assert.That(featureCollJson.IndexOf("null", StrCmp), Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void BBOXForPointShoundNeverBeWrittem()
+        {
+            var fac = GeometryFactory.Default;
+            var geom = fac.CreatePoint(new Coordinate(-89.863283, 47.963199));
+            var options = new JsonSerializerOptions()
+            {
+                IgnoreNullValues = false,
+                Converters = { new GeoJsonConverterFactory(fac, true) }
+            };
+            string geomJson = JsonSerializer.Serialize(geom, options);
+            Assert.That(geomJson.Contains("bbox", StrCmp), Is.False);
+            var feature = new Feature(geom, new AttributesTable { { "id", 1 }, { "test", "2" } });
+            string featureJson = JsonSerializer.Serialize(feature, options);
+            Assert.That(featureJson.Contains("bbox", StrCmp), Is.False);
+            var featureColl = new FeatureCollection { feature };
+            string featureCollJson = JsonSerializer.Serialize(featureColl, options);
+            Assert.That(featureCollJson.Contains("bbox", StrCmp), Is.False);
         }
     }
 }

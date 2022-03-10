@@ -44,19 +44,19 @@ namespace NetTopologySuite.IO.Converters
             return res;
         }
 
-        internal static void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options, Geometry geometry)
+        internal static void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options, Envelope env)
         {
             // if we don't want to write "null" bounding boxes, bail out.
             if ((value == null || value.IsNull) && options.IgnoreNullValues)
                 return;
 
             // Don't clutter export with bounding box if geometry is a point!
-            if (geometry is Point)
+            if (env.Area == 0)
                 return;
 
             // if value == null, try to get it from geometry
             if (value == null)
-                value = geometry?.EnvelopeInternal ?? new Envelope();
+                value = env ?? new Envelope();
 
             writer.WritePropertyName("bbox");
             if (value.IsNull)
