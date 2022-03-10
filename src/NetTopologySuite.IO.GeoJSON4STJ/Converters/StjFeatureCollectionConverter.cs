@@ -11,6 +11,13 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     internal class StjFeatureCollectionConverter : JsonConverter<FeatureCollection>
     {
+        private readonly bool _writeGeometryBBox;
+
+        public StjFeatureCollectionConverter(bool writeGeometryBBox)
+        {
+            _writeGeometryBBox = writeGeometryBBox;
+        }
+
         /// <summary>
         /// Reads the JSON representation of the object.
         /// </summary>
@@ -71,7 +78,8 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteStartObject();
             writer.WriteString("type", nameof(GeoJsonObjectType.FeatureCollection));
 
-            StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, null);
+            if (_writeGeometryBBox)
+                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, null);
 
             writer.WriteStartArray("features");
             foreach (var feature in value)

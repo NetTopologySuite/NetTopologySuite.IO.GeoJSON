@@ -13,10 +13,12 @@ namespace NetTopologySuite.IO.Converters
     internal sealed class StjFeatureConverter : JsonConverter<IFeature>
     {
         private readonly string _idPropertyName;
+        private readonly bool _writeGeometryBBox;
 
-        public StjFeatureConverter(string idPropertyName)
+        public StjFeatureConverter(string idPropertyName, bool writeGeometryBBox)
         {
             _idPropertyName = idPropertyName;
+            _writeGeometryBBox = writeGeometryBBox;
         }
 
         /// <summary>
@@ -46,8 +48,8 @@ namespace NetTopologySuite.IO.Converters
             }
 
             // bbox (optional)
-            var bbox = value.BoundingBox;
-            StjGeometryConverter.WriteBBox(writer, bbox, options, value.Geometry);
+            if (_writeGeometryBBox)
+                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, value.Geometry);
 
             // geometry
             if (value.Geometry != null || !options.IgnoreNullValues)
