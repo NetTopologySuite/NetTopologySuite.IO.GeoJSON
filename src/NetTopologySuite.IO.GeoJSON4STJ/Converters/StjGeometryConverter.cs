@@ -38,17 +38,17 @@ namespace NetTopologySuite.IO.Converters
         */
         private readonly GeometryFactory _geometryFactory;
 
-        private readonly bool _writeGeometryBBox;
+        private readonly bool _writeBBox;
 
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
         /// <param name="geometryFactory">The geometry factory to use.</param>
-        /// <param name="writeGeometryBBox">Whether or not to write "bbox" with the geometry.</param>
-        public StjGeometryConverter(GeometryFactory geometryFactory, bool writeGeometryBBox)
+        /// <param name="writeBBox">Whether or not to write "bbox" with the geometry.</param>
+        public StjGeometryConverter(GeometryFactory geometryFactory, bool writeBBox)
         {
             _geometryFactory = geometryFactory ?? DefaultGeometryFactory;
-            _writeGeometryBBox = writeGeometryBBox;
+            _writeBBox = writeBBox;
         }
 
         public override Geometry Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -229,7 +229,7 @@ namespace NetTopologySuite.IO.Converters
                 }
             }
 
-            if (_writeGeometryBBox)
+            if (_writeBBox)
                 WriteBBox(writer, value.EnvelopeInternal, options, value);
 
             writer.WriteEndObject();

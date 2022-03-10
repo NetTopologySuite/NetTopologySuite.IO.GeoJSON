@@ -5,11 +5,6 @@ namespace NetTopologySuite.IO.Converters
 {
     internal partial class StjGeometryConverter
     {
-        /// <summary>
-        /// Gets or sets a value indicating if the bounding box should be written for geometries
-        /// </summary>
-        public bool WriteGeometryBBox { get; set; }
-
         internal static Envelope ReadBBox(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             Envelope res = null;

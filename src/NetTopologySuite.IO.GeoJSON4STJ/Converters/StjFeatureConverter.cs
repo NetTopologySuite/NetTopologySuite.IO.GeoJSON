@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 
@@ -13,12 +12,12 @@ namespace NetTopologySuite.IO.Converters
     internal sealed class StjFeatureConverter : JsonConverter<IFeature>
     {
         private readonly string _idPropertyName;
-        private readonly bool _writeGeometryBBox;
+        private readonly bool _writeBBox;
 
-        public StjFeatureConverter(string idPropertyName, bool writeGeometryBBox)
+        public StjFeatureConverter(string idPropertyName, bool writeBBox)
         {
             _idPropertyName = idPropertyName;
-            _writeGeometryBBox = writeGeometryBBox;
+            _writeBBox = writeBBox;
         }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace NetTopologySuite.IO.Converters
             }
 
             // bbox (optional)
-            if (_writeGeometryBBox)
+            if (_writeBBox)
                 StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, value.Geometry);
 
             // geometry
