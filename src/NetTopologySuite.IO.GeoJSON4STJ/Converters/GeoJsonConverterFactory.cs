@@ -31,7 +31,7 @@ namespace NetTopologySuite.IO.Converters
 
         private readonly GeometryFactory _factory;
 
-        private readonly bool _writeBBox;
+        private readonly bool _writeGeometryBBox;
 
         private readonly string _idPropertyName;
 
@@ -59,9 +59,9 @@ namespace NetTopologySuite.IO.Converters
         /// feature and feature collection, and defaults for all other values.
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="writeBBox"></param>
-        public GeoJsonConverterFactory(GeometryFactory factory, bool writeBBox)
-            : this(factory, writeBBox, DefaultIdPropertyName)
+        /// <param name="writeGeometryBBox"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox)
+            : this(factory, writeGeometryBBox, DefaultIdPropertyName)
         {
         }
 
@@ -72,12 +72,12 @@ namespace NetTopologySuite.IO.Converters
         /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id".
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="writeBBox"></param>
+        /// <param name="writeGeometryBBox"></param>
         /// <param name="idPropertyName"></param>
-        public GeoJsonConverterFactory(GeometryFactory factory, bool writeBBox, string idPropertyName)
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName)
         {
             _factory = factory;
-            _writeBBox = writeBBox;
+            _writeGeometryBBox = writeGeometryBBox;
             _idPropertyName = idPropertyName ?? DefaultIdPropertyName;
         }
 
@@ -94,11 +94,11 @@ namespace NetTopologySuite.IO.Converters
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             if (GeometryTypes.Contains(typeToConvert))
-                return new StjGeometryConverter(_factory, _writeBBox);
+                return new StjGeometryConverter(_factory, _writeGeometryBBox);
             if (typeToConvert == typeof(FeatureCollection))
-                return new StjFeatureCollectionConverter(_writeBBox);
+                return new StjFeatureCollectionConverter(_writeGeometryBBox);
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))
-                return new StjFeatureConverter(_idPropertyName, _writeBBox);
+                return new StjFeatureConverter(_idPropertyName, _writeGeometryBBox);
             if (typeof(IAttributesTable).IsAssignableFrom(typeToConvert))
                 return new StjAttributesTableConverter(_idPropertyName);
 
