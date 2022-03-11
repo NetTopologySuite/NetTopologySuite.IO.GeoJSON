@@ -81,9 +81,9 @@ namespace NetTopologySuite.IO.Converters
             if (_writeGeometryBBox)
             {
                 var env = value.BoundingBox ?? new Envelope();
-                foreach (var features in value)
+                foreach (var feat in value)
                 {
-                    var curr = features.BoundingBox ?? features.Geometry?.EnvelopeInternal ?? new Envelope();
+                    var curr = feat.BoundingBox ?? feat.Geometry?.EnvelopeInternal ?? new Envelope();
                     env.ExpandToInclude(curr);
                 }
                 StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, env);

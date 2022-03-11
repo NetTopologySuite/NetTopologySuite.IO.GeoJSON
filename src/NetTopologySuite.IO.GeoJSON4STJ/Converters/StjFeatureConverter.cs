@@ -48,7 +48,7 @@ namespace NetTopologySuite.IO.Converters
 
             // bbox (optional)
             if (_writeGeometryBBox)
-                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, value?.Geometry?.EnvelopeInternal);
+                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, value.Geometry?.EnvelopeInternal);
 
             // geometry
             if (value.Geometry != null || !options.IgnoreNullValues)
