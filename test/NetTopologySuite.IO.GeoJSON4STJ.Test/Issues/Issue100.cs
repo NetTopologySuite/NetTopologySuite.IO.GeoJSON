@@ -41,38 +41,56 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             };
             string geomJson = JsonSerializer.Serialize(g, options);
             Console.WriteLine($"GEOM: {geomJson}");
-            Assert.AreEqual(writeBBOX, geomJson.Contains("bbox", StrCmp));
+            TestJsonTextForBBOX(geomJson, g, writeBBOX, ignoreNull);
 
-            var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } });
+            var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } })
+            {
+                BoundingBox = g.EnvelopeInternal
+            };
             string featureJson = JsonSerializer.Serialize(feature, options);
             Console.WriteLine($"FEAT: {featureJson}");
-            Assert.AreEqual(writeBBOX, featureJson.Contains("bbox", StrCmp));
-            if (writeBBOX)
-            {
-                if (!ignoreNull && g.IsEmpty)
-                {
-                    Assert.That(featureJson.IndexOf("null", StrCmp), Is.Not.EqualTo(-1));
-                }
-                else
-                {
-                    Assert.That(featureJson.IndexOf("null", StrCmp), Is.EqualTo(-1));
-                }
-            }
+            TestJsonTextForBBOX(featureJson, g, writeBBOX, ignoreNull);
 
             var featureColl = new FeatureCollection { feature };
+            featureColl.BoundingBox = feature.BoundingBox;
             string featureCollJson = JsonSerializer.Serialize(featureColl, options);
             Console.WriteLine($"COLL: {featureCollJson}");
-            Assert.AreEqual(writeBBOX, featureCollJson.Contains("bbox", StrCmp));
-            if (writeBBOX)
+            TestJsonTextForBBOX(featureCollJson, g, writeBBOX, ignoreNull);
+        }
+
+        private static void TestJsonTextForBBOX(string json, Geometry g, bool writeBBOX, bool ignoreNull)
+        {
+            if (!writeBBOX)
             {
-                if (!ignoreNull && g.IsEmpty)
+                Assert.AreEqual(false, json.Contains("bbox", StrCmp));
+                Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
+                return;
+            }
+
+            if (ignoreNull)
+            {
+                if (g.IsEmpty)
                 {
-                    Assert.That(featureCollJson.IndexOf("null", StrCmp), Is.Not.EqualTo(-1));
+                    Assert.AreEqual(false, json.Contains("bbox", StrCmp));
+                    Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
                 }
                 else
                 {
-                    Assert.That(featureCollJson.IndexOf("null", StrCmp), Is.EqualTo(-1));
+                    Assert.AreEqual(true, json.Contains("bbox", StrCmp));
+                    Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
                 }
+                return;
+            }
+
+            if (g.IsEmpty)
+            {
+                Assert.AreEqual(true, json.Contains("bbox", StrCmp));
+                Assert.That(json.IndexOf("null", StrCmp), Is.Not.EqualTo(-1));
+            }
+            else
+            {
+                Assert.AreEqual(true, json.Contains("bbox", StrCmp));
+                Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
             }
         }
 
