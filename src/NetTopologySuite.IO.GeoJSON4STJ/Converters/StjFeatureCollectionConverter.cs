@@ -79,15 +79,7 @@ namespace NetTopologySuite.IO.Converters
             writer.WriteString("type", nameof(GeoJsonObjectType.FeatureCollection));
 
             if (_writeGeometryBBox)
-            {
-                var env = value.BoundingBox ?? new Envelope();
-                foreach (var feat in value)
-                {
-                    var curr = feat.BoundingBox ?? feat.Geometry?.EnvelopeInternal ?? new Envelope();
-                    env.ExpandToInclude(curr);
-                }
-                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options, env);
-            }
+                StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options);
 
             writer.WriteStartArray("features");
             foreach (var feature in value)
