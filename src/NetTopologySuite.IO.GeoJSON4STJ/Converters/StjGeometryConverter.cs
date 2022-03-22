@@ -230,7 +230,7 @@ namespace NetTopologySuite.IO.Converters
             }
 
             if (_writeGeometryBBox)
-                WriteBBox(writer, value.EnvelopeInternal, options, value);
+                WriteBBox(writer, value.EnvelopeInternal, options);
 
             writer.WriteEndObject();
         }

@@ -1,15 +1,11 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO.Converters
 {
     internal partial class StjGeometryConverter
     {
-        /// <summary>
-        /// Gets or sets a value indicating if the bounding box should be written for geometries
-        /// </summary>
-        public bool WriteGeometryBBox { get; set; }
-
         internal static Envelope ReadBBox(ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             Envelope res = null;
@@ -49,19 +45,19 @@ namespace NetTopologySuite.IO.Converters
             return res;
         }
 
-        internal static void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options, Geometry geometry)
+        /// <summary>
+        /// Writes the BBOX to the given <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="value">The envelope.</param>
+        /// <param name="options">The serialization options.</param>
+        internal static void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options)
         {
             // if we don't want to write "null" bounding boxes, bail out.
-            if ((value == null || value.IsNull) && options.IgnoreNullValues)
+            if ((value?.IsNull != false) && options.IgnoreNullValues)
                 return;
 
-            // Don't clutter export with bounding box if geometry is a point!
-            if (geometry is Point)
-                return;
-
-            // if value == null, try to get it from geometry
-            if (value == null)
-                value = geometry?.EnvelopeInternal ?? new Envelope();
+            value = value ?? new Envelope();
 
             writer.WritePropertyName("bbox");
             if (value.IsNull)
