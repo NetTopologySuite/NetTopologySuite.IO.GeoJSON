@@ -31,7 +31,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             new[] { Pnt, Pnt.Copy(), Pnt.Copy(), Pnt.Copy(), Pnt.Copy() });
         private static readonly Geometry Empty = GF.CreatePoint();
 
-        private static void DoBBOXTest(Geometry g, bool writeBBOX, bool ignoreNull)
+        private static void DoBBoxTest(Geometry g, bool writeBBOX, bool ignoreNull)
         {
             Assert.That(g, Is.Not.Null);
             var options = new JsonSerializerOptions()
@@ -41,54 +41,62 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             };
             string geomJson = JsonSerializer.Serialize(g, options);
             Console.WriteLine($"GEOM: {geomJson}");
-            TestJsonTextForBBOX(geomJson, g, writeBBOX, ignoreNull);
+            TestJsonWithValidBBox(geomJson, g, writeBBOX, ignoreNull);
 
-            var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } })
-            {
-                BoundingBox = g.EnvelopeInternal
-            };
+            var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } });
             string featureJson = JsonSerializer.Serialize(feature, options);
             Console.WriteLine($"FEAT: {featureJson}");
-            TestJsonTextForBBOX(featureJson, g, writeBBOX, ignoreNull);
+            TestJsonWithNullBBox(featureJson, g, writeBBOX, ignoreNull);
+            feature.BoundingBox = g.EnvelopeInternal;
+            string featureJsonBBox = JsonSerializer.Serialize(feature, options);
+            Console.WriteLine($"FEAT+BBox: {featureJsonBBox}");
+            TestJsonWithValidBBox(featureJsonBBox, g, writeBBOX, ignoreNull);
 
             var featureColl = new FeatureCollection { feature };
-            featureColl.BoundingBox = feature.BoundingBox;
             string featureCollJson = JsonSerializer.Serialize(featureColl, options);
             Console.WriteLine($"COLL: {featureCollJson}");
-            TestJsonTextForBBOX(featureCollJson, g, writeBBOX, ignoreNull);
+            TestJsonWithNullBBox(featureCollJson, g, writeBBOX, ignoreNull);
+            featureColl.BoundingBox = feature.BoundingBox;
+            string featureCollJsonBBox = JsonSerializer.Serialize(featureColl, options);
+            Console.WriteLine($"COLL+BBox: {featureCollJsonBBox}");
+            TestJsonWithValidBBox(featureCollJsonBBox, g, writeBBOX, ignoreNull);
         }
 
-        private static void TestJsonTextForBBOX(string json, Geometry g, bool writeBBOX, bool ignoreNull)
+        // NOTE: feature (and feature coll) bbox is always NULL
+        private static void TestJsonWithNullBBox(string json, Geometry g, bool writeBBOX, bool ignoreNull)
         {
             if (!writeBBOX)
             {
+                // bbox never written
                 Assert.AreEqual(false, json.Contains("bbox", StrCmp));
                 Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
                 return;
             }
 
-            if (ignoreNull)
+            // null bbox written only if "ignoreNull" is false
+            Assert.AreEqual(!ignoreNull, json.Contains("\"bbox\":null", StrCmp));
+        }
+
+        // NOTE: feature (and feature coll) bbox is NOT NULL when geom is NOT EMPTY
+        private static void TestJsonWithValidBBox(string json, Geometry g, bool writeBBOX, bool ignoreNull)
+        {
+            if (!writeBBOX)
             {
-                if (g.IsEmpty)
-                {
-                    Assert.AreEqual(false, json.Contains("bbox", StrCmp));
-                    Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
-                }
-                else
-                {
-                    Assert.AreEqual(true, json.Contains("bbox", StrCmp));
-                    Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
-                }
+                // bbox never written
+                Assert.AreEqual(false, json.Contains("bbox", StrCmp));
+                Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
                 return;
             }
 
+
             if (g.IsEmpty)
             {
-                Assert.AreEqual(true, json.Contains("bbox", StrCmp));
-                Assert.That(json.IndexOf("null", StrCmp), Is.Not.EqualTo(-1));
+                // null bbox written only if "ignoreNull" is false
+                Assert.AreEqual(!ignoreNull, json.Contains("\"bbox\":null", StrCmp));
             }
             else
             {
+                // valid bbox written
                 Assert.AreEqual(true, json.Contains("bbox", StrCmp));
                 Assert.That(json.IndexOf("null", StrCmp), Is.EqualTo(-1));
             }
@@ -97,81 +105,81 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
         [Test]
         public void BBOXForPolygonShouldBeWritten()
         {
-            DoBBOXTest(g: Poly, writeBBOX: true, ignoreNull: false);
-            DoBBOXTest(g: Poly, writeBBOX: true, ignoreNull: true);
+            DoBBoxTest(g: Poly, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: Poly, writeBBOX: true, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForPolygonShouldNotBeWritten()
         {
-            DoBBOXTest(g: Poly, writeBBOX: false, ignoreNull: false);
-            DoBBOXTest(g: Poly, writeBBOX: false, ignoreNull: true);
+            DoBBoxTest(g: Poly, writeBBOX: false, ignoreNull: false);
+            DoBBoxTest(g: Poly, writeBBOX: false, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForPointShouldNotBeWrittenEvenIfBBoxFlagIsTrue()
         {
-            DoBBOXTest(g: Pnt, writeBBOX: true, ignoreNull: false);
-            DoBBOXTest(g: Pnt, writeBBOX: true, ignoreNull: true);
+            DoBBoxTest(g: Pnt, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: Pnt, writeBBOX: true, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForPointShouldNotBeWritten()
         {
-            DoBBOXTest(g: Pnt, writeBBOX: false, ignoreNull: false);
-            DoBBOXTest(g: Pnt, writeBBOX: false, ignoreNull: true);
+            DoBBoxTest(g: Pnt, writeBBOX: false, ignoreNull: false);
+            DoBBoxTest(g: Pnt, writeBBOX: false, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForGeomCollShouldBeWritten()
         {
-            DoBBOXTest(g: Coll, writeBBOX: true, ignoreNull: false);
-            DoBBOXTest(g: Coll, writeBBOX: true, ignoreNull: true);
+            DoBBoxTest(g: Coll, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: Coll, writeBBOX: true, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForGeomCollShouldNotBeWritten()
         {
-            DoBBOXTest(g: Coll, writeBBOX: false, ignoreNull: false);
-            DoBBOXTest(g: Coll, writeBBOX: false, ignoreNull: true);
+            DoBBoxTest(g: Coll, writeBBOX: false, ignoreNull: false);
+            DoBBoxTest(g: Coll, writeBBOX: false, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForGeomCollMadeOfSamePointsShouldBeWritten()
         {
-            DoBBOXTest(g: CollSamePoints, writeBBOX: true, ignoreNull: false);
-            DoBBOXTest(g: CollSamePoints, writeBBOX: true, ignoreNull: true);
+            DoBBoxTest(g: CollSamePoints, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: CollSamePoints, writeBBOX: true, ignoreNull: true);
         }
 
         [Test]
         public void NullBBOXForGeomCollMadeOfSamePointsShouldNotBeWritten()
         {
-            DoBBOXTest(g: CollSamePoints, writeBBOX: false, ignoreNull: false);
-            DoBBOXTest(g: CollSamePoints, writeBBOX: false, ignoreNull: true);
+            DoBBoxTest(g: CollSamePoints, writeBBOX: false, ignoreNull: false);
+            DoBBoxTest(g: CollSamePoints, writeBBOX: false, ignoreNull: true);
         }
 
         [Test]
         public void BBOXForEmptyGeomShouldBeWritten()
         {
-            DoBBOXTest(g: Empty, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: Empty, writeBBOX: true, ignoreNull: false);
         }
 
         [Test]
         public void BBOXForEmptyGeomShouldNotBeWritten()
         {
-            DoBBOXTest(g: Empty, writeBBOX: false, ignoreNull: false);
+            DoBBoxTest(g: Empty, writeBBOX: false, ignoreNull: false);
         }
 
         [Test]
         public void NullBBOXForEmptyGeomShouldBeIgnored()
         {
-            DoBBOXTest(g: Empty, writeBBOX: true, ignoreNull: true);
+            DoBBoxTest(g: Empty, writeBBOX: true, ignoreNull: true);
         }
 
         [Test]
         public void NullBBOXForEmptyGeomShouldBeNotIgnored()
         {
-            DoBBOXTest(g: Empty, writeBBOX: true, ignoreNull: false);
+            DoBBoxTest(g: Empty, writeBBOX: true, ignoreNull: false);
         }
     }
 }

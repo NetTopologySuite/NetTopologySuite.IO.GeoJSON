@@ -38,7 +38,7 @@ namespace NetTopologySuite.IO.Converters
         */
         private readonly GeometryFactory _geometryFactory;
 
-        private bool _writeGeometryBBox;
+        private readonly bool _writeGeometryBBox;
 
         /// <summary>
         /// Creates an instance of this class
