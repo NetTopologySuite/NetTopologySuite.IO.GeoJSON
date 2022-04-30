@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO.Converters
@@ -54,17 +55,17 @@ namespace NetTopologySuite.IO.Converters
         internal static void WriteBBox(Utf8JsonWriter writer, Envelope value, JsonSerializerOptions options)
         {
             // if we don't want to write "null" bounding boxes, bail out.
-            if ((value?.IsNull != false) && options.IgnoreNullValues)
-                return;
-
-            value = value ?? new Envelope();
-
-            writer.WritePropertyName("bbox");
-            if (value.IsNull)
+            if (value?.IsNull != false)
             {
-                writer.WriteNullValue();
+                if (options.ShouldWriteNullValues())
+                {
+                    writer.WriteNull("bbox");
+                }
+
                 return;
             }
+
+            writer.WritePropertyName("bbox");
 
             writer.WriteStartArray();
             writer.WriteNumberValue(value.MinX);

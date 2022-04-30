@@ -59,7 +59,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             }
 
             var options = DefaultOptions;
-            options.IgnoreNullValues = true;
+            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             string json = ToJsonString(fc, options);
             var d = Deserialize(json, options);
 

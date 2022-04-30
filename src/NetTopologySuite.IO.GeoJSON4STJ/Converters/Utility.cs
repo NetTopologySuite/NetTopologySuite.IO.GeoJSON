@@ -1,11 +1,19 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NetTopologySuite.IO.Properties;
 
 namespace NetTopologySuite.IO.Converters
 {
     internal static class Utility
     {
+        internal static bool ShouldWriteNullValues(this JsonSerializerOptions options)
+        {
+#pragma warning disable SYSLIB0020
+            return options.DefaultIgnoreCondition == JsonIgnoreCondition.Never && !options.IgnoreNullValues;
+#pragma warning restore SYSLIB0020
+        }
+
         internal static void SkipComments(this ref Utf8JsonReader reader)
         {
             // Skip comments

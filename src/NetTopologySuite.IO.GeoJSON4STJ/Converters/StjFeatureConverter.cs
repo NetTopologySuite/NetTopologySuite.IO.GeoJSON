@@ -51,14 +51,14 @@ namespace NetTopologySuite.IO.Converters
                 StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options);
 
             // geometry
-            if (value.Geometry != null || !options.IgnoreNullValues)
+            if (value.Geometry != null || options.ShouldWriteNullValues())
             {
                 writer.WritePropertyName("geometry");
                 JsonSerializer.Serialize(writer, value.Geometry, options);
             }
 
             // properties
-            if (value.Attributes != null || !options.IgnoreNullValues)
+            if (value.Attributes != null || options.ShouldWriteNullValues())
             {
                 writer.WritePropertyName("properties");
                 JsonSerializer.Serialize(writer, value.Attributes, options);
