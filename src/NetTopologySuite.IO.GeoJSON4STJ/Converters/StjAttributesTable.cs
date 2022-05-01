@@ -8,14 +8,6 @@ namespace NetTopologySuite.IO.Converters
 {
     internal sealed class StjAttributesTable : IAttributesTable
     {
-        public StjAttributesTable()
-        {
-            using (var doc = JsonDocument.Parse(""))
-            {
-                RootElement = doc.RootElement.Clone();
-            }
-        }
-
         public StjAttributesTable(JsonElement rootElement)
         {
             RootElement = rootElement.Clone();

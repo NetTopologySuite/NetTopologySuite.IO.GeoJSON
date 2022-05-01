@@ -11,8 +11,6 @@ namespace NetTopologySuite.IO.Converters
     /// </summary>
     internal class StjAttributesTableConverter : JsonConverter<IAttributesTable>
     {
-        private static readonly StjAttributesTable EmptyTable = new StjAttributesTable();
-
         private readonly string _idPropertyName;
 
         public StjAttributesTableConverter(string idPropertyName)
@@ -64,7 +62,8 @@ namespace NetTopologySuite.IO.Converters
                 switch (doc.RootElement.ValueKind)
                 {
                     case JsonValueKind.Null:
-                        return EmptyTable;
+                        // this SHOULD only be possible when invoked directly?
+                        return null;
 
                     case JsonValueKind.Object:
                         return new StjAttributesTable(doc.RootElement);

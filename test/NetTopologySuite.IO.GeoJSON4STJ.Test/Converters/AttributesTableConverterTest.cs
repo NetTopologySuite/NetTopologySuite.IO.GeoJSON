@@ -60,6 +60,19 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         }
 
         [Test]
+        [GeoJsonIssueNumber(102)]
+        public void ReadJsonWithNullTest()
+        {
+            const string json = "null";
+            var options = DefaultOptions;
+            var converter = (JsonConverter<IAttributesTable>)GeoJsonConverterFactory.CreateConverter(typeof(IAttributesTable), options);
+            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+
+            reader.Read();
+            Assert.That(converter.Read(ref reader, typeof(IAttributesTable), options), Is.Null);
+        }
+
+        [Test]
         public void ReadJsonWithInnerObjectTest()
         {
             var atS = new AttributesTable();
