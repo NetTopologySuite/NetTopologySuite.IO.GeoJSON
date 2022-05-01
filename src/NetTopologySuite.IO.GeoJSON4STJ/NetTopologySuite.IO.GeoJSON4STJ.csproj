@@ -4,9 +4,9 @@
   <!-- Set these very early in the process, before Directory.Build.props is imported. -->
   <PropertyGroup Label="Version numbers">
     <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
-    <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">2</NtsMajorVersion>
-    <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">1</NtsMinorVersion>
-    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">1</NtsPatchVersion>
+    <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">3</NtsMajorVersion>
+    <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">0</NtsMinorVersion>
+    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">0</NtsPatchVersion>
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -34,7 +34,7 @@
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="[2.0.0, 3.0.0-A)" />
     <PackageReference Include="NetTopologySuite.Features" Version="[2.1.0, 3.0.0-A)" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <PackageReference Include="System.Text.Json" Version="6.0.3" />
   </ItemGroup>
 
   <ItemGroup>

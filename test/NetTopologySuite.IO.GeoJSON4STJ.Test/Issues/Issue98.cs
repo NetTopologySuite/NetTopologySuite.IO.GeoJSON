@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using NUnit.Framework;
@@ -121,7 +122,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             var settings = new JsonSerializerOptions()
             {
                 Converters = { new GeoJsonConverterFactory(fac) },
-                IgnoreNullValues = true
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             };
             string json = JsonSerializer.Serialize(fac.CreatePoint(), settings);
             Console.WriteLine(json);
@@ -135,7 +136,6 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
             var settings = new JsonSerializerOptions()
             {
                 Converters = { new GeoJsonConverterFactory(fac) },
-                IgnoreNullValues = false
             };
             string json = JsonSerializer.Serialize(fac.CreatePoint(), settings);
             Console.WriteLine(json);

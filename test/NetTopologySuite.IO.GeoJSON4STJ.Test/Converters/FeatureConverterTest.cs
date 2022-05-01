@@ -59,7 +59,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             IFeature value = new Feature(new Point(23.1, 56.2), attributes);
             var options = DefaultOptions;
             options.WriteIndented = false;
-            options.IgnoreNullValues = true;
+            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             //GeoJsonConverterFactory.OrdinateFormatString = "0.{}";
 
             string json = ToJsonString(value, options);
@@ -80,7 +80,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             IFeature value = new Feature(new Point(23.1, 56.2), attributes);
             var options = DefaultOptions;
             options.WriteIndented = false;
-            options.IgnoreNullValues = true;
+            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 
             string json = ToJsonString(value, options);
             var deserialized = Deserialize(json, options);

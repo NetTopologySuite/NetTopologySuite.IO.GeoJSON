@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
@@ -33,33 +34,51 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Issues
 
         private static void DoBBoxTest(Geometry g, bool writeBBOX, bool ignoreNull)
         {
-            Assert.That(g, Is.Not.Null);
-            var options = new JsonSerializerOptions()
+            if (ignoreNull)
             {
-                IgnoreNullValues = ignoreNull,
-                Converters = { new GeoJsonConverterFactory(GF, writeBBOX) }
-            };
-            string geomJson = JsonSerializer.Serialize(g, options);
-            Console.WriteLine($"GEOM: {geomJson}");
-            TestJsonWithValidBBox(geomJson, g, writeBBOX, ignoreNull);
+                Run(options => options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault);
+                Run(options => options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
-            var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } });
-            string featureJson = JsonSerializer.Serialize(feature, options);
-            Console.WriteLine($"FEAT: {featureJson}");
-            TestJsonWithNullBBox(featureJson, g, writeBBOX, ignoreNull);
-            feature.BoundingBox = g.EnvelopeInternal;
-            string featureJsonBBox = JsonSerializer.Serialize(feature, options);
-            Console.WriteLine($"FEAT+BBox: {featureJsonBBox}");
-            TestJsonWithValidBBox(featureJsonBBox, g, writeBBOX, ignoreNull);
+#pragma warning disable SYSLIB0020
+                Run(options => options.IgnoreNullValues = true);
+#pragma warning restore SYSLIB0020
+            }
+            else
+            {
+                Run(options => options.DefaultIgnoreCondition = JsonIgnoreCondition.Never);
+            }
 
-            var featureColl = new FeatureCollection { feature };
-            string featureCollJson = JsonSerializer.Serialize(featureColl, options);
-            Console.WriteLine($"COLL: {featureCollJson}");
-            TestJsonWithNullBBox(featureCollJson, g, writeBBOX, ignoreNull);
-            featureColl.BoundingBox = feature.BoundingBox;
-            string featureCollJsonBBox = JsonSerializer.Serialize(featureColl, options);
-            Console.WriteLine($"COLL+BBox: {featureCollJsonBBox}");
-            TestJsonWithValidBBox(featureCollJsonBBox, g, writeBBOX, ignoreNull);
+            void Run(Action<JsonSerializerOptions> setIgnoreNull)
+            {
+                Assert.That(g, Is.Not.Null);
+                var options = new JsonSerializerOptions()
+                {
+                    Converters = { new GeoJsonConverterFactory(GF, writeBBOX) }
+                };
+                setIgnoreNull(options);
+
+                string geomJson = JsonSerializer.Serialize(g, options);
+                Console.WriteLine($"GEOM: {geomJson}");
+                TestJsonWithValidBBox(geomJson, g, writeBBOX, ignoreNull);
+
+                var feature = new Feature(g, new AttributesTable { { "id", 1 }, { "test", "2" } });
+                string featureJson = JsonSerializer.Serialize(feature, options);
+                Console.WriteLine($"FEAT: {featureJson}");
+                TestJsonWithNullBBox(featureJson, g, writeBBOX, ignoreNull);
+                feature.BoundingBox = g.EnvelopeInternal;
+                string featureJsonBBox = JsonSerializer.Serialize(feature, options);
+                Console.WriteLine($"FEAT+BBox: {featureJsonBBox}");
+                TestJsonWithValidBBox(featureJsonBBox, g, writeBBOX, ignoreNull);
+
+                var featureColl = new FeatureCollection { feature };
+                string featureCollJson = JsonSerializer.Serialize(featureColl, options);
+                Console.WriteLine($"COLL: {featureCollJson}");
+                TestJsonWithNullBBox(featureCollJson, g, writeBBOX, ignoreNull);
+                featureColl.BoundingBox = feature.BoundingBox;
+                string featureCollJsonBBox = JsonSerializer.Serialize(featureColl, options);
+                Console.WriteLine($"COLL+BBox: {featureCollJsonBBox}");
+                TestJsonWithValidBBox(featureCollJsonBBox, g, writeBBOX, ignoreNull);
+            }
         }
 
         // NOTE: feature (and feature coll) bbox is always NULL
