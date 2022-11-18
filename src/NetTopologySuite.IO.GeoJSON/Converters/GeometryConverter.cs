@@ -51,13 +51,19 @@ namespace NetTopologySuite.IO.Converters
             _dimension = dimension;
         }
 
-        internal GeometryConverter(GeometryFactory geometryFactory, int dimension, bool enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
+        internal GeometryConverter(GeometryFactory geometryFactory, int dimension, RingOrientationOptions enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
             : this(geometryFactory, dimension)
         {
-            if (enforceRingOrientation)
+            switch (enforceRingOrientation)
             {
-                _exteriorRingOrientation = OrientationIndex.Clockwise;
-                _interiorRingOrientation = OrientationIndex.CounterClockwise;
+                case RingOrientationOptions.EnforceRfc9746:
+                    _exteriorRingOrientation = OrientationIndex.CounterClockwise;
+                    _interiorRingOrientation = OrientationIndex.Clockwise;
+                    break;
+                case RingOrientationOptions.NtsGeoJsonV2:
+                    _exteriorRingOrientation = OrientationIndex.Clockwise;
+                    _interiorRingOrientation = OrientationIndex.CounterClockwise;
+                    break;
             }
             _serializerSettingsForCoordinates = settingsForCoordinates;
         }

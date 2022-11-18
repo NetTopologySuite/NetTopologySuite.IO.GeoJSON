@@ -18,8 +18,9 @@ namespace NetTopologySuite.IO
         /// </summary>
         public GeoJsonWriter()
         {
-            SerializerSettings = new JsonSerializerSettings();
-            SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            SerializerSettings = new JsonSerializerSettings {
+                NullValueHandling = NullValueHandling.Ignore
+            };
         }
 
         /// <summary>
@@ -31,8 +32,15 @@ namespace NetTopologySuite.IO
         /// Writes the specified geometry.
         /// </summary>
         /// <param name="geometry">The geometry.</param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
         /// <returns>A string representing the geometry's JSON representation</returns>
-        public string Write(Geometry geometry)
+        public string Write(Geometry geometry, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (geometry is null)
             {
@@ -42,7 +50,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(geometry, writer);
+                Write(geometry, writer, dimension, enforceRfc7946RingOrientation);
             }
 
             return sb.ToString();
@@ -53,7 +61,14 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="geometry">The geometry.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        public void Write(Geometry geometry, JsonWriter writer)
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
+        public void Write(Geometry geometry, JsonWriter writer, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (geometry is null)
             {
@@ -65,7 +80,7 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory, dimension, enforceRfc7946RingOrientation);
             g.Serialize(writer, geometry);
         }
 
@@ -73,8 +88,15 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature.
         /// </summary>
         /// <param name="feature">The feature.</param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
         /// <returns>A string representing the feature's JSON representation</returns>
-        public string Write(Feature feature)
+        public string Write(Feature feature, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (feature is null)
             {
@@ -84,7 +106,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(feature, writer);
+                Write(feature, writer, dimension, enforceRfc7946RingOrientation);
             }
 
             return sb.ToString();
@@ -95,7 +117,14 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="feature">The feature.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        public void Write(Feature feature, JsonWriter writer)
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
+        public void Write(Feature feature, JsonWriter writer, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (feature is null)
             {
@@ -108,7 +137,7 @@ namespace NetTopologySuite.IO
             }
 
             var factory = feature.Geometry?.Factory ?? GeoJsonSerializer.Wgs84Factory;
-            var g = GeoJsonSerializer.Create(SerializerSettings, factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, factory, dimension, enforceRfc7946RingOrientation);
             g.Serialize(writer, feature);
         }
 
@@ -116,9 +145,15 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature collection.
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
-        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
         /// <returns>A string representing the feature collection's JSON representation</returns>
-        public string Write(FeatureCollection featureCollection, int dimension = 2)
+        public string Write(FeatureCollection featureCollection, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (featureCollection is null)
             {
@@ -128,7 +163,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(featureCollection, writer, dimension);
+                Write(featureCollection, writer, dimension, enforceRfc7946RingOrientation);
             }
 
             return sb.ToString();
@@ -139,8 +174,14 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
-        public void Write(FeatureCollection featureCollection, JsonWriter writer, int dimension = 2)
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
+        public void Write(FeatureCollection featureCollection, JsonWriter writer, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (featureCollection is null)
             {
@@ -153,7 +194,7 @@ namespace NetTopologySuite.IO
             }
 
             var factory = SearchForFactory(featureCollection) ?? GeoJsonSerializer.Wgs84Factory;
-            var g = GeoJsonSerializer.Create(SerializerSettings, factory, dimension);
+            var g = GeoJsonSerializer.Create(SerializerSettings, factory, dimension, enforceRfc7946RingOrientation);
             g.Serialize(writer, featureCollection);
         }
 
@@ -176,8 +217,15 @@ namespace NetTopologySuite.IO
         /// Writes any specified object.
         /// </summary>
         /// <param name="value">Any object.</param>
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
         /// <returns>A string representing the object's JSON representation</returns>
-        public string Write(object value)
+        public string Write(object value, int dimension = 2, RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (value is null)
             {
@@ -187,7 +235,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(value, writer);
+                Write(value, writer, dimension, enforceRfc7946RingOrientation);
             }
 
             return sb.ToString();
@@ -198,7 +246,15 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="value">Any object.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        public void Write(object value, JsonWriter writer)
+        /// <param name="dimension">
+        /// A number of dimensions that are handled.  Must be 2 or 3.
+        /// </param>
+        /// <param name="enforceRfc7946RingOrientation">
+        /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
+        /// <see langword="false"/> to write out the coordinates in the order they are given.
+        /// </param>
+        public void Write(object value, JsonWriter writer, int dimension = 2,
+            RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (value is null)
             {
@@ -210,7 +266,7 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory, dimension, enforceRfc7946RingOrientation);
             g.Serialize(writer, value);
         }
     }

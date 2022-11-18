@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Text;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
@@ -28,15 +30,15 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
             Assert.That(() => GeoJsonSerializer.Create(factory), Throws.Nothing);
 
-            Assert.That(() => GeoJsonSerializer.Create(factory, 1), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 1), Throws.InstanceOf<ArgumentOutOfRangeException>());
             Assert.That(() => GeoJsonSerializer.Create(factory, 2), Throws.Nothing);
             Assert.That(() => GeoJsonSerializer.Create(factory, 3), Throws.Nothing);
-            Assert.That(() => GeoJsonSerializer.Create(factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(factory, 4), Throws.InstanceOf<ArgumentException>());
             Assert.That(() => GeoJsonSerializer.Create(settings, factory), Throws.Nothing);
-            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 1), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 1), Throws.InstanceOf<ArgumentException>());
             Assert.That(() => GeoJsonSerializer.Create(settings, factory, 2), Throws.Nothing);
             Assert.That(() => GeoJsonSerializer.Create(settings, factory, 3), Throws.Nothing);
-            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 4), Throws.ArgumentException);
+            Assert.That(() => GeoJsonSerializer.Create(settings, factory, 4), Throws.InstanceOf<ArgumentException>());
         }
 
         ///<summary>
@@ -101,11 +103,11 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var factory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
             var polygon = factory.CreatePolygon(new[]
                 {new Coordinate(0, 0), new Coordinate(10, 0), new Coordinate(10, 10), new Coordinate(0, 0)});
-            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings(), GeometryFactory.Default, 2, true);
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings(), GeometryFactory.Default, 2);
 
             serializer.Serialize(writer, polygon);
             writer.Flush();
-            Assert.AreEqual("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.0,10.0],[10.0,0.0],[0.0,0.0]]]}", sb.ToString());
+            Assert.AreEqual("{\"type\":\"Polygon\",\"coordinates\":[[[0.0,0.0],[10.0,0.0],[10.0,10.0],[0.0,0.0]]]}", sb.ToString());
         }
 
         ///<summary>
@@ -186,6 +188,79 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var features = serializer.Deserialize<FeatureCollection>(new JsonTextReader(textReader));
             Assert.IsNotNull(features);
             Assert.AreEqual(1, features.Count);
+        }
+
+        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        public void TestIssue52(RingOrientationOptions ero, string wkt)
+        {
+            var rdr = new WKTReader();
+            var poly1 = (Polygon)rdr.Read(wkt);
+            var js = new JsonSerializerSettings();
+            var s = GeoJsonSerializer.Create(js, poly1.Factory, 2, ero);
+            var buffer = new StringBuilder();
+            using var w = new JsonTextWriter(new StringWriter(buffer));
+            s.Serialize(w, poly1);
+            using var r = new JsonTextReader(new StringReader(buffer.ToString()));
+            var poly2 = s.Deserialize<Polygon>(r);
+
+            switch(ero) {
+                case RingOrientationOptions.DoNotModify:
+                    CheckRingOrientation(poly2.ExteriorRing, GetRingOrientation(poly1.ExteriorRing));
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), GetRingOrientation(poly1.GetInteriorRingN(i)));
+                    break;
+
+                case RingOrientationOptions.EnforceRfc9746:
+                    CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.CounterClockwise);
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.Clockwise);
+                    break;
+
+                case RingOrientationOptions.NtsGeoJsonV2:
+                    CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.Clockwise);
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.CounterClockwise);
+                    break;
+            }
+
+
+        }
+
+        private static void CheckRingOrientation(LineString ring, OrientationIndex ori)
+        {
+            Assert.That(GetRingOrientation(ring), Is.EqualTo(ori));
+        }
+
+
+        private static OrientationIndex GetRingOrientation(LineString ring)
+        {
+            if (!(ring is LinearRing lr))
+                throw new ArgumentException(nameof(ring));
+
+            return lr.IsCCW ? OrientationIndex.CounterClockwise : OrientationIndex.Clockwise;
+        }
+
+        private void TestIssue52_2()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void TestIssue52_1()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void TestIssue52_0()
+        {
+            throw new NotImplementedException();
         }
 
         public static MemoryStream Serialize(JsonSerializer serializer, object item)

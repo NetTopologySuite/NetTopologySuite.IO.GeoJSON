@@ -21,4 +21,10 @@
     <ProjectReference Include="..\..\src\NetTopologySuite.IO.GeoJSON4STJ\NetTopologySuite.IO.GeoJSON4STJ.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+    <PackageReference Update="nunit" Version="3.13.3" />
+    <PackageReference Update="NUnit3TestAdapter" Version="4.3.0" />
+  </ItemGroup>
+
 </Project>
