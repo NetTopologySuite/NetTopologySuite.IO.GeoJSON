@@ -249,12 +249,12 @@ namespace NetTopologySuite.IO
         /// <param name="dimension">
         /// A number of dimensions that are handled.  Must be 2 or 3.
         /// </param>
-        /// <param name="enforceRfc7946RingOrientation">
+        /// <param name="ringOrientation">
         /// <see langword="true"/> to ensure that rings are oriented according to the GeoJSON rule,
         /// <see langword="false"/> to write out the coordinates in the order they are given.
         /// </param>
         public void Write(object value, JsonWriter writer, int dimension = 2,
-            RingOrientationOptions enforceRfc7946RingOrientation = RingOrientationOptions.EnforceRfc9746)
+            RingOrientationOptions ringOrientation = RingOrientationOptions.EnforceRfc9746)
         {
             if (value is null)
             {
@@ -266,7 +266,7 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory, dimension, enforceRfc7946RingOrientation);
+            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory, dimension, ringOrientation);
             g.Serialize(writer, value);
         }
     }
