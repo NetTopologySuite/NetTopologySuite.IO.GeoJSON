@@ -52,11 +52,5 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.4.0" PrivateAssets="All"/>
-    <PackageReference Update="nunit" Version="3.13.3" PrivateAssets="All"/>
-    <PackageReference Update="NUnit3TestAdapter" Version="4.3.0" PrivateAssets="All"/>
-  </ItemGroup>
-
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
