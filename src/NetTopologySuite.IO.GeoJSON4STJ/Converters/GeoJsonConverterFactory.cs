@@ -35,6 +35,8 @@ namespace NetTopologySuite.IO.Converters
 
         private readonly string _idPropertyName;
 
+        private readonly RingOrientationOption _ringOrientationOption;
+
         /// <summary>
         /// Creates an instance of this class using the defaults.
         /// </summary>
@@ -68,17 +70,32 @@ namespace NetTopologySuite.IO.Converters
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
         /// given value for whether or not we should write out a "bbox" for a plain geometry,
+        /// feature and feature collection, and defaults for all other values.
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName)
+            : this(factory, writeGeometryBBox, idPropertyName, RingOrientationOption.EnforceRfc9746)
+        {
+        }
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
+        /// given value for whether or not we should write out a "bbox" for a plain geometry,
         /// feature and feature collection, and the given "magic" string to signal
         /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id".
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="writeGeometryBBox"></param>
         /// <param name="idPropertyName"></param>
-        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName)
+        /// <param name="ringOrientationOption"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName,
+            RingOrientationOption ringOrientationOption)
         {
             _factory = factory;
             _writeGeometryBBox = writeGeometryBBox;
             _idPropertyName = idPropertyName ?? DefaultIdPropertyName;
+            _ringOrientationOption = ringOrientationOption;
         }
 
         ///<inheritdoc cref="JsonConverter.CanConvert(Type)"/>
@@ -94,7 +111,7 @@ namespace NetTopologySuite.IO.Converters
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             if (GeometryTypes.Contains(typeToConvert))
-                return new StjGeometryConverter(_factory, _writeGeometryBBox);
+                return new StjGeometryConverter(_factory, _writeGeometryBBox, _ringOrientationOption);
             if (typeToConvert == typeof(FeatureCollection))
                 return new StjFeatureCollectionConverter(_writeGeometryBBox);
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))

@@ -15,30 +15,11 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         public static GeometryFactory DefaultGeometryFactory { get; } = new GeometryFactory(new PrecisionModel(), 4326);
 
-        /*
-        private static readonly ReadOnlySequence<byte> Utf8Point;
-        private static readonly ReadOnlySequence<byte> Utf8LineString;
-        private static readonly ReadOnlySequence<byte> Utf8Polygon;
-        private static readonly ReadOnlySequence<byte> Utf8MultiPoint;
-        private static readonly ReadOnlySequence<byte> Utf8MultiLineString;
-        private static readonly ReadOnlySequence<byte> Utf8MultiPolygon;
-        private static readonly ReadOnlySequence<byte> Utf8GeometryCollection;
-
-        static StjGeometryConverter()
-        {
-            var enc = System.Text.Encoding.UTF8;
-            Utf8Point = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.Point)));
-            Utf8LineString = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.LineString)));
-            Utf8Polygon = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.Polygon)));
-            Utf8MultiPoint = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.MultiPoint)));
-            Utf8MultiLineString = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.MultiLineString)));
-            Utf8MultiPolygon = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.MultiPolygon)));
-            Utf8GeometryCollection = new ReadOnlySequence<byte>(enc.GetBytes(nameof(GeoJsonObjectType.GeometryCollection)));
-        }
-        */
         private readonly GeometryFactory _geometryFactory;
 
         private readonly bool _writeGeometryBBox;
+
+        private readonly OrientationIndex _oriExterior, _oriInterior;
 
         /// <summary>
         /// Creates an instance of this class
@@ -46,9 +27,38 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="geometryFactory">The geometry factory to use.</param>
         /// <param name="writeGeometryBBox">Whether or not to write "bbox" with the geometry.</param>
         public StjGeometryConverter(GeometryFactory geometryFactory, bool writeGeometryBBox)
+            : this(geometryFactory, writeGeometryBBox, RingOrientationOption.EnforceRfc9746)
         {
             _geometryFactory = geometryFactory ?? DefaultGeometryFactory;
             _writeGeometryBBox = writeGeometryBBox;
+        }
+
+        /// <summary>
+        /// Creates an instance of this class
+        /// </summary>
+        /// <param name="geometryFactory">The geometry factory to use.</param>
+        /// <param name="writeGeometryBBox">Whether or not to write "bbox" with the geometry.</param>
+        /// <param name="ringOrientationOption">Controls ring orientation for polygons when <b>writing</b>.</param>
+        public StjGeometryConverter(GeometryFactory geometryFactory, bool writeGeometryBBox,
+            RingOrientationOption ringOrientationOption)
+        {
+            _geometryFactory = geometryFactory ?? DefaultGeometryFactory;
+            _writeGeometryBBox = writeGeometryBBox;
+            switch (ringOrientationOption)
+            {
+                case RingOrientationOption.DoNotModify:
+                    _oriExterior =
+                        _oriInterior = OrientationIndex.None;
+                    break;
+                case RingOrientationOption.EnforceRfc9746:
+                    _oriExterior = OrientationIndex.CounterClockwise;
+                    _oriInterior = OrientationIndex.Clockwise;
+                    break;
+                case RingOrientationOption.NtsGeoJsonV2:
+                    _oriExterior = OrientationIndex.Clockwise;
+                    _oriInterior = OrientationIndex.CounterClockwise;
+                    break;
+            }
         }
 
         public override Geometry Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -237,10 +247,11 @@ namespace NetTopologySuite.IO.Converters
 
         private void WritePolygon(Utf8JsonWriter writer, Polygon value, JsonSerializerOptions options)
         {
+            
             writer.WriteStartArray();
-            WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options, orientation:OrientationIndex.Clockwise);
+            WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options, orientation:_oriExterior);
             for (int i = 0; i < value.NumInteriorRings; i++)
-                WriteCoordinateSequence(writer, value.GetInteriorRingN(i).CoordinateSequence, options, orientation: OrientationIndex.CounterClockwise);
+                WriteCoordinateSequence(writer, value.GetInteriorRingN(i).CoordinateSequence, options, orientation: _oriInterior);
             writer.WriteEndArray();
         }
     }
