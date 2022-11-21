@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -543,6 +544,66 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
             sw.Flush();
 
             Assert.That(sw.ToString(), Is.EqualTo("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"bbox\":[-72.331,41.296,-72.277,41.611],\"geometry\":{\"type\":\"LineString\",\"coordinates\":[[-72.316,41.296],[-72.316,41.296],[-72.317,41.297],[-72.318,41.298],[-72.318,41.298]]},\"properties\":{\"cumulativeDistance\":42.3458,\"distance\":42.3458,\"cumulativeTime\":42.3458,\"time\":42.3458}}],\"bbox\":[-72.331,41.296,-72.277,41.611]}"));
+        }
+
+        [GeoJsonIssueNumber(52)]
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        public void TestIssue52(RingOrientationOption ero, string wkt)
+        {
+            var rdr = new WKTReader();
+            var poly1 = (Polygon)rdr.Read(wkt);
+            var js = new JsonSerializerSettings();
+            var s = GeoJsonSerializer.Create(js, poly1.Factory, 2, ero);
+            var buffer = new StringBuilder();
+            using var w = new JsonTextWriter(new StringWriter(buffer));
+            s.Serialize(w, poly1);
+            using var r = new JsonTextReader(new StringReader(buffer.ToString()));
+            var poly2 = s.Deserialize<Polygon>(r);
+
+            switch (ero)
+            {
+                case RingOrientationOption.DoNotModify:
+                    CheckRingOrientation(poly2.ExteriorRing, GetRingOrientation(poly1.ExteriorRing));
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), GetRingOrientation(poly1.GetInteriorRingN(i)));
+                    break;
+
+                case RingOrientationOption.EnforceRfc9746:
+                    CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.CounterClockwise);
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.Clockwise);
+                    break;
+
+                case RingOrientationOption.NtsGeoJsonV2:
+                    CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.Clockwise);
+                    for (int i = 0; i < poly2.NumInteriorRings; i++)
+                        CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.CounterClockwise);
+                    break;
+            }
+
+
+        }
+
+        private static void CheckRingOrientation(LineString ring, OrientationIndex ori)
+        {
+            Assert.That(GetRingOrientation(ring), Is.EqualTo(ori));
+        }
+
+
+        private static OrientationIndex GetRingOrientation(LineString ring)
+        {
+            if (!(ring is LinearRing lr))
+                throw new ArgumentException(nameof(ring));
+
+            return lr.IsCCW ? OrientationIndex.CounterClockwise : OrientationIndex.Clockwise;
         }
 
         [GeoJsonIssueNumber(59)]
