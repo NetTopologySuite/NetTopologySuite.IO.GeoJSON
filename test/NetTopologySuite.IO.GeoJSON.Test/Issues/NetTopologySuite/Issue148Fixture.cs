@@ -39,7 +39,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         {
             var sb = new StringBuilder();
             var writer = new JsonTextWriter(new StringWriter(sb));
-            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory);
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory,
+                GeoJsonSerializer.Dimension, enforceRingOrientation: RingOrientationOption.NtsGeoJsonV2);
             serializer.Serialize(writer, geometries);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -51,7 +52,8 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         {
             var sb = new StringBuilder();
             var writer = new JsonTextWriter(new StringWriter(sb));
-            var serializer = GeoJsonSerializer.Create();
+            var serializer = GeoJsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }, factory,
+                GeoJsonSerializer.Dimension, enforceRingOrientation: RingOrientationOption.NtsGeoJsonV2);
             serializer.Serialize(writer, collection);
             string actual = sb.ToString();
             Console.WriteLine(actual);
@@ -79,7 +81,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite
         [Test]
         public void howto_serialize_geometries()
         {
-            var writer = new GeoJsonWriter();
+            var writer = new GeoJsonWriter { RingOrientationOption = RingOrientationOption.NtsGeoJsonV2 };
             string actual = writer.Write(collection);
             Assert.That(actual, Is.Not.Null);
             Assert.That(actual, Is.EqualTo(serializedCollection));

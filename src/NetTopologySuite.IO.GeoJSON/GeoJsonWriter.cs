@@ -13,13 +13,18 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoJsonWriter
     {
+        private int _dimension;
+
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
         public GeoJsonWriter()
         {
-            SerializerSettings = new JsonSerializerSettings();
-            SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            SerializerSettings = new JsonSerializerSettings {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            Dimension = GeoJsonSerializer.Dimension;
+            RingOrientationOption = GeoJsonSerializer.RingOrientationOption;
         }
 
         /// <summary>
@@ -27,6 +32,27 @@ namespace NetTopologySuite.IO
         /// </summary>
         public JsonSerializerSettings SerializerSettings { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating if the polygon ring orientation must adhere to
+        /// rule defined in RFC7964 §3.1.6
+        /// </summary>
+        /// <a href="https://www.rfc-editor.org/rfc/rfc7946#section-3.1.6">Polygon</a>
+        public RingOrientationOption RingOrientationOption { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the number of dimensions the serializer should handle
+        /// </summary>
+        /// <remarks>Value must be 2 or 3.</remarks>
+        public int Dimension
+        {
+            get => _dimension;
+            set
+            {
+                if (value < Dimension || 3 < value)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Must be Dimension or 3.");
+                _dimension = value;
+            }
+        }
         /// <summary>
         /// Writes the specified geometry.
         /// </summary>
@@ -65,7 +91,7 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, geometry.Factory, Dimension, RingOrientationOption);
             g.Serialize(writer, geometry);
         }
 
@@ -108,7 +134,7 @@ namespace NetTopologySuite.IO
             }
 
             var factory = feature.Geometry?.Factory ?? GeoJsonSerializer.Wgs84Factory;
-            var g = GeoJsonSerializer.Create(SerializerSettings, factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, factory, Dimension, RingOrientationOption);
             g.Serialize(writer, feature);
         }
 
@@ -116,9 +142,8 @@ namespace NetTopologySuite.IO
         /// Writes the specified feature collection.
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
-        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         /// <returns>A string representing the feature collection's JSON representation</returns>
-        public string Write(FeatureCollection featureCollection, int dimension = 2)
+        public string Write(FeatureCollection featureCollection)
         {
             if (featureCollection is null)
             {
@@ -128,7 +153,7 @@ namespace NetTopologySuite.IO
             var sb = new StringBuilder();
             using (var writer = new JsonTextWriter(new StringWriter(sb)))
             {
-                Write(featureCollection, writer, dimension);
+                Write(featureCollection, writer);
             }
 
             return sb.ToString();
@@ -139,8 +164,7 @@ namespace NetTopologySuite.IO
         /// </summary>
         /// <param name="featureCollection">The feature collection.</param>
         /// <param name="writer">The <see cref="JsonWriter"/> to write to.</param>
-        /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
-        public void Write(FeatureCollection featureCollection, JsonWriter writer, int dimension = 2)
+        public void Write(FeatureCollection featureCollection, JsonWriter writer)
         {
             if (featureCollection is null)
             {
@@ -153,7 +177,7 @@ namespace NetTopologySuite.IO
             }
 
             var factory = SearchForFactory(featureCollection) ?? GeoJsonSerializer.Wgs84Factory;
-            var g = GeoJsonSerializer.Create(SerializerSettings, factory, dimension);
+            var g = GeoJsonSerializer.Create(SerializerSettings, factory, Dimension, RingOrientationOption);
             g.Serialize(writer, featureCollection);
         }
 
@@ -210,7 +234,7 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory);
+            var g = GeoJsonSerializer.Create(SerializerSettings, GeoJsonSerializer.Wgs84Factory, Dimension, RingOrientationOption);
             g.Serialize(writer, value);
         }
     }

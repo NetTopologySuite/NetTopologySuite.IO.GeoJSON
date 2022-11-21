@@ -23,7 +23,8 @@ namespace NetTopologySuite.IO.Converters
         /// <summary>
         /// Creates an instance of this class using <see cref="GeoJsonSerializer.Wgs84Factory"/> to create geometries.
         /// </summary>
-        public GeometryConverter() : this(GeoJsonSerializer.Wgs84Factory)
+        public GeometryConverter()
+            : this(GeoJsonSerializer.Wgs84Factory)
         {
         }
 
@@ -31,7 +32,8 @@ namespace NetTopologySuite.IO.Converters
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/> to create geometries.
         /// </summary>
         /// <param name="geometryFactory">The geometry factory.</param>
-        public GeometryConverter(GeometryFactory geometryFactory) : this(geometryFactory, 2)
+        public GeometryConverter(GeometryFactory geometryFactory)
+            : this(geometryFactory, GeoJsonSerializer.Dimension)
         {
         }
 
@@ -41,6 +43,13 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="geometryFactory">The geometry factory.</param>
         /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         public GeometryConverter(GeometryFactory geometryFactory, int dimension)
+            :this(geometryFactory, dimension, RingOrientationOption.EnforceRfc9746,
+                  new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
+        {
+        }
+
+        internal GeometryConverter(GeometryFactory geometryFactory, int dimension,
+            RingOrientationOption enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
         {
             if (dimension != 2 && dimension != 3)
             {
@@ -49,15 +58,17 @@ namespace NetTopologySuite.IO.Converters
 
             _factory = geometryFactory;
             _dimension = dimension;
-        }
 
-        internal GeometryConverter(GeometryFactory geometryFactory, int dimension, bool enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
-            : this(geometryFactory, dimension)
-        {
-            if (enforceRingOrientation)
+            switch (enforceRingOrientation)
             {
-                _exteriorRingOrientation = OrientationIndex.Clockwise;
-                _interiorRingOrientation = OrientationIndex.CounterClockwise;
+                case RingOrientationOption.EnforceRfc9746:
+                    _exteriorRingOrientation = OrientationIndex.CounterClockwise;
+                    _interiorRingOrientation = OrientationIndex.Clockwise;
+                    break;
+                case RingOrientationOption.NtsGeoJsonV2:
+                    _exteriorRingOrientation = OrientationIndex.Clockwise;
+                    _interiorRingOrientation = OrientationIndex.CounterClockwise;
+                    break;
             }
             _serializerSettingsForCoordinates = settingsForCoordinates;
         }

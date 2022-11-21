@@ -4,9 +4,9 @@
   <!-- Set these very early in the process, before Directory.Build.props is imported. -->
   <PropertyGroup Label="Version numbers">
     <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
-    <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">2</NtsMajorVersion>
+    <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">3</NtsMajorVersion>
     <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">0</NtsMinorVersion>
-    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">4</NtsPatchVersion>
+    <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">0</NtsPatchVersion>
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
