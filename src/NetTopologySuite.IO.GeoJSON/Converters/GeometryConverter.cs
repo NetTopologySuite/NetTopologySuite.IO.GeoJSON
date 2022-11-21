@@ -43,13 +43,13 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="geometryFactory">The geometry factory.</param>
         /// <param name="dimension">The number of dimensions to handle.  Must be 2 or 3.</param>
         public GeometryConverter(GeometryFactory geometryFactory, int dimension)
-            :this(geometryFactory, dimension, RingOrientationOptions.EnforceRfc9746,
+            :this(geometryFactory, dimension, RingOrientationOption.EnforceRfc9746,
                   new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
         {
         }
 
         internal GeometryConverter(GeometryFactory geometryFactory, int dimension,
-            RingOrientationOptions enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
+            RingOrientationOption enforceRingOrientation, JsonSerializerSettings settingsForCoordinates)
         {
             if (dimension != 2 && dimension != 3)
             {
@@ -61,11 +61,11 @@ namespace NetTopologySuite.IO.Converters
 
             switch (enforceRingOrientation)
             {
-                case RingOrientationOptions.EnforceRfc9746:
+                case RingOrientationOption.EnforceRfc9746:
                     _exteriorRingOrientation = OrientationIndex.CounterClockwise;
                     _interiorRingOrientation = OrientationIndex.Clockwise;
                     break;
-                case RingOrientationOptions.NtsGeoJsonV2:
+                case RingOrientationOption.NtsGeoJsonV2:
                     _exteriorRingOrientation = OrientationIndex.Clockwise;
                     _interiorRingOrientation = OrientationIndex.CounterClockwise;
                     break;

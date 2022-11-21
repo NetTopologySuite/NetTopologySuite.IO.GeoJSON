@@ -3,7 +3,7 @@
     /// <summary>
     /// An enumeration of possible ring orientation modes that can be applied when writing GeoJSON
     /// </summary>
-    public enum RingOrientationOptions
+    public enum RingOrientationOption
     {
         /// <summary>
         /// Polygon ring orientation is not altered

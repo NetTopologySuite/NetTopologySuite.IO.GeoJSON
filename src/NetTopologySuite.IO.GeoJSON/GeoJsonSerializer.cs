@@ -22,9 +22,9 @@ namespace NetTopologySuite.IO
         /// Gets or sets a value indicating if the polygon ring orientation must adhere to
         /// rule defined in RFC7964 §3.1.6
         /// </summary>
-        /// <remarks>The default is <see cref="RingOrientationOptions.Rfc9746"/></remarks>
+        /// <remarks>The default is <see cref="RingOrientationOption.EnforceRfc9746"/></remarks>
         /// <a href="https://www.rfc-editor.org/rfc/rfc7946#section-3.1.6">Polygon</a>
-        public static RingOrientationOptions RingOrientationOptions { get; set; } = RingOrientationOptions.EnforceRfc9746;
+        public static RingOrientationOption RingOrientationOption { get; set; } = RingOrientationOption.EnforceRfc9746;
 
         /// <summary>
         /// Gets or sets a value indicating the number of dimensions the serializer should handle
@@ -69,7 +69,7 @@ namespace NetTopologySuite.IO
             var s = JsonSerializer.CreateDefault();
             s.NullValueHandling = NullValueHandling.Ignore;
 
-            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOptions, null);
+            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOption, null);
             return s;
         }
 
@@ -85,7 +85,7 @@ namespace NetTopologySuite.IO
         public new static JsonSerializer CreateDefault(JsonSerializerSettings settings)
         {
             var s = Create(settings);
-            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOptions, null);
+            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOption, null);
 
             return s;
         }
@@ -102,7 +102,7 @@ namespace NetTopologySuite.IO
         public static JsonSerializer CreateDefault(JsonSerializerSettings settings, JsonSerializerSettings coordinateSerializerSettings)
         {
             var s = Create(settings);
-            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOptions, coordinateSerializerSettings);
+            AddGeoJsonConverters(s, Wgs84Factory, Dimension, RingOrientationOption, coordinateSerializerSettings);
 
             return s;
         }
@@ -174,7 +174,7 @@ namespace NetTopologySuite.IO
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension)
         {
-            return Create(settings, factory, dimension, RingOrientationOptions);
+            return Create(settings, factory, dimension, RingOrientationOption);
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace NetTopologySuite.IO
         /// A <see cref="JsonSerializer"/>.
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension,
-            RingOrientationOptions enforceRingOrientation)
+            RingOrientationOption enforceRingOrientation)
         {
             return Create(settings, factory, dimension, enforceRingOrientation, null);
         }
@@ -229,7 +229,7 @@ namespace NetTopologySuite.IO
         /// A <see cref="JsonSerializer"/>.
         /// </returns>
         public static JsonSerializer Create(JsonSerializerSettings settings, GeometryFactory factory, int dimension,
-            RingOrientationOptions enforceRingOrientation, JsonSerializerSettings coordinateSerializerSettings)
+            RingOrientationOption enforceRingOrientation, JsonSerializerSettings coordinateSerializerSettings)
         {
             if (dimension != 2 && dimension != 3)
             {
@@ -242,7 +242,7 @@ namespace NetTopologySuite.IO
         }
 
         private static void AddGeoJsonConverters(JsonSerializer s, GeometryFactory factory, int dimension,
-            RingOrientationOptions enforceRingOrientation, JsonSerializerSettings coordinateSerializerSettings)
+            RingOrientationOption enforceRingOrientation, JsonSerializerSettings coordinateSerializerSettings)
         {
 #if DEBUG
             if (factory.SRID != 4326)

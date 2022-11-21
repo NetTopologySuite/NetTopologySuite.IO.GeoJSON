@@ -190,16 +190,16 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(1, features.Count);
         }
 
-        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
-        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
-        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
-        [TestCase(RingOrientationOptions.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
-        public void TestIssue52(RingOrientationOptions ero, string wkt)
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.DoNotModify, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.EnforceRfc9746, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 10 0, 0 10, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 8 1, 1 8, 1 1))")]
+        [TestCase(RingOrientationOption.NtsGeoJsonV2, "POLYGON((0 0, 0 10, 10 0, 0 0), (1 1, 1 8, 8 1, 1 1))")]
+        public void TestIssue52(RingOrientationOption ero, string wkt)
         {
             var rdr = new WKTReader();
             var poly1 = (Polygon)rdr.Read(wkt);
@@ -212,19 +212,19 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var poly2 = s.Deserialize<Polygon>(r);
 
             switch(ero) {
-                case RingOrientationOptions.DoNotModify:
+                case RingOrientationOption.DoNotModify:
                     CheckRingOrientation(poly2.ExteriorRing, GetRingOrientation(poly1.ExteriorRing));
                     for (int i = 0; i < poly2.NumInteriorRings; i++)
                         CheckRingOrientation(poly2.GetInteriorRingN(i), GetRingOrientation(poly1.GetInteriorRingN(i)));
                     break;
 
-                case RingOrientationOptions.EnforceRfc9746:
+                case RingOrientationOption.EnforceRfc9746:
                     CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.CounterClockwise);
                     for (int i = 0; i < poly2.NumInteriorRings; i++)
                         CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.Clockwise);
                     break;
 
-                case RingOrientationOptions.NtsGeoJsonV2:
+                case RingOrientationOption.NtsGeoJsonV2:
                     CheckRingOrientation(poly2.ExteriorRing, OrientationIndex.Clockwise);
                     for (int i = 0; i < poly2.NumInteriorRings; i++)
                         CheckRingOrientation(poly2.GetInteriorRingN(i), OrientationIndex.CounterClockwise);

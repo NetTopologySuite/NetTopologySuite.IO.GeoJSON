@@ -17,7 +17,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
         public void TestSpecialCoordinatesArrayFormatting()
         {
             //RunTest(GeoJsonSerializer.CreateDefault);
-            RunTest((outer, inner) => GeoJsonSerializer.Create(outer, GeometryFactory.Default, 2, RingOrientationOptions.NtsGeoJsonV2, inner));
+            RunTest((outer, inner) => GeoJsonSerializer.Create(outer, GeometryFactory.Default, 2, RingOrientationOption.NtsGeoJsonV2, inner));
         }
 
         private static void RunTest(Func<JsonSerializerSettings, JsonSerializerSettings, JsonSerializer> createSerializer)
