@@ -12,7 +12,7 @@
         /// <summary>
         /// Polygon ring orientation is ensured to be how it is definded in RFC7946 §3.1.6:
         /// </summary>
-        /// /// <remarks>
+        /// <remarks>
         /// This means:
         /// <list type="bullet">
         /// <item><term>Exterior</term><description>Counter-Clockwise</description></item>
@@ -21,9 +21,9 @@
         /// </remarks>
         EnforceRfc9746,
         /// <summary>
-        /// Polygon ring orientation is altered according to how it was done in NetTopologySuite.IO.GeoJSON v2 due to misinterpreting right-hand-rule:
+        /// Polygon ring orientation is altered according to how it was done in NetTopologySuite.IO.GeoJSON4STJ v2 due to misinterpreting right-hand-rule:
         /// </summary>
-        /// /// <remarks>
+        /// <remarks>
         /// This means:
         /// <list type="bullet">
         /// <item><term>Exterior</term><description>Clockwise</description></item>
