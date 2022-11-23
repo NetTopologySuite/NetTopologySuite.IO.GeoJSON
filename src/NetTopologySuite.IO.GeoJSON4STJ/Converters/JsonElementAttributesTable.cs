@@ -17,9 +17,7 @@ namespace NetTopologySuite.Features
     /// <see cref="object"/>, for the purposes of <see cref="IAttributesTable.GetType"/> only.
     /// <para/>
     /// JSON <see cref="JsonValueKind.Object"/>-valued properties are wrapped in their own
-    /// <see cref="JsonElementAttributesTable"/> objects that are <b>completely detached</b> from
-    /// our own <see cref="RootElement"/> to avoid unnecessarily extending the lifetime of the root
-    /// element 
+    /// <see cref="JsonElementAttributesTable"/> objects.
     /// </remarks>
     public sealed class JsonElementAttributesTable : IAttributesTable
     {
