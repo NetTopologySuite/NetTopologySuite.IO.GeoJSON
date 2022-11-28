@@ -5,7 +5,7 @@
   <PropertyGroup Label="Version numbers">
     <!-- MAJOR, MINOR, and PATCH are defined according to SemVer 2.0.0. -->
     <NtsMajorVersion Condition=" '$(NtsMajorVersion)' == '' ">3</NtsMajorVersion>
-    <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">0</NtsMinorVersion>
+    <NtsMinorVersion Condition=" '$(NtsMinorVersion)' == '' ">1</NtsMinorVersion>
     <NtsPatchVersion Condition=" '$(NtsPatchVersion)' == '' ">0</NtsPatchVersion>
   </PropertyGroup>
 
