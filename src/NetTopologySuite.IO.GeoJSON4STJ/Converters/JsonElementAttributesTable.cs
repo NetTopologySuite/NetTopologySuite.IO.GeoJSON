@@ -102,6 +102,8 @@ namespace NetTopologySuite.Features
 
             set
             {
+                // TODO: get some workable serialization options in here, possibly the same ones we
+                // used when we deserialized this table in the first place?
                 WritableObject[attributeName] = value is null
                     ? null
                     : JsonSerializer.SerializeToNode(value, value.GetType());
@@ -185,7 +187,11 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public void Add(string attributeName, object value)
         {
-            WritableObject.Add(attributeName, value is null ? null : JsonSerializer.SerializeToNode(value, value.GetType()));
+            // TODO: get some workable serialization options in here, possibly the same ones we
+            // used when we deserialized this table in the first place?
+            WritableObject.Add(attributeName, value is null
+                ? null
+                : JsonSerializer.SerializeToNode(value, value.GetType()));
         }
 
         /// <inheritdoc />

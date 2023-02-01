@@ -113,8 +113,9 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(gasStation.Owner.Age, Is.EqualTo(41));
         }
 
-        [Test]
-        public void TryGetJsonObjectPropertyValueShouldActAppropriatelyWhenPropertyIsPresent()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TryGetJsonObjectPropertyValueShouldActAppropriatelyWhenPropertyIsPresent(bool afterModification)
         {
             const string Json = @"{
     ""type"": ""Feature"",
@@ -165,6 +166,42 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(feature.Geometry, Is.InstanceOf<Point>());
             Assert.That(feature.Geometry.Coordinate, Is.EqualTo(new Coordinate(-74.0445, 40.6892)));
             Assert.That(feature.Attributes, Is.Not.Null);
+
+            // as of 3.x, we now expose the table so that the caller can get the JsonElement for
+            // their own inspection and manipulation.
+            Assert.That(feature.Attributes, Is.InstanceOf<JsonElementAttributesTable>());
+            Assert.That(() => ((JsonElementAttributesTable)feature.Attributes).RootElement, Throws.Nothing);
+
+            if (afterModification)
+            {
+                feature.Attributes.Add("hello", "world!");
+                Assert.That(() => ((JsonElementAttributesTable)feature.Attributes).RootElement, Throws.InvalidOperationException);
+                Assert.That(feature.Attributes.Exists("hello"));
+                Assert.That(feature.Attributes["hello"], Is.EqualTo("world!"));
+
+                // TODO: this really needs to be supported.  It looks completely foolish if we can't
+                // write out GeoJSON objects nested within a Feature's properties.
+                if (false)
+                {
+                    GasStation gasStation = new GasStation
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Somebody",
+                        Location = GeometryFactory.Default.CreatePoint(new Coordinate(1, 3)),
+                        Owner = new Person
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Jason",
+                            Age = 72,
+                        },
+                    };
+
+                    feature.Attributes["hello"] = gasStation;
+                    Assert.That(feature.Attributes["hello"], Is.EqualTo(gasStation));
+                }
+                feature.Attributes.DeleteAttribute("hello");
+                Assert.That(!feature.Attributes.Exists("hello"));
+            }
 
             Assert.Multiple(() =>
             {
@@ -289,10 +326,6 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out DateTime _), () => "DateTime from null");
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out DateTimeOffset _), () => "DateTimeOffset from null");
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out Guid _), () => "Guid from null");
-
-                // as of 3.x, we now expose the table so that the caller can get the JsonElement for
-                // their own inspection and manipulation.
-                Assert.That(feature.Attributes, Is.InstanceOf<JsonElementAttributesTable>());
             });
 
             // complex type, with two properties: one of a user-defined complex type, and one that
