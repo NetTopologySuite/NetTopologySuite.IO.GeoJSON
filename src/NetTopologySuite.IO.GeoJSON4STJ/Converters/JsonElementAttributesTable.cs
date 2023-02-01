@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace NetTopologySuite.Features
 {
@@ -21,6 +22,10 @@ namespace NetTopologySuite.Features
     /// </remarks>
     public sealed class JsonElementAttributesTable : IAttributesTable
     {
+        private readonly JsonElement _rootElement;
+
+        private JsonObject _writableObject;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonElementAttributesTable"/> class.
         /// </summary>
@@ -47,23 +52,49 @@ namespace NetTopologySuite.Features
                 throw new ArgumentException($"{nameof(rootElement.ValueKind)} must be {nameof(JsonValueKind.Object)}, not {rootElement.ValueKind}", nameof(rootElement));
             }
 
-            RootElement = rootElement.Clone();
+            _rootElement = rootElement.Clone();
+        }
+
+        private JsonElementAttributesTable(JsonObject writableObject)
+        {
+            _writableObject = writableObject;
         }
 
         /// <summary>
         /// Gets the <see cref="JsonElement"/> object that this instance adapts to fit the
         /// <see cref="IAttributesTable"/> interface.
+        /// <para/>
+        /// Any modifications that are made through the <see cref="IAttributesTable"/> methods will
+        /// <b>NOT</b> be observed through this object.
         /// </summary>
         /// <remarks>
         /// <see cref="JsonElement.ValueKind"/> will be <see cref="JsonValueKind.Object"/>.
         /// </remarks>
-        public JsonElement RootElement { get; }
+        public JsonElement RootElement
+        {
+            get
+            {
+                if (!(_writableObject is null))
+                {
+                    throw new InvalidOperationException("The RootElement property is invalid after the table has been modified.");
+                }
+
+                return _rootElement;
+            }
+        }
+
+        private JsonObject WritableObject => _writableObject ?? (_writableObject = JsonObject.Create(_rootElement));
 
         /// <inheritdoc />
         public object this[string attributeName]
         {
             get
             {
+                if (_writableObject is JsonObject writable)
+                {
+                    return GetItemFromWritable(writable, attributeName);
+                }
+
                 return RootElement.TryGetProperty(attributeName, out var prop)
                     ? ConvertValue(prop)
                     : throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
@@ -71,22 +102,39 @@ namespace NetTopologySuite.Features
 
             set
             {
-                ThrowNotSupportedExceptionForReadOnlyTable();
+                WritableObject[attributeName] = value is null
+                    ? null
+                    : JsonSerializer.SerializeToNode(value, value.GetType());
             }
         }
 
         /// <inheritdoc />
-        public int Count => RootElement.EnumerateObject().Count();
+        public int Count
+        {
+            get
+            {
+                return _writableObject is JsonObject writable
+                    ? writable.Count
+                    : RootElement.EnumerateObject().Count();
+            }
+        }
 
         /// <inheritdoc />
         public bool Exists(string attributeName)
         {
-            return RootElement.TryGetProperty(attributeName, out _);
+            return _writableObject is JsonObject writable
+                ? writable.ContainsKey(attributeName)
+                : _rootElement.TryGetProperty(attributeName, out _);
         }
 
         /// <inheritdoc />
         public object GetOptionalValue(string attributeName)
         {
+            if (_writableObject is JsonObject writable)
+            {
+                return GetOptionalValueFromWritable(writable, attributeName);
+            }
+
             return RootElement.TryGetProperty(attributeName, out var prop)
                 ? ConvertValue(prop)
                 : null;
@@ -95,6 +143,11 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public Type GetType(string attributeName)
         {
+            if (_writableObject is JsonObject writable)
+            {
+                return GetTypeFromWritable(writable, attributeName);
+            }
+
             if (!RootElement.TryGetProperty(attributeName, out var prop))
             {
                 throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
@@ -106,6 +159,11 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public string[] GetNames()
         {
+            if (_writableObject is JsonObject writable)
+            {
+                return GetNamesFromWritable(writable);
+            }
+
             return RootElement.EnumerateObject()
                               .Select(prop => prop.Name)
                               .ToArray();
@@ -114,9 +172,29 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public object[] GetValues()
         {
+            if (_writableObject is JsonObject writable)
+            {
+                return GetValuesFromWritable(writable);
+            }
+
             return RootElement.EnumerateObject()
                               .Select(prop => GetOptionalValue(prop.Name))
                               .ToArray();
+        }
+
+        /// <inheritdoc />
+        public void Add(string attributeName, object value)
+        {
+            WritableObject.Add(attributeName, value is null ? null : JsonSerializer.SerializeToNode(value, value.GetType()));
+        }
+
+        /// <inheritdoc />
+        public void DeleteAttribute(string attributeName)
+        {
+            if (!WritableObject.Remove(attributeName))
+            {
+                throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
+            }
         }
 
         /// <summary>
@@ -145,7 +223,9 @@ namespace NetTopologySuite.Features
         /// </returns>
         public bool TryDeserializeJsonObject<T>(JsonSerializerOptions options, out T deserialized)
         {
-            return TryDeserializeElement(this.RootElement, options, out deserialized);
+            return _writableObject is JsonObject writable
+                ? TryDeserializeJsonObjectFromWritable(writable, options, out deserialized)
+                : TryDeserializeElement(_rootElement, options, out deserialized);
         }
 
         /// <summary>
@@ -177,28 +257,18 @@ namespace NetTopologySuite.Features
         /// </returns>
         public bool TryGetJsonObjectPropertyValue<T>(string propertyName, JsonSerializerOptions options, out T deserialized)
         {
-            if (!this.RootElement.TryGetProperty(propertyName, out var elementToTransform))
+            if (_writableObject is JsonObject writable)
+            {
+                return TryGetJsonObjectPropertyValueFromWritable(writable, propertyName, options, out deserialized);
+            }
+
+            if (!_rootElement.TryGetProperty(propertyName, out var elementToTransform))
             {
                 deserialized = default;
                 return false;
             }
 
             return TryDeserializeElement(elementToTransform, options, out deserialized);
-        }
-
-        void IAttributesTable.Add(string attributeName, object value)
-        {
-            ThrowNotSupportedExceptionForReadOnlyTable();
-        }
-
-        void IAttributesTable.DeleteAttribute(string attributeName)
-        {
-            ThrowNotSupportedExceptionForReadOnlyTable();
-        }
-
-        private static void ThrowNotSupportedExceptionForReadOnlyTable()
-        {
-            throw new NotSupportedException("Modifying this attribute table is not supported.");
         }
 
         private static bool TryDeserializeElement<T>(JsonElement elementToTransform, JsonSerializerOptions options, out T deserialized)
@@ -615,6 +685,106 @@ namespace NetTopologySuite.Features
 
                 default:
                     throw new NotSupportedException("Unrecognized JsonValueKind: " + prop.ValueKind);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static object GetItemFromWritable(JsonObject writable, string attributeName)
+        {
+            return writable.TryGetPropertyValue(attributeName, out var prop)
+                ? ConvertValue(prop)
+                : throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static string[] GetNamesFromWritable(JsonObject writable)
+        {
+            return writable.Select(kvp => kvp.Key).ToArray();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static object[] GetValuesFromWritable(JsonObject writable)
+        {
+            return writable.Select(kvp => ConvertValue(kvp.Value)).ToArray();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static object GetOptionalValueFromWritable(JsonObject writable, string attributeName)
+        {
+            return writable.TryGetPropertyValue(attributeName, out JsonNode prop)
+                ? ConvertValue(prop)
+                : null;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Type GetTypeFromWritable(JsonObject writable, string attributeName)
+        {
+            if (!writable.TryGetPropertyValue(attributeName, out var prop))
+            {
+                throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
+            }
+
+            return ConvertValue(prop)?.GetType() ?? typeof(object);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static bool TryGetJsonObjectPropertyValueFromWritable<T>(JsonObject writable, string propertyName, JsonSerializerOptions options, out T deserialized)
+        {
+            if (!writable.TryGetPropertyValue(propertyName, out var elementToTransform))
+            {
+                deserialized = default;
+                return false;
+            }
+
+            return TryDeserializeNode(elementToTransform, options, out deserialized);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static bool TryDeserializeJsonObjectFromWritable<T>(JsonObject writable, JsonSerializerOptions options, out T deserialized)
+        {
+            return TryDeserializeNode(writable, options, out deserialized);
+        }
+
+        private static object ConvertValue(JsonNode prop)
+        {
+            switch (prop)
+            {
+                case JsonObject jObject:
+                    return new JsonElementAttributesTable(jObject);
+
+                case JsonArray jArray:
+                    return jArray.Select(ConvertValue)
+                                 .ToArray();
+
+                case JsonValue jValue:
+                    if (jValue.TryGetValue(out JsonElement element))
+                    {
+                        return ConvertValue(element);
+                    }
+
+                    if (!jValue.TryGetValue(out object obj))
+                    {
+                        System.Diagnostics.Debug.Fail("Documented to 'always succeed and return the underlying value as object'.");
+                    }
+
+                    return obj;
+
+                default:
+                    throw new NotSupportedException("Unrecognized JsonNode subclass: " + prop?.GetType());
+            }
+        }
+
+        private static bool TryDeserializeNode<T>(JsonNode writable, JsonSerializerOptions options, out T deserialized)
+        {
+            try
+            {
+                deserialized = JsonSerializer.Deserialize<T>(writable, options);
+                return true;
+            }
+            catch (JsonException)
+            {
+                deserialized = default;
+                return false;
             }
         }
     }
