@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using NetTopologySuite.Features;
@@ -13,9 +14,12 @@ namespace NetTopologySuite.IO.Converters
     {
         private readonly string _idPropertyName;
 
-        public StjAttributesTableConverter(string idPropertyName)
+        private readonly bool _allowModifyingAttributesTables;
+
+        public StjAttributesTableConverter(string idPropertyName, bool allowModifyingAttributesTables)
         {
             _idPropertyName = idPropertyName;
+            _allowModifyingAttributesTables = allowModifyingAttributesTables;
         }
 
         /// <summary>
@@ -64,6 +68,9 @@ namespace NetTopologySuite.IO.Converters
                     case JsonValueKind.Null:
                         // this SHOULD only be possible when invoked directly?
                         return null;
+
+                    case JsonValueKind.Object when _allowModifyingAttributesTables:
+                        return new JsonObjectAttributesTable(JsonObject.Create(doc.RootElement.Clone()), options);
 
                     case JsonValueKind.Object:
                         return new JsonElementAttributesTable(doc.RootElement);

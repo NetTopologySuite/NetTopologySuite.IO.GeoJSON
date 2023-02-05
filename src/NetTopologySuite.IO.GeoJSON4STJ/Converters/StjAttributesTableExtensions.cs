@@ -46,13 +46,18 @@ namespace NetTopologySuite.IO.Converters
         [Obsolete("Cast to JsonElementAttributesTable and call the instance method instead.")]
         public static bool TryDeserializeJsonObject<T>(this IAttributesTable table, JsonSerializerOptions options, out T deserialized)
         {
-            if (!(table is JsonElementAttributesTable ourAttributesTable))
+            if (table is JsonElementAttributesTable elementAttributesTable)
             {
-                deserialized = default;
-                return false;
+                return elementAttributesTable.TryDeserializeJsonObject(options, out deserialized);
             }
 
-            return ourAttributesTable.TryDeserializeJsonObject(options, out deserialized);
+            if (table is JsonObjectAttributesTable objectAttributesTable)
+            {
+                return objectAttributesTable.TryDeserializeJsonObject(options, out deserialized);
+            }
+
+            deserialized = default;
+            return false;
         }
 
         /// <summary>
@@ -90,16 +95,21 @@ namespace NetTopologySuite.IO.Converters
         /// <returns>
         /// A value indicating whether or not the conversion succeeded.
         /// </returns>
-        [Obsolete("Cast to JsonElementAttributesTable and call the instance method instead.")]
+        [Obsolete("Cast to JsonElementAttributesTable or JsonObjectAttributesTable as appropriate and call the instance method instead.")]
         public static bool TryGetJsonObjectPropertyValue<T>(this IAttributesTable table, string propertyName, JsonSerializerOptions options, out T deserialized)
         {
-            if (!(table is JsonElementAttributesTable ourAttributesTable))
+            if (table is JsonElementAttributesTable elementAttributesTable)
             {
-                deserialized = default;
-                return false;
+                return elementAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
             }
 
-            return ourAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
+            if (table is JsonObjectAttributesTable objectAttributesTable)
+            {
+                return objectAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
+            }
+
+            deserialized = default;
+            return false;
         }
     }
 }
