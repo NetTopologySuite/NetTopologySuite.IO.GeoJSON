@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -69,18 +71,15 @@ namespace NetTopologySuite.IO.Converters
 
                 case JsonArray arr:
                     return new JsonArrayInAttributesTableWrapper(arr, serializerOptions);
-            }
 
-            // else it's a JsonValue... not sure of a cleaner way to handle this than to just reuse
-            // the code we have that deals with JsonElement.
-            var jsonElement = JsonSerializer.Deserialize<JsonElement>(node, serializerOptions);
-            object result = JsonElementAttributesTable.ConvertValue(jsonElement);
-            if (result is JsonElementAttributesTable elementTable)
-            {
-                result = new JsonObjectAttributesTable(JsonObject.Create(elementTable.RootElement.Clone(), node.Options), serializerOptions);
-            }
+                case JsonValue val:
+                    var jsonElement = JsonSerializer.Deserialize<JsonElement>(val, serializerOptions);
+                    Debug.Assert(jsonElement.ValueKind != JsonValueKind.Object && jsonElement.ValueKind != JsonValueKind.Array, "When this was developed, it wasn't possible to use JsonValue to model an Object or an Array.  This code will need to be updated.");
+                    return JsonElementAttributesTable.ConvertValue(jsonElement);
 
-            return result;
+                default:
+                    throw new NotImplementedException($"This library was developed when the only public subclasses of JsonNode were JsonObject, JsonArray, and JsonValue.  Please open an issue to add support for {node.GetType().FullName}.");
+            }
         }
 
         internal static JsonNode ObjectToJsonNode(object obj, JsonSerializerOptions serializerOptions)
