@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -63,10 +64,7 @@ namespace NetTopologySuite.Features
 
         public IEnumerator<object> GetEnumerator()
         {
-            foreach (JsonNode node in _array)
-            {
-                yield return Utility.ObjectFromJsonNode(node, _serializerOptions);
-            }
+            return _array.Select(node => Utility.ObjectFromJsonNode(node, _serializerOptions)).GetEnumerator();
         }
 
         public int IndexOf(object item)
