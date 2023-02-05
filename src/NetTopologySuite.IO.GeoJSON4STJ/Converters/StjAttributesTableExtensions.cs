@@ -7,25 +7,20 @@ namespace NetTopologySuite.IO.Converters
 {
     /// <summary>
     /// Adapter for code that targets older versions of this library that did not expose the
-    /// <see cref="JsonElementAttributesTable"/> class publicly.
+    /// <see cref="IPartiallyDeserializedAttributesTable"/> interface publicly.
     /// </summary>
     public static class StjAttributesTableExtensions
     {
         /// <summary>
-        /// Attempts to convert this table to a strongly-typed value, if the table is an instance of
-        /// the <see cref="JsonElementAttributesTable"/> class.
-        /// <para>
-        /// This is essentially just a way of calling
-        /// <see cref="JsonSerializer.Deserialize{TValue}(ref Utf8JsonReader, JsonSerializerOptions)"/>
-        /// on a Feature's <c>"properties"</c> object.
-        /// </para>
+        /// Attempts to convert this table to a strongly-typed value, if the table implements
+        /// the <see cref="IPartiallyDeserializedAttributesTable"/> interface.
         /// <para>
         /// <c>System.Text.Json</c> intentionally omits the functionality that would let us do this
         /// automatically, for security reasons, so this is the workaround for now.
         /// </para>
         /// <para>
-        /// This will always return <see langword="false"/> for tables that are not instances of the
-        /// <see cref="JsonElementAttributesTable"/> class.
+        /// This will always return <see langword="false"/> for tables that do not implement the
+        /// <see cref="IPartiallyDeserializedAttributesTable"/> interface.
         /// </para>
         /// </summary>
         /// <typeparam name="T">
@@ -43,38 +38,28 @@ namespace NetTopologySuite.IO.Converters
         /// <returns>
         /// A value indicating whether or not the conversion succeeded.
         /// </returns>
-        [Obsolete("Cast to JsonElementAttributesTable and call the instance method instead.")]
+        [Obsolete("Cast to IPartiallyDeserializedAttributesTable and call the instance method instead.")]
         public static bool TryDeserializeJsonObject<T>(this IAttributesTable table, JsonSerializerOptions options, out T deserialized)
         {
-            if (table is JsonElementAttributesTable elementAttributesTable)
+            if (!(table is IPartiallyDeserializedAttributesTable ourAttributesTable))
             {
-                return elementAttributesTable.TryDeserializeJsonObject(options, out deserialized);
+                deserialized = default;
+                return false;
             }
 
-            if (table is JsonObjectAttributesTable objectAttributesTable)
-            {
-                return objectAttributesTable.TryDeserializeJsonObject(options, out deserialized);
-            }
-
-            deserialized = default;
-            return false;
+            return ourAttributesTable.TryDeserializeJsonObject(options, out deserialized);
         }
 
         /// <summary>
         /// Attempts to get a strongly-typed value for that corresponds to a property of this table,
-        /// if the table is an instance of the <see cref="JsonElementAttributesTable"/> class.
-        /// <para>
-        /// This is essentially just a way of calling
-        /// <see cref="JsonSerializer.Deserialize{TValue}(ref Utf8JsonReader, JsonSerializerOptions)"/>
-        /// on one of the individual items from a Feature's <c>"properties"</c>.
-        /// </para>
+        /// if the table implements the <see cref="IPartiallyDeserializedAttributesTable"/> interface.
         /// <para>
         /// <c>System.Text.Json</c> intentionally omits the functionality that would let us do this
         /// automatically, for security reasons, so this is the workaround for now.
         /// </para>
         /// <para>
-        /// This will always return <see langword="false"/> for tables that are not instances of the
-        /// <see cref="JsonElementAttributesTable"/> class.
+        /// This will always return <see langword="false"/> for tables that do not implement the
+        /// <see cref="IPartiallyDeserializedAttributesTable"/> interface.
         /// </para>
         /// </summary>
         /// <typeparam name="T">
@@ -95,21 +80,16 @@ namespace NetTopologySuite.IO.Converters
         /// <returns>
         /// A value indicating whether or not the conversion succeeded.
         /// </returns>
-        [Obsolete("Cast to JsonElementAttributesTable or JsonObjectAttributesTable as appropriate and call the instance method instead.")]
+        [Obsolete("Cast to IPartiallyDeserializedAttributesTable and call the instance method instead.")]
         public static bool TryGetJsonObjectPropertyValue<T>(this IAttributesTable table, string propertyName, JsonSerializerOptions options, out T deserialized)
         {
-            if (table is JsonElementAttributesTable elementAttributesTable)
+            if (!(table is IPartiallyDeserializedAttributesTable ourAttributesTable))
             {
-                return elementAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
+                deserialized = default;
+                return false;
             }
 
-            if (table is JsonObjectAttributesTable objectAttributesTable)
-            {
-                return objectAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
-            }
-
-            deserialized = default;
-            return false;
+            return ourAttributesTable.TryGetJsonObjectPropertyValue(propertyName, options, out deserialized);
         }
     }
 }

@@ -293,14 +293,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
                 // as of 3.x, we now expose the table so that the caller can get the underlying STJ
                 // DOM object for their own inspection and manipulation.
-                if (allowModification)
-                {
-                    Assert.That(feature.Attributes, Is.InstanceOf<JsonObjectAttributesTable>());
-                }
-                else
-                {
-                    Assert.That(feature.Attributes, Is.InstanceOf<JsonElementAttributesTable>());
-                }
+                Assert.That(feature.Attributes, Is.InstanceOf<IPartiallyDeserializedAttributesTable>());
             });
 
             // complex type, with two properties: one of a user-defined complex type, and one that
