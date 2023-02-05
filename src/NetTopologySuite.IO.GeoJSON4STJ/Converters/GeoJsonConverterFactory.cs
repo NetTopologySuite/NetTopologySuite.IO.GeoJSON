@@ -133,13 +133,10 @@ namespace NetTopologySuite.IO.Converters
         {
             if (GeometryTypes.Contains(typeToConvert))
                 return new StjGeometryConverter(_factory, _writeGeometryBBox, _ringOrientationOption);
-
             if (typeToConvert == typeof(FeatureCollection))
                 return new StjFeatureCollectionConverter(_writeGeometryBBox);
-
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))
                 return new StjFeatureConverter(_idPropertyName, _writeGeometryBBox);
-
             if (typeof(IAttributesTable).IsAssignableFrom(typeToConvert))
                 return new StjAttributesTableConverter(_idPropertyName, _allowModifyingAttributesTables);
 
