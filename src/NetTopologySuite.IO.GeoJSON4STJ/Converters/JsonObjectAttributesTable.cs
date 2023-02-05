@@ -123,7 +123,7 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public bool TryGetJsonObjectPropertyValue<T>(string propertyName, JsonSerializerOptions options, out T deserialized)
         {
-            if (!this.RootObject.TryGetPropertyValue(propertyName, out var elementToTransform))
+            if (!RootObject.TryGetPropertyValue(propertyName, out var elementToTransform))
             {
                 deserialized = default;
                 return false;
