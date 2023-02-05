@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using NetTopologySuite.Features;
 using NetTopologySuite.IO.Properties;
 
 namespace NetTopologySuite.IO.Converters
@@ -53,6 +55,37 @@ namespace NetTopologySuite.IO.Converters
             {
                 ThrowForUnexpectedToken(requiredCurrentTokenType, ref reader);
             }
+        }
+
+        internal static object ObjectFromJsonNode(JsonNode node, JsonSerializerOptions serializerOptions)
+        {
+            switch (node)
+            {
+                case null:
+                    return null;
+
+                case JsonObject obj:
+                    return new JsonObjectAttributesTable(obj, serializerOptions);
+
+                case JsonArray arr:
+                    return new JsonArrayInAttributesTableWrapper(arr, serializerOptions);
+            }
+
+            // else it's a JsonValue... not sure of a cleaner way to handle this than to just reuse
+            // the code we have that deals with JsonElement.
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(node, serializerOptions);
+            object result = JsonElementAttributesTable.ConvertValue(jsonElement);
+            if (result is JsonElementAttributesTable elementTable)
+            {
+                result = new JsonObjectAttributesTable(JsonObject.Create(elementTable.RootElement.Clone(), node.Options), serializerOptions);
+            }
+
+            return result;
+        }
+
+        internal static JsonNode ObjectToJsonNode(object obj, JsonSerializerOptions serializerOptions)
+        {
+            return JsonSerializer.SerializeToNode(obj, obj?.GetType() ?? typeof(object), serializerOptions);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

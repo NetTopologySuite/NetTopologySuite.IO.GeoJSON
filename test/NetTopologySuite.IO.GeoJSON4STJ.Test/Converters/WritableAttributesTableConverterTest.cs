@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Nodes;
 
 using NetTopologySuite.Features;
@@ -72,12 +73,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(nearestGasStationLocationAttribute.TryDeserializeJsonObject(null, out Point nearestGasStationLocationPt));
             Assert.That(nearestGasStationLocationPt.Coordinate, Is.EqualTo(new Coordinate(1, 3)));
 
-            nearestGasStationLocationAttribute["coordinates"] = new JsonArray(JsonValue.Create(6.0), JsonValue.Create(8.0));
+            Assert.That(nearestGasStationLocationAttribute["coordinates"], Is.InstanceOf<IList<object>>());
+            IList<object> nearestGasStationLocationCoordinatesArray = (IList<object>)nearestGasStationLocationAttribute["coordinates"];
+            nearestGasStationLocationCoordinatesArray[0] = 6.0;
+            nearestGasStationLocationCoordinatesArray[1] = 8.0;
             Assert.That(((JsonObjectAttributesTable)nearestGasStationAttribute["Location"]).TryDeserializeJsonObject(null, out nearestGasStationLocationPt));
             Assert.That(nearestGasStationLocationPt.Coordinate, Is.EqualTo(new Coordinate(6, 8)));
 
-            // overwriting the coordinates at the deepest attributes table that we create in our
-            // tree should write through ALL the way to the topmost root object.
+            // overwriting the coordinates at the deepest nested container that we create should
+            // write through ALL the way to the topmost root object.
             Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["nearestGasStation"])["Location"])["coordinates"])[0])).GetValue<double>(), Is.EqualTo(6.0));
             Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["nearestGasStation"])["Location"])["coordinates"])[1])).GetValue<double>(), Is.EqualTo(8.0));
 

@@ -3,11 +3,17 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using NetTopologySuite.IO.Converters;
+
 namespace NetTopologySuite.Features
 {
     /// <summary>
     /// An implementation of <see cref="IAttributesTable"/> backed by a <see cref="JsonObject"/>.
     /// </summary>
+    /// <remarks>
+    /// Modifications to this table will be observed on <see cref="RootObject"/>, and vice-versa,
+    /// including modifications to nested objects and arrays.
+    /// </remarks>
     public sealed class JsonObjectAttributesTable : IAttributesTable
     {
         // request to future maintainers: please do not make this public until our System.Text.Json
@@ -37,13 +43,13 @@ namespace NetTopologySuite.Features
             get
             {
                 return RootObject.TryGetPropertyValue(attributeName, out var prop)
-                    ? ConvertFromJsonNode(prop)
+                    ? Utility.ObjectFromJsonNode(prop, SerializerOptions)
                     : throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
             }
 
             set
             {
-                RootObject[attributeName] = ConvertToJsonNode(value);
+                RootObject[attributeName] = Utility.ObjectToJsonNode(value, SerializerOptions);
             }
         }
 
@@ -53,7 +59,7 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public void Add(string attributeName, object value)
         {
-            RootObject.Add(attributeName, ConvertToJsonNode(value));
+            RootObject.Add(attributeName, Utility.ObjectToJsonNode(value, SerializerOptions));
         }
 
         /// <inheritdoc />
@@ -72,7 +78,7 @@ namespace NetTopologySuite.Features
         public object GetOptionalValue(string attributeName)
         {
             return RootObject.TryGetPropertyValue(attributeName, out var prop)
-                ? ConvertFromJsonNode(prop)
+                ? Utility.ObjectFromJsonNode(prop, SerializerOptions)
                 : null;
         }
 
@@ -84,7 +90,7 @@ namespace NetTopologySuite.Features
                 throw new ArgumentException($"Attribute {attributeName} does not exist!", nameof(attributeName));
             }
 
-            return ConvertFromJsonNode(prop)?.GetType() ?? typeof(object);
+            return Utility.ObjectFromJsonNode(prop, SerializerOptions)?.GetType() ?? typeof(object);
         }
 
         /// <inheritdoc />
@@ -96,7 +102,7 @@ namespace NetTopologySuite.Features
         /// <inheritdoc />
         public object[] GetValues()
         {
-            return RootObject.Select(kvp => ConvertFromJsonNode(kvp.Value)).ToArray();
+            return RootObject.Select(kvp => Utility.ObjectFromJsonNode(kvp.Value, SerializerOptions)).ToArray();
         }
 
         /// <summary>
@@ -184,37 +190,6 @@ namespace NetTopologySuite.Features
                 deserialized = default;
                 return false;
             }
-        }
-
-        private object ConvertFromJsonNode(JsonNode prop)
-        {
-            switch (prop)
-            {
-                case null:
-                    return null;
-
-                case JsonObject propObj:
-                    return new JsonObjectAttributesTable(propObj, SerializerOptions);
-
-                case JsonArray propArr:
-                    return propArr.Select(ConvertFromJsonNode).ToArray();
-            }
-
-            // else it's a JsonValue... not sure of a cleaner way to handle this than to just reuse
-            // the code we have that deals with JsonElement.
-            JsonElement propAsElement = JsonSerializer.Deserialize<JsonElement>(prop, SerializerOptions);
-            object result = JsonElementAttributesTable.ConvertValue(propAsElement);
-            if (result is JsonElementAttributesTable elementTable)
-            {
-                result = new JsonObjectAttributesTable(JsonObject.Create(elementTable.RootElement.Clone(), RootObject.Options), SerializerOptions);
-            }
-
-            return result;
-        }
-
-        private JsonNode ConvertToJsonNode(object obj)
-        {
-            return JsonSerializer.SerializeToNode(obj, obj?.GetType() ?? typeof(object), SerializerOptions);
         }
     }
 }
