@@ -9,8 +9,16 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public abstract class SandDTest<T>
     {
+        protected SandDTest() : this(null)
+        {
+        }
+
+        protected SandDTest(GeoJsonConverterFactory geoJsonConverterFactory)
+        {
+            GeoJsonConverterFactory = geoJsonConverterFactory ?? new GeoJsonConverterFactory();
+        }
+
         protected GeoJsonConverterFactory GeoJsonConverterFactory { get; }
-            = new GeoJsonConverterFactory();
 
         protected JsonSerializerOptions DefaultOptions
         {

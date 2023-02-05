@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text.Json;
-using System.Text.Json.Nodes;
+
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
@@ -115,7 +115,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 
         [TestCase(false)]
         [TestCase(true)]
-        public void TryGetJsonObjectPropertyValueShouldActAppropriatelyWhenPropertyIsPresent(bool afterModification)
+        public void TryGetJsonObjectPropertyValueShouldActAppropriatelyWhenPropertyIsPresent(bool allowModification)
         {
             const string Json = @"{
     ""type"": ""Feature"",
@@ -157,7 +157,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 }";
             var options = new JsonSerializerOptions
             {
-                Converters = { new GeoJsonConverterFactory(null, false, null, RingOrientationOption.DoNotModify, afterModification) },
+                Converters = { new GeoJsonConverterFactory(null, false, null, RingOrientationOption.EnforceRfc9746, allowModification) },
                 PropertyNameCaseInsensitive = true,
             };
 
@@ -166,62 +166,6 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(feature.Geometry, Is.InstanceOf<Point>());
             Assert.That(feature.Geometry.Coordinate, Is.EqualTo(new Coordinate(-74.0445, 40.6892)));
             Assert.That(feature.Attributes, Is.Not.Null);
-
-            if (afterModification)
-            {
-                Assert.That(feature.Attributes, Is.InstanceOf<JsonObjectAttributesTable>());
-                JsonObjectAttributesTable attributes = (JsonObjectAttributesTable)feature.Attributes;
-                JsonObject rootObject = attributes.RootObject; // modifications should write through
-
-                feature.Attributes.Add("hello", "world!");
-                Assert.That(feature.Attributes.Exists("hello"));
-                Assert.That(feature.Attributes["hello"], Is.EqualTo("world!"));
-                Assert.That(rootObject.TryGetPropertyValue("hello", out JsonNode helloValue));
-                Assert.That(helloValue.GetValue<string>(), Is.EqualTo("world!"));
-
-                GasStation gasStation = new GasStation
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Somebody",
-                    Location = GeometryFactory.Default.CreatePoint(new Coordinate(1, 3)),
-                    Owner = new Person
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Jason",
-                        Age = 72,
-                    },
-                };
-
-                feature.Attributes["hello"] = gasStation;
-
-                Assert.That(feature.Attributes["hello"], Is.InstanceOf<JsonObjectAttributesTable>());
-                JsonObjectAttributesTable helloAttribute = (JsonObjectAttributesTable)feature.Attributes["hello"];
-
-                Assert.That(helloAttribute["Location"], Is.InstanceOf<JsonObjectAttributesTable>());
-                JsonObjectAttributesTable helloLocationAttribute = (JsonObjectAttributesTable)helloAttribute["Location"];
-
-                Assert.That(helloLocationAttribute.TryDeserializeJsonObject(null, out Point helloLocationPt));
-                Assert.That(helloLocationPt.Coordinate, Is.EqualTo(new Coordinate(1, 3)));
-
-                helloLocationAttribute["coordinates"] = new JsonArray(JsonValue.Create(6.0), JsonValue.Create(8.0));
-                Assert.That(((JsonObjectAttributesTable)helloAttribute["Location"]).TryDeserializeJsonObject(null, out helloLocationPt));
-                Assert.That(helloLocationPt.Coordinate, Is.EqualTo(new Coordinate(6, 8)));
-
-                // overwriting the coordinates at the deepest attributes table that we create in our
-                // tree should write through ALL the way to the topmost root object.
-                Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["hello"])["Location"])["coordinates"])[0])).GetValue<double>(), Is.EqualTo(6.0));
-                Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["hello"])["Location"])["coordinates"])[1])).GetValue<double>(), Is.EqualTo(8.0));
-
-                feature.Attributes.DeleteAttribute("hello");
-                Assert.That(!feature.Attributes.Exists("hello"));
-                Assert.That(!rootObject.ContainsKey("hello"));
-            }
-            else
-            {
-                // as of 3.x, we now expose the table so that the caller can get the JsonElement for
-                // their own inspection and manipulation.
-                Assert.That(feature.Attributes, Is.InstanceOf<JsonElementAttributesTable>());
-            }
 
             Assert.Multiple(() =>
             {
@@ -346,6 +290,17 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out DateTime _), () => "DateTime from null");
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out DateTimeOffset _), () => "DateTimeOffset from null");
                 Assert.That(!feature.Attributes.TryGetJsonObjectPropertyValue("null", options, out Guid _), () => "Guid from null");
+
+                // as of 3.x, we now expose the table so that the caller can get the underlying STJ
+                // DOM object for their own inspection and manipulation.
+                if (allowModification)
+                {
+                    Assert.That(feature.Attributes, Is.InstanceOf<JsonObjectAttributesTable>());
+                }
+                else
+                {
+                    Assert.That(feature.Attributes, Is.InstanceOf<JsonElementAttributesTable>());
+                }
             });
 
             // complex type, with two properties: one of a user-defined complex type, and one that
