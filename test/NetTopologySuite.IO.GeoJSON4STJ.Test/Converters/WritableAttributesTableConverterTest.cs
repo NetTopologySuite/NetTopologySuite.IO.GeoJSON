@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
+
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
+
 using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
@@ -58,13 +54,14 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(rootObject.TryGetPropertyValue("nearestGasStation", out JsonNode nearestGasStationValue));
             Assert.That(nearestGasStationValue.GetValue<string>(), Is.EqualTo("there are none"));
 
-            // but override it right away with a juicy object instead of a string.
-            feature.Attributes["nearestGasStation"] = new GasStation
+            // ...but override it right away with a complex object.
+            GasStation nearestGasStation = new GasStation
             {
                 Id = Guid.NewGuid(),
                 Name = "Somebody",
                 Location = GeometryFactory.Default.CreatePoint(new Coordinate(1, 3)),
             };
+            feature.Attributes["nearestGasStation"] = nearestGasStation;
 
             Assert.That(feature.Attributes["nearestGasStation"], Is.InstanceOf<JsonObjectAttributesTable>());
             JsonObjectAttributesTable nearestGasStationAttribute = (JsonObjectAttributesTable)feature.Attributes["nearestGasStation"];
@@ -83,6 +80,18 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             // tree should write through ALL the way to the topmost root object.
             Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["nearestGasStation"])["Location"])["coordinates"])[0])).GetValue<double>(), Is.EqualTo(6.0));
             Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["nearestGasStation"])["Location"])["coordinates"])[1])).GetValue<double>(), Is.EqualTo(8.0));
+
+            // all these modifications should be visible after a round-trip through JSON
+            IFeature roundTripFeature = RoundTrip(feature, DefaultOptions);
+            JsonObjectAttributesTable roundTripAttributes = (JsonObjectAttributesTable)roundTripFeature.Attributes;
+            Assert.Multiple(() =>
+            {
+                Assert.That(!roundTripAttributes.Exists("hello"));
+                Assert.That(roundTripAttributes.TryGetJsonObjectPropertyValue("nearestGasStation", null, out GasStation roundTripNearestGasStation));
+                Assert.That(roundTripNearestGasStation.Id, Is.EqualTo(nearestGasStation.Id));
+                Assert.That(roundTripNearestGasStation.Name, Is.EqualTo(nearestGasStation.Name));
+                Assert.That(roundTripNearestGasStation.Location.Coordinate, Is.EqualTo(new Coordinate(6, 8)));
+            });
         }
 
         private sealed class GasStation

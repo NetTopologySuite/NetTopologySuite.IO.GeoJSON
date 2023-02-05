@@ -70,5 +70,14 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         {
             return Deserialize(json, options);
         }
+        protected T RoundTrip(T value, JsonSerializerOptions options = null)
+        {
+            using (var ms = new MemoryStream())
+            {
+                JsonSerializer.Serialize(ms, value, options);
+                ms.Position = 0;
+                return JsonSerializer.Deserialize<T>(ms, options);
+            }
+        }
     }
 }
