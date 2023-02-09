@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
+using NetTopologySuite.IO.Converters;
 using NUnit.Framework;
 
 namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
@@ -14,9 +15,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
     ///    This is a test class for AttributesTableConverterTest and is intended
     ///    to contain all AttributesTableConverterTest Unit Tests
     ///</summary>
-    [TestFixture]
+    [TestFixture(false)]
+    [TestFixture(true)]
     public class AttributesTableConverterTest : SandDTest<IAttributesTable>
     {
+        public AttributesTableConverterTest(bool allowModifyingAttributesTables)
+            : base(new GeoJsonConverterFactory(null, false, null, RingOrientationOption.EnforceRfc9746, allowModifyingAttributesTables))
+        {
+        }
+
         ///<summary>
         ///A test for CanConvert
         ///</summary>

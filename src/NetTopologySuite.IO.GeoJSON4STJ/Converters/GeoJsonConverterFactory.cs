@@ -37,6 +37,8 @@ namespace NetTopologySuite.IO.Converters
 
         private readonly RingOrientationOption _ringOrientationOption;
 
+        private readonly bool _allowModifyingAttributesTables;
+
         /// <summary>
         /// Creates an instance of this class using the defaults.
         /// </summary>
@@ -70,7 +72,9 @@ namespace NetTopologySuite.IO.Converters
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
         /// given value for whether or not we should write out a "bbox" for a plain geometry,
-        /// feature and feature collection, and defaults for all other values.
+        /// feature and feature collection, the given "magic" string to signal when an
+        /// <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", and
+        /// defaults for all other values.
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="writeGeometryBBox"></param>
@@ -79,11 +83,14 @@ namespace NetTopologySuite.IO.Converters
             : this(factory, writeGeometryBBox, idPropertyName, RingOrientationOption.EnforceRfc9746)
         {
         }
+
         /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
         /// given value for whether or not we should write out a "bbox" for a plain geometry,
-        /// feature and feature collection, and the given "magic" string to signal
-        /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id".
+        /// feature and feature collection, the given "magic" string to signal when an
+        /// <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", the
+        /// <see cref="RingOrientationOption"/> value that indicates how rings should be oriented
+        /// when writing them out, and defaults for all other values.
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="writeGeometryBBox"></param>
@@ -91,11 +98,32 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="ringOrientationOption"></param>
         public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName,
             RingOrientationOption ringOrientationOption)
+            : this(factory, writeGeometryBBox, idPropertyName, ringOrientationOption, false)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
+        /// given value for whether or not we should write out a "bbox" for a plain geometry,
+        /// feature and feature collection, the given "magic" string to signal when an
+        /// <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", the
+        /// <see cref="RingOrientationOption"/> value that indicates how rings should be oriented
+        /// when writing them out, and a flag indicating whether or not to use a less efficient
+        /// implementation of <see cref="IAttributesTable"/> that can be modified in-place.
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        /// <param name="ringOrientationOption"></param>
+        /// <param name="allowModifyingAttributesTables"></param>
+        public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName,
+            RingOrientationOption ringOrientationOption, bool allowModifyingAttributesTables)
         {
             _factory = factory;
             _writeGeometryBBox = writeGeometryBBox;
             _idPropertyName = idPropertyName ?? DefaultIdPropertyName;
             _ringOrientationOption = ringOrientationOption;
+            _allowModifyingAttributesTables = allowModifyingAttributesTables;
         }
 
         ///<inheritdoc cref="JsonConverter.CanConvert(Type)"/>
@@ -117,7 +145,7 @@ namespace NetTopologySuite.IO.Converters
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))
                 return new StjFeatureConverter(_idPropertyName, _writeGeometryBBox);
             if (typeof(IAttributesTable).IsAssignableFrom(typeToConvert))
-                return new StjAttributesTableConverter(_idPropertyName);
+                return new StjAttributesTableConverter(_idPropertyName, _allowModifyingAttributesTables);
 
             throw new ArgumentException(nameof(typeToConvert));
         }

@@ -9,8 +9,16 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
 {
     public abstract class SandDTest<T>
     {
+        protected SandDTest() : this(null)
+        {
+        }
+
+        protected SandDTest(GeoJsonConverterFactory geoJsonConverterFactory)
+        {
+            GeoJsonConverterFactory = geoJsonConverterFactory ?? new GeoJsonConverterFactory();
+        }
+
         protected GeoJsonConverterFactory GeoJsonConverterFactory { get; }
-            = new GeoJsonConverterFactory();
 
         protected JsonSerializerOptions DefaultOptions
         {
@@ -61,6 +69,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         protected T FromJsonString(string json, JsonSerializerOptions options = null)
         {
             return Deserialize(json, options);
+        }
+        protected T RoundTrip(T value, JsonSerializerOptions options = null)
+        {
+            using (var ms = new MemoryStream())
+            {
+                JsonSerializer.Serialize(ms, value, options);
+                ms.Position = 0;
+                return JsonSerializer.Deserialize<T>(ms, options);
+            }
         }
     }
 }

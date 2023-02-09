@@ -19,7 +19,7 @@ namespace NetTopologySuite.Features
     /// JSON <see cref="JsonValueKind.Object"/>-valued properties are wrapped in their own
     /// <see cref="JsonElementAttributesTable"/> objects.
     /// </remarks>
-    public sealed class JsonElementAttributesTable : IAttributesTable
+    public sealed class JsonElementAttributesTable : IPartiallyDeserializedAttributesTable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonElementAttributesTable"/> class.
@@ -119,62 +119,13 @@ namespace NetTopologySuite.Features
                               .ToArray();
         }
 
-        /// <summary>
-        /// Attempts to convert this table to a strongly-typed value.
-        /// <para>
-        /// This is essentially just a way of calling
-        /// <see cref="JsonSerializer.Deserialize{TValue}(ref Utf8JsonReader, JsonSerializerOptions)"/>
-        /// on a Feature's <c>"properties"</c> object.
-        /// </para>
-        /// <para>
-        /// <c>System.Text.Json</c> intentionally omits the functionality that would let us do this
-        /// automatically, for security reasons, so this is the workaround for now.
-        /// </para>.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The type of object to convert to.
-        /// </typeparam>.
-        /// <param name="options">
-        /// The <see cref="JsonSerializerOptions"/> to use for the deserialization.
-        /// </param>
-        /// <param name="deserialized">
-        /// Receives the converted value on success, or the default value on failure.
-        /// </param>
-        /// <returns>
-        /// A value indicating whether or not the conversion succeeded.
-        /// </returns>
+        /// <inheritdoc />
         public bool TryDeserializeJsonObject<T>(JsonSerializerOptions options, out T deserialized)
         {
             return TryDeserializeElement(this.RootElement, options, out deserialized);
         }
 
-        /// <summary>
-        /// Attempts to get a strongly-typed value for that corresponds to a property of this table.
-        /// <para>
-        /// This is essentially just a way of calling
-        /// <see cref="JsonSerializer.Deserialize{TValue}(ref Utf8JsonReader, JsonSerializerOptions)"/>
-        /// on one of the individual items from a Feature's <c>"properties"</c>.
-        /// </para>
-        /// <para>
-        /// <c>System.Text.Json</c> intentionally omits the functionality that would let us do this
-        /// automatically, for security reasons, so this is the workaround for now.
-        /// </para>
-        /// </summary>
-        /// <typeparam name="T">
-        /// The type of object to retrieve.
-        /// </typeparam>
-        /// <param name="propertyName">
-        /// The name of the property in this table to get as the specified type.
-        /// </param>
-        /// <param name="options">
-        /// The <see cref="JsonSerializerOptions"/> to use for the deserialization.
-        /// </param>
-        /// <param name="deserialized">
-        /// Receives the converted value on success, or the default value on failure.
-        /// </param>
-        /// <returns>
-        /// A value indicating whether or not the conversion succeeded.
-        /// </returns>
+        /// <inheritdoc />
         public bool TryGetJsonObjectPropertyValue<T>(string propertyName, JsonSerializerOptions options, out T deserialized)
         {
             if (!this.RootElement.TryGetProperty(propertyName, out var elementToTransform))
@@ -582,7 +533,7 @@ namespace NetTopologySuite.Features
             }
         }
 
-        private static object ConvertValue(JsonElement prop)
+        internal static object ConvertValue(JsonElement prop)
         {
             switch (prop.ValueKind)
             {
