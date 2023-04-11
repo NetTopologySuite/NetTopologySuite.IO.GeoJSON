@@ -41,7 +41,7 @@ namespace NetTopologySuite.Features
 
         public bool Contains(object item)
         {
-            foreach (JsonNode node in _array)
+            foreach (var node in _array)
             {
                 object obj = Utility.ObjectFromJsonNode(node, _serializerOptions);
                 if (Equals(item, obj))
@@ -55,7 +55,7 @@ namespace NetTopologySuite.Features
 
         public void CopyTo(object[] array, int arrayIndex)
         {
-            foreach (JsonNode node in _array)
+            foreach (var node in _array)
             {
                 array[arrayIndex++] = Utility.ObjectFromJsonNode(node, _serializerOptions);
             }

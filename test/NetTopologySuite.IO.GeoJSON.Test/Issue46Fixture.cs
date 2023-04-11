@@ -59,7 +59,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             var list = (List<object>)attributes["c"];
             Assert.AreEqual(2, list.Count);
             Assert.IsTrue(list.All(i => i is string));
-            Assert.IsTrue(list.All(i => !String.IsNullOrEmpty(i as string)));
+            Assert.IsTrue(list.All(i => !string.IsNullOrEmpty(i as string)));
         }
     }
 }
