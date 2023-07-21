@@ -151,13 +151,16 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             }
         }
 
-        public static void CheckEquality(IFeature s, IFeature d, string idPropertyName = null)
+        public static void CheckEquality(IFeature s, IFeature d, string idPropertyName = null, RingOrientationOption roo = RingOrientationOption.EnforceRfc9746)
         {
             idPropertyName ??= GeoJsonConverterFactory.DefaultIdPropertyName;
 
             Assert.That(d, Is.Not.Null);
 
-            Assert.That(s.Geometry.EqualsExact(d.Geometry));
+            if (roo == RingOrientationOption.DoNotModify)
+                Assert.That(s.Geometry.EqualsExact(d.Geometry));
+            else
+                Assert.That(s.Geometry.EqualsTopologically(d.Geometry));
 
             AttributesTableConverterTest.TestEquality(s.Attributes, d.Attributes, idPropertyName);
 

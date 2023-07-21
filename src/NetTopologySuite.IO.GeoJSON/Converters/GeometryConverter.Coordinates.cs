@@ -64,7 +64,7 @@ namespace NetTopologySuite.IO.Converters
                 if (orientation == OrientationIndex.Clockwise && Orientation.IsCCW(sequence) ||
                     orientation == OrientationIndex.CounterClockwise && !Orientation.IsCCW(sequence))
                 {
-                    CoordinateSequences.Reverse(sequence);
+                    sequence = sequence.Reversed();
                 }
                 writer.WriteStartArray();
             }

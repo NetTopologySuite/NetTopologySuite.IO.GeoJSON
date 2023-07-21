@@ -9,10 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Issues\NetTopologySuite.IO.GeoJSON\GitHubIssue114.json" />
     <None Remove="Issues\StackOverflow\Q69013006.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Issues\NetTopologySuite.IO.GeoJSON\GitHubIssue114.json" />
     <EmbeddedResource Include="Issues\StackOverflow\Q69013006.json" />
   </ItemGroup>
 
