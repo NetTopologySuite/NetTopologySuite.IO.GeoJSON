@@ -51,18 +51,12 @@ namespace NetTopologySuite.IO.Converters
                 StjGeometryConverter.WriteBBox(writer, value.BoundingBox, options);
 
             // geometry
-            if (value.Geometry != null || options.ShouldWriteNullValues())
-            {
-                writer.WritePropertyName("geometry");
-                JsonSerializer.Serialize(writer, value.Geometry, options);
-            }
+            writer.WritePropertyName("geometry");
+            JsonSerializer.Serialize(writer, value.Geometry, options);
 
             // properties
-            if (value.Attributes != null || options.ShouldWriteNullValues())
-            {
-                writer.WritePropertyName("properties");
-                JsonSerializer.Serialize(writer, value.Attributes, options);
-            }
+            writer.WritePropertyName("properties");
+            JsonSerializer.Serialize(writer, value.Attributes, options);
 
             writer.WriteEndObject();
         }

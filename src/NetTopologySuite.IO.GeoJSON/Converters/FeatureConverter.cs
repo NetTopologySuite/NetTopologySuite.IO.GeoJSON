@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -63,18 +62,12 @@ namespace NetTopologySuite.IO.Converters
             }
 
             // geometry
-            if (serializer.NullValueHandling == NullValueHandling.Include || !(feature.Geometry is null))
-            {
-                writer.WritePropertyName("geometry");
-                serializer.Serialize(writer, feature.Geometry, typeof(Geometry));
-            }
+            writer.WritePropertyName("geometry");
+            serializer.Serialize(writer, feature.Geometry, typeof(Geometry));
 
             // properties
-            if (serializer.NullValueHandling == NullValueHandling.Include || !(feature.Attributes is null))
-            {
-                writer.WritePropertyName("properties");
-                serializer.Serialize(writer, feature.Attributes, typeof(IAttributesTable));
-            }
+            writer.WritePropertyName("properties");
+            serializer.Serialize(writer, feature.Attributes, typeof(IAttributesTable));
 
             writer.WriteEndObject();
         }

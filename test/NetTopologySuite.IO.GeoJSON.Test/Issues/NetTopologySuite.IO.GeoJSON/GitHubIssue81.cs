@@ -41,13 +41,15 @@ namespace NetTopologySuite.IO.GeoJSON.Test.Issues.NetTopologySuite.IO.GeoJSON
       ""type"": ""Feature"",
       ""geometry"": {
         ""type"": ""MultiPolygon"",""coordinates"":[[[[0.0,0.0],[0.0,1.0],[1.0,1.0],[1.0,0.0],[0.0,0.0]]]]
-      }
+      },
+      ""properties"": null
     },
     {
       ""type"": ""Feature"",
       ""geometry"": {
         ""type"": ""MultiPolygon"",""coordinates"":[[[[2.0,2.0],[2.0,4.0],[4.0,4.0],[4.0,2.0],[2.0,2.0]]]]
-      }
+      },
+      ""properties"": null
     }
   ]
 }";
