@@ -1,4 +1,5 @@
 ﻿using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
@@ -12,6 +13,18 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
     public class GeoJsonFixture : AbstractIOFixture
     {
+        public static Geometry InExpectedOrientation(Geometry gIn)
+        {
+            return GeoJsonSerializer.RingOrientationOption == RingOrientationOption.DoNotModify
+                ? gIn
+                : new GeometryEditor().Edit(gIn, new EnsureOrientationOperation(GeoJsonSerializer.RingOrientationOption));
+        }
+
+        protected override void CheckEquality(Geometry gIn, Geometry gParsed, WKTWriter writer)
+        {
+            base.CheckEquality(InExpectedOrientation(gIn), gParsed, writer);
+        }
+
         protected override Geometry Read(byte[] b)
         {
             string json;
@@ -61,6 +74,44 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         public override void TestGeometryCollection()
         {
             base.TestGeometryCollection();
+        }
+
+        private sealed class EnsureOrientationOperation : GeometryEditor.IGeometryEditorOperation
+        {
+            private readonly RingOrientationOption _orientation;
+
+            public EnsureOrientationOperation(RingOrientationOption orientation)
+            {
+                _orientation = orientation;
+            }
+
+            public Geometry Edit(Geometry geometry, GeometryFactory factory)
+            {
+                if (geometry is not Polygon polygon || polygon.IsEmpty)
+                {
+                    return geometry;
+                }
+
+                var rings = new LinearRing[polygon.NumInteriorRings + 1];
+                rings[0] = polygon.Shell;
+                polygon.Holes.CopyTo(rings.AsSpan(1));
+                bool[] shouldBeCCW = new bool[rings.Length];
+                shouldBeCCW.AsSpan().Fill(_orientation == RingOrientationOption.NtsGeoJsonV2);
+                shouldBeCCW[0] = !shouldBeCCW[0];
+                bool anyModified = false;
+                for (int i = 0; i < rings.Length; i++)
+                {
+                    if (rings[i].IsCCW != shouldBeCCW[i])
+                    {
+                        rings[i] = factory.CreateLinearRing(rings[i].CoordinateSequence.Reversed());
+                        anyModified = true;
+                    }
+                }
+
+                return anyModified
+                    ? factory.CreatePolygon(rings[0], rings[1..])
+                    : geometry;
+            }
         }
     }
 }

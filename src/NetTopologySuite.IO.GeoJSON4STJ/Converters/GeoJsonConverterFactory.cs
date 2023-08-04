@@ -10,6 +10,10 @@ namespace NetTopologySuite.IO.Converters
     /// <inheritdoc cref="JsonConverterFactory"/>>
     public class GeoJsonConverterFactory : JsonConverterFactory
     {
+        private const bool DefaultWriteGeometryBBox = false;
+        private const RingOrientationOption DefaultRingOrientationOption = RingOrientationOption.EnforceRfc9746;
+        private const bool DefaultAllowModifyingAttributesTables = false;
+
         /// <summary>
         /// The default name that, when seen on <see cref="IAttributesTable"/> or the "properties"
         /// object of a feature, indicates that it should "really" be the feature's "id", not stored
@@ -43,7 +47,7 @@ namespace NetTopologySuite.IO.Converters
         /// Creates an instance of this class using the defaults.
         /// </summary>
         public GeoJsonConverterFactory()
-            : this(NtsGeometryServices.Instance.CreateGeometryFactory(4326), false)
+            : this(DefaultWriteGeometryBBox)
         {
         }
 
@@ -53,7 +57,17 @@ namespace NetTopologySuite.IO.Converters
         /// </summary>
         /// <param name="factory"></param>
         public GeoJsonConverterFactory(GeometryFactory factory)
-            : this(factory, false)
+            : this(factory, DefaultWriteGeometryBBox)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the given value for whether or not we should write out
+        /// a "bbox" for a plain geometry, feature and feature collection, and defaults for all other values.
+        /// </summary>
+        /// <param name="writeGeometryBBox"></param>
+        public GeoJsonConverterFactory(bool writeGeometryBBox)
+            : this(writeGeometryBBox, DefaultIdPropertyName)
         {
         }
 
@@ -70,6 +84,19 @@ namespace NetTopologySuite.IO.Converters
         }
 
         /// <summary>
+        /// Creates an instance of this class using the given value for whether or not we should write out
+        /// a "bbox" for a plain geometry, feature and feature collection, the given "magic" string to signal
+        /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", and
+        /// defaults for all other values.
+        /// </summary>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        public GeoJsonConverterFactory(bool writeGeometryBBox, string idPropertyName)
+            : this(writeGeometryBBox, idPropertyName, DefaultRingOrientationOption)
+        {
+        }
+
+        /// <summary>
         /// Creates an instance of this class using the provided <see cref="GeometryFactory"/>, the
         /// given value for whether or not we should write out a "bbox" for a plain geometry,
         /// feature and feature collection, the given "magic" string to signal when an
@@ -80,7 +107,22 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="writeGeometryBBox"></param>
         /// <param name="idPropertyName"></param>
         public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName)
-            : this(factory, writeGeometryBBox, idPropertyName, RingOrientationOption.EnforceRfc9746)
+            : this(factory, writeGeometryBBox, idPropertyName, DefaultRingOrientationOption)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the given value for whether or not we should write out
+        /// a "bbox" for a plain geometry, feature and feature collection, the given "magic" string to signal
+        /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", the
+        /// <see cref="RingOrientationOption"/> value that indicates how rings should be oriented
+        /// when writing them out, and defaults for all other values.
+        /// </summary>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        /// <param name="ringOrientationOption"></param>
+        public GeoJsonConverterFactory(bool writeGeometryBBox, string idPropertyName, RingOrientationOption ringOrientationOption)
+            : this(writeGeometryBBox, idPropertyName, ringOrientationOption, DefaultAllowModifyingAttributesTables)
         {
         }
 
@@ -98,7 +140,25 @@ namespace NetTopologySuite.IO.Converters
         /// <param name="ringOrientationOption"></param>
         public GeoJsonConverterFactory(GeometryFactory factory, bool writeGeometryBBox, string idPropertyName,
             RingOrientationOption ringOrientationOption)
-            : this(factory, writeGeometryBBox, idPropertyName, ringOrientationOption, false)
+            : this(factory, writeGeometryBBox, idPropertyName, ringOrientationOption, DefaultAllowModifyingAttributesTables)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of this class using the given value for whether or not we should write out
+        /// a "bbox" for a plain geometry, feature and feature collection, the given "magic" string to signal
+        /// when an <see cref="IAttributesTable"/> property is actually filling in for a Feature's "id", the
+        /// <see cref="RingOrientationOption"/> value that indicates how rings should be oriented
+        /// when writing them out, and a flag indicating whether or not to use a less efficient
+        /// implementation of <see cref="IAttributesTable"/> that can be modified in-place.
+        /// </summary>
+        /// <param name="writeGeometryBBox"></param>
+        /// <param name="idPropertyName"></param>
+        /// <param name="ringOrientationOption"></param>
+        /// <param name="allowModifyingAttributesTables"></param>
+        public GeoJsonConverterFactory(bool writeGeometryBBox, string idPropertyName,
+            RingOrientationOption ringOrientationOption, bool allowModifyingAttributesTables)
+            : this(NtsGeometryServices.Instance.CreateGeometryFactory(4326), writeGeometryBBox, idPropertyName, ringOrientationOption, allowModifyingAttributesTables)
         {
         }
 

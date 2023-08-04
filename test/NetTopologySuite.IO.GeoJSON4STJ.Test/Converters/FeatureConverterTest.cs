@@ -68,6 +68,20 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             //Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.1,56.2]},\"properties\":{\"test1\":\"value1\"}}", ToJson(value));
         }
 
+        /// <summary>
+        /// Tests whether required feature members are written, even if they are null.
+        /// </summary>
+        [Test]
+        public void WriteJsonShouldIgnoreCustomNullWritingOptionsTest()
+        {
+            IFeature value = new Feature(null, null);
+            var options = DefaultOptions;
+            options.WriteIndented = false;
+            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+            string json = ToJsonString(value, options);
+            Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":null,\"properties\":null}", json);
+        }
 
         ///<summary>
         ///    A test for WriteJson

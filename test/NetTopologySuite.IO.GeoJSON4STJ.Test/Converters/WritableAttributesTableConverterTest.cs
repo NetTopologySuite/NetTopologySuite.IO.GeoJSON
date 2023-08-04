@@ -21,7 +21,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         [Test]
         public void ModificationsShouldBeVisibleNearlyEverywhere()
         {
-            IFeature feature = FromJsonString(@"{
+            var feature = FromJsonString(@"{
     ""type"": ""Feature"",
     ""geometry"": {
         ""type"": ""Point"",
@@ -36,12 +36,12 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(feature.Geometry.Coordinate, Is.EqualTo(new Coordinate(-74.0445, 40.6892)));
 
             Assert.That(feature.Attributes, Is.InstanceOf<JsonObjectAttributesTable>());
-            JsonObjectAttributesTable attributes = (JsonObjectAttributesTable)feature.Attributes;
-            JsonObject rootObject = attributes.RootObject; // modifications should write through
+            var attributes = (JsonObjectAttributesTable)feature.Attributes;
+            var rootObject = attributes.RootObject; // modifications should write through
 
             Assert.That(feature.Attributes.Exists("hello"));
             Assert.That(feature.Attributes["hello"], Is.EqualTo("world!"));
-            Assert.That(rootObject.TryGetPropertyValue("hello", out JsonNode helloValue));
+            Assert.That(rootObject.TryGetPropertyValue("hello", out var helloValue));
             Assert.That(helloValue.GetValue<string>(), Is.EqualTo("world!"));
 
             feature.Attributes.DeleteAttribute("hello");
@@ -52,11 +52,11 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             feature.Attributes.Add("nearestGasStation", "there are none");
             Assert.That(feature.Attributes.Exists("nearestGasStation"));
             Assert.That(feature.Attributes["nearestGasStation"], Is.EqualTo("there are none"));
-            Assert.That(rootObject.TryGetPropertyValue("nearestGasStation", out JsonNode nearestGasStationValue));
+            Assert.That(rootObject.TryGetPropertyValue("nearestGasStation", out var nearestGasStationValue));
             Assert.That(nearestGasStationValue.GetValue<string>(), Is.EqualTo("there are none"));
 
             // ...but override it right away with a complex object.
-            GasStation nearestGasStation = new GasStation
+            var nearestGasStation = new GasStation
             {
                 Id = Guid.NewGuid(),
                 Name = "Somebody",
@@ -65,16 +65,16 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             feature.Attributes["nearestGasStation"] = nearestGasStation;
 
             Assert.That(feature.Attributes["nearestGasStation"], Is.InstanceOf<JsonObjectAttributesTable>());
-            JsonObjectAttributesTable nearestGasStationAttribute = (JsonObjectAttributesTable)feature.Attributes["nearestGasStation"];
+            var nearestGasStationAttribute = (JsonObjectAttributesTable)feature.Attributes["nearestGasStation"];
 
             Assert.That(nearestGasStationAttribute["Location"], Is.InstanceOf<JsonObjectAttributesTable>());
-            JsonObjectAttributesTable nearestGasStationLocationAttribute = (JsonObjectAttributesTable)nearestGasStationAttribute["Location"];
+            var nearestGasStationLocationAttribute = (JsonObjectAttributesTable)nearestGasStationAttribute["Location"];
 
             Assert.That(nearestGasStationLocationAttribute.TryDeserializeJsonObject(null, out Point nearestGasStationLocationPt));
             Assert.That(nearestGasStationLocationPt.Coordinate, Is.EqualTo(new Coordinate(1, 3)));
 
             Assert.That(nearestGasStationLocationAttribute["coordinates"], Is.InstanceOf<IList<object>>());
-            IList<object> nearestGasStationLocationCoordinatesArray = (IList<object>)nearestGasStationLocationAttribute["coordinates"];
+            var nearestGasStationLocationCoordinatesArray = (IList<object>)nearestGasStationLocationAttribute["coordinates"];
             nearestGasStationLocationCoordinatesArray[0] = 6.0;
             nearestGasStationLocationCoordinatesArray[1] = 8.0;
             Assert.That(((JsonObjectAttributesTable)nearestGasStationAttribute["Location"]).TryDeserializeJsonObject(null, out nearestGasStationLocationPt));
@@ -86,8 +86,8 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(((JsonValue)(((JsonArray)((JsonObject)((JsonObject)rootObject["nearestGasStation"])["Location"])["coordinates"])[1])).GetValue<double>(), Is.EqualTo(8.0));
 
             // all these modifications should be visible after a round-trip through JSON
-            IFeature roundTripFeature = RoundTrip(feature, DefaultOptions);
-            JsonObjectAttributesTable roundTripAttributes = (JsonObjectAttributesTable)roundTripFeature.Attributes;
+            var roundTripFeature = RoundTrip(feature, DefaultOptions);
+            var roundTripAttributes = (JsonObjectAttributesTable)roundTripFeature.Attributes;
             Assert.Multiple(() =>
             {
                 Assert.That(!roundTripAttributes.Exists("hello"));

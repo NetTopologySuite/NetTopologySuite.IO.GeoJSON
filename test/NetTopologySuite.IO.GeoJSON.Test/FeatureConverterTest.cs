@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -51,6 +50,25 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[23.0,56.0]},\"properties\":{\"test1\":\"value1\"}}", sb.ToString());
         }
 
+        /// <summary>
+        /// Tests whether required feature members are written, even if they are null.
+        /// </summary>
+        [Test]
+        public void WriteJsonShouldIgnoreCustomNullWritingOptionsTest()
+        {
+            var target = new FeatureConverter();
+            var sb = new StringBuilder();
+            var writer = new JsonTextWriter(new StringWriter(sb));
+
+            IFeature value = new Feature(null, null);
+            var serializer = GeoJsonSerializer.Create(
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore },
+                GeometryFactory.Default);
+            target.WriteJson(writer, value, serializer);
+            writer.Flush();
+
+            Assert.AreEqual("{\"type\":\"Feature\",\"geometry\":null,\"properties\":null}", sb.ToString());
+        }
 
         ///<summary>
         ///    A test for WriteJson
