@@ -119,7 +119,7 @@ namespace NetTopologySuite.IO.GeoJSON.Test
                 throw new Exception();
 
             Console.WriteLine(des.AsText());
-            Assert.IsTrue(des.EqualsExact(geom));
+            Assert.IsTrue(des.EqualsExact(GeoJsonFixture.InExpectedOrientation(geom)));
         }
 
         [Test, Ignore("CoordinateConverter no longer added to serializer")]
