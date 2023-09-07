@@ -80,7 +80,14 @@ namespace NetTopologySuite.IO
             }
 
             var g = GeoJsonSerializer.Create(_serializerSettings, _factory, _dimension);
-            return g.Deserialize<TObject>(json);
+            try
+            {
+                return g.Deserialize<TObject>(json);
+            }
+            catch (Exception ex)
+            {
+                throw new ParseException(ex);
+            }
         }
     }
 }

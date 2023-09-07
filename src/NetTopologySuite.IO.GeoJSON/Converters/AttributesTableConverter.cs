@@ -104,7 +104,7 @@ namespace NetTopologySuite.IO.Converters
                     case JsonToken.EndConstructor:
                     case JsonToken.EndObject:
                     case JsonToken.PropertyName:
-                        throw new JsonException("Expected token ']' or '[' token, or a value");
+                        throw new JsonReaderException("Expected token ']' or '[' token, or a value");
 
                     default:
                         // add value to list
@@ -142,7 +142,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (reader.TokenType != JsonToken.StartObject)
             {
-                throw new ArgumentException("Expected token '{' not found.");
+                throw new JsonReaderException("Expected token '{' not found");
             }
 
             // Advance reader
@@ -165,7 +165,7 @@ namespace NetTopologySuite.IO.Converters
                             attributeValue = InternalReadJson(reader, serializer, true);
                             if (reader.TokenType != JsonToken.EndObject)
                             {
-                                throw new ArgumentException("Expected token '}' not found.");
+                                throw new JsonReaderException("Expected token '}' not found");
                             }
 
                             // read EndObject token
@@ -208,7 +208,7 @@ namespace NetTopologySuite.IO.Converters
             // TODO: refactor to remove check when reading TopoJSON
             if (reader.TokenType != JsonToken.EndObject)
             {
-                throw new ArgumentException("Expected token '}' not found.");
+                throw new JsonReaderException("Expected token '}' not found");
             }
 
             return attributesTable;

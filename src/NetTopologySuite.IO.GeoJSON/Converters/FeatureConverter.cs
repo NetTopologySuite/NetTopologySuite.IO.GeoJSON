@@ -86,7 +86,7 @@ namespace NetTopologySuite.IO.Converters
         {
             if (reader.TokenType != JsonToken.StartObject)
             {
-                throw new JsonReaderException("Expected Start object '{' Token");
+                throw new JsonReaderException("Expected token '{' not found");
             }
 
             bool read = reader.Read();
@@ -101,7 +101,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         if ((string)reader.Value != "Feature")
                         {
-                            throw new ArgumentException("Expected value 'Feature' not found.");
+                            throw new ParseException("Expected value 'Feature' not found");
                         }
 
                         read = reader.Read();
@@ -144,13 +144,13 @@ namespace NetTopologySuite.IO.Converters
 
                         if (reader.TokenType != JsonToken.StartObject)
                         {
-                            throw new ArgumentException("Expected token '{' not found.");
+                            throw new JsonReaderException("Expected token '{' not found");
                         }
 
                         feature.Geometry = serializer.Deserialize<Geometry>(reader);
                         if (reader.TokenType != JsonToken.EndObject)
                         {
-                            throw new ArgumentException("Expected token '}' not found.");
+                            throw new JsonReaderException("Expected token '}' not found");
                         }
 
                         read = reader.Read();
@@ -163,7 +163,7 @@ namespace NetTopologySuite.IO.Converters
                             // #120: ensure "properties" isn't "null"
                             if (reader.TokenType != JsonToken.StartObject)
                             {
-                                throw new ArgumentException("Expected token '{' not found.");
+                                throw new JsonReaderException("Expected token '{' not found");
                             }
 
                             var attributes = serializer.Deserialize<AttributesTable>(reader);
@@ -185,7 +185,7 @@ namespace NetTopologySuite.IO.Converters
 
                             if (reader.TokenType != JsonToken.EndObject)
                             {
-                                throw new ArgumentException("Expected token '}' not found.");
+                                throw new JsonReaderException("Expected token '}' not found");
                             }
                         }
                         read = reader.Read();
@@ -207,7 +207,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (read && reader.TokenType != JsonToken.EndObject)
             {
-                throw new ArgumentException("Expected token '}' not found.");
+                throw new JsonReaderException("Expected token '}' not found");
             }
 
             return feature;

@@ -95,7 +95,7 @@ namespace NetTopologySuite.IO.Converters
                 {
                     case "type":
                         if (reader.GetString() != "Feature")
-                            throw new ArgumentException("Expected value 'Feature' not found.");
+                            throw new ParseException("Expected value 'Feature' not found.");
                         reader.Read();
                         break;
 
@@ -107,14 +107,14 @@ namespace NetTopologySuite.IO.Converters
                                 break;
 
                             case JsonTokenType.Number:
-                                throw new NotSupportedException("Number value cannot be boxed as a decimal: " + reader.GetString());
+                                throw new ParseException(new NotSupportedException("Number value cannot be boxed as a decimal: " + reader.GetString()));
 
                             case JsonTokenType.String:
                                 feature.Id = reader.GetString();
                                 break;
 
                             default:
-                                throw new JsonException("A GeoJSON Feature's \"id\", if specified, must be either a JSON string or number, per RFC7946 section 3.2");
+                                throw new ParseException(new JsonException("A GeoJSON Feature's \"id\", if specified, must be either a JSON string or number, per RFC7946 section 3.2"));
                         }
 
                         reader.Read();

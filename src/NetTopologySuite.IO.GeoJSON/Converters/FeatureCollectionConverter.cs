@@ -85,7 +85,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         if (reader.TokenType != JsonToken.StartArray)
                         {
-                            throw new ArgumentException("Expected token '[' not found.");
+                            throw new JsonReaderException("Expected token '[' not found");
                         }
 
                         // move to first feature
@@ -103,7 +103,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         if (reader.TokenType != JsonToken.String && (string)reader.Value != "FeatureCollection")
                         {
-                            throw new ArgumentException("Expected value 'FeatureCollection' not found.");
+                            throw new ParseException("Expected value 'FeatureCollection' not found");
                         }
 
                         read = reader.Read();
@@ -114,13 +114,13 @@ namespace NetTopologySuite.IO.Converters
                         /*
                         read = reader.Read();
                         if (reader.TokenType != JsonToken.StartArray)
-                            throw new ArgumentException("Expected token '{' not found.");
+                            throw new JsonReaderException("Expected token '{' not found");
 
                         var env = serializer.Deserialize<double[]>(reader);
                         fc.BoundingBox = new Envelope(env[0], env[2], env[1], env[3]);
 
                         if (reader.TokenType != JsonToken.EndArray)
-                            throw new ArgumentException("Expected token '}' not found.");
+                            throw new JsonReaderException("Expected token '}' not found");
 
                         read = reader.Read();
                         */
@@ -146,7 +146,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (read && reader.TokenType != JsonToken.EndObject)
             {
-                throw new ArgumentException("Expected token '}' not found.");
+                throw new JsonReaderException("Expected token '}' not found");
             }
 
             return fc;

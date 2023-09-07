@@ -1,6 +1,8 @@
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using Newtonsoft.Json;
 using NUnit.Framework;
+using System.IO;
 
 namespace NetTopologySuite.IO.GeoJSON.Test
 {
@@ -308,6 +310,50 @@ namespace NetTopologySuite.IO.GeoJSON.Test
             Assert.AreEqual(0, lineString.Coordinates[0].Y);
             Assert.AreEqual(102, lineString.Coordinates[1].X);
             Assert.AreEqual(1, lineString.Coordinates[1].Y);
+        }
+
+        [Test]
+        public void TestMalformedPoint()
+        {
+            var rdr = new GeoJsonReader();
+
+            // Point
+            Assert.That(() => rdr.Read<Point>("\"type\": \"Point\", \"coordinates\": [99.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]{"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<EndOfStreamException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Pooint\", \"coordinates\": [99.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<ParseException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, B]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": 99.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+        }
+
+        [Test]
+        public void TestMalformedLineString()
+        {
+            var rdr = new GeoJsonReader();
+
+            // Point
+            Assert.That(() => rdr.Read<LineString>("\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]{"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<EndOfStreamException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineSting\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<ParseException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, B, 100.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": 99.0, 89.0, 100.0, 89.0]}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0}"),
+                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
         }
     }
 }
