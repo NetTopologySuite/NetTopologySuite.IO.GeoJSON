@@ -107,7 +107,7 @@ namespace NetTopologySuite.IO.Converters
                                 break;
 
                             case JsonTokenType.Number:
-                                throw new NotSupportedException("Number value cannot be boxed as a decimal: " + reader.GetString());
+                                throw new JsonException("Number value cannot be boxed as a decimal: " + reader.GetString());
 
                             case JsonTokenType.String:
                                 feature.Id = reader.GetString();

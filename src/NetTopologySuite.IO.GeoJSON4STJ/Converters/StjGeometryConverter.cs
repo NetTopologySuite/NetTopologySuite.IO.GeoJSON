@@ -160,7 +160,8 @@ namespace NetTopologySuite.IO.Converters
                     geometry = _geometryFactory.CreateGeometryCollection(geometries ?? new Geometry[0]);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    // satisfy the compiler, but this is impossible today (airbreather 2023-09-14)
+                    throw new JsonException();
             }
 
             return geometry;
