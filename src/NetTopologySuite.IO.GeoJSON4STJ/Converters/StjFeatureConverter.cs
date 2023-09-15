@@ -95,7 +95,7 @@ namespace NetTopologySuite.IO.Converters
                 {
                     case "type":
                         if (reader.GetString() != "Feature")
-                            throw new ArgumentException("Expected value 'Feature' not found.");
+                            throw new JsonException("Expected value 'Feature' not found.");
                         reader.Read();
                         break;
 

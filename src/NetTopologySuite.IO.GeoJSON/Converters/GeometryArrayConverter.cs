@@ -84,7 +84,7 @@ namespace NetTopologySuite.IO.Converters
         {
             if (reader.TokenType != JsonToken.StartArray)
             {
-                throw new Exception();
+                throw new JsonReaderException("Expected token '[' not found");
             }
 
             reader.Read();
@@ -122,7 +122,7 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     case GeoJsonObjectType.GeometryCollection:
-                        throw new NotSupportedException();
+                        throw new JsonReaderException("GeometryCollection is currently not supported."); 
                 }
 
                 reader.Read();

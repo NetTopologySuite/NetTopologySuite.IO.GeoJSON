@@ -389,7 +389,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (reader.TokenType != JsonToken.StartObject)
             {
-                throw new JsonReaderException("Expected Start object '{' Token");
+                throw new JsonReaderException("Expected token '{' not found");
             }
 
             // advance
@@ -407,8 +407,9 @@ namespace NetTopologySuite.IO.Converters
                         if (geometryType == null)
                         {
                             reader.ReadOrThrow();
-                            geometryType = (GeoJsonObjectType)Enum.Parse(typeof(GeoJsonObjectType),
-                                (string)reader.Value, true);
+                            geometryType = Enum.TryParse((string)reader.Value, true, out GeoJsonObjectType parsedGeometryType)
+                                ? parsedGeometryType
+                                : throw new JsonReaderException($"Unknown geometry type '{(string)reader.Value}'");
                             reader.ReadOrThrow();
                         }
 
@@ -453,7 +454,7 @@ namespace NetTopologySuite.IO.Converters
 
             if (reader.TokenType != JsonToken.EndObject)
             {
-                throw new ArgumentException("Expected token '}' not found.");
+                throw new JsonReaderException("Expected token '}' not found");
             }
 
             bool CoordsIsNullOrEmpty() => coords is null || coords.Count == 0;
