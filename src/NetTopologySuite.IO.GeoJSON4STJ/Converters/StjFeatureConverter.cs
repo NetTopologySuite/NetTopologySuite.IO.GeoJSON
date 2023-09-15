@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
@@ -107,7 +108,12 @@ namespace NetTopologySuite.IO.Converters
                                 break;
 
                             case JsonTokenType.Number:
-                                throw new NotSupportedException("Number value cannot be boxed as a decimal: " + reader.GetString());
+                                // "number" is technically SUPPOSED to be a float, so even though we
+                                // prefer reading it as a decimal, it should at least be safe enough
+                                // to use GetDouble() for the exception message, and certainly safer
+                                // than GetString() which an older version of this code used to use,
+                                // which ALWAYS throws for Number tokens (airbreather 2023-09-14).
+                                throw new JsonException("Number value cannot be boxed as a decimal: " + reader.GetDouble());
 
                             case JsonTokenType.String:
                                 feature.Id = reader.GetString();
