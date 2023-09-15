@@ -103,7 +103,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         if (reader.TokenType != JsonToken.String && (string)reader.Value != "FeatureCollection")
                         {
-                            throw new ParseException("Expected value 'FeatureCollection' not found");
+                            throw new JsonReaderException("Expected value 'FeatureCollection' not found");
                         }
 
                         read = reader.Read();

@@ -409,7 +409,7 @@ namespace NetTopologySuite.IO.Converters
                             reader.ReadOrThrow();
                             geometryType = Enum.TryParse((string)reader.Value, true, out GeoJsonObjectType parsedGeometryType)
                                 ? parsedGeometryType
-                                : throw new ParseException($"Unknown geometry type '{(string)reader.Value}'");
+                                : throw new JsonReaderException($"Unknown geometry type '{(string)reader.Value}'");
                             reader.ReadOrThrow();
                         }
 

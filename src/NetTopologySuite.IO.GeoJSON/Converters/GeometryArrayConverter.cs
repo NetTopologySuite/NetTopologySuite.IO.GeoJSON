@@ -122,7 +122,7 @@ namespace NetTopologySuite.IO.Converters
                         break;
 
                     case GeoJsonObjectType.GeometryCollection:
-                        throw new ParseException("GeometryCollection is currently not supported.");
+                        throw new JsonReaderException("GeometryCollection is currently not supported."); 
                 }
 
                 reader.Read();

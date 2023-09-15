@@ -319,19 +319,19 @@ namespace NetTopologySuite.IO.GeoJSON.Test
 
             // Point
             Assert.That(() => rdr.Read<Point>("\"type\": \"Point\", \"coordinates\": [99.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]{"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0]"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<EndOfStreamException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Pooint\", \"coordinates\": [99.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<ParseException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, B]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": 99.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+                Throws.InstanceOf<JsonReaderException>());
             Assert.That(() => rdr.Read<Point>("{\"type\": \"Point\", \"coordinates\": [99.0, 89.0}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+                Throws.InstanceOf<JsonReaderException>());
         }
 
         [Test]
@@ -339,21 +339,43 @@ namespace NetTopologySuite.IO.GeoJSON.Test
         {
             var rdr = new GeoJsonReader();
 
-            // Point
-            Assert.That(() => rdr.Read<LineString>("\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]{"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<EndOfStreamException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineSting\", \"coordinates\": [99.0, 89.0, 100.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<ParseException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, B, 100.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": 99.0, 89.0, 100.0, 89.0]}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
-            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0, 100.0, 89.0}"),
-                Throws.InstanceOf<ParseException>().With.InnerException.InstanceOf<JsonReaderException>());
+            // LineString
+            Assert.That(() => rdr.Read<LineString>("\"type\": \"LineString\", \"coordinates\": [[99.0, 89.0], 100.0, 89.0]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [[99.0, 89.0], [100.0, 89.0]]{"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [[99.0, 89.0], [100.0, 89.0]]"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineSting\", \"coordinates\": [[99.0, 89.0], [100.0, 89.0]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [[99.0, B], [100.0, 89.0]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [99.0, 89.0], [100.0, 89.0]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<LineString>("{\"type\": \"LineString\", \"coordinates\": [[99.0, 89.0], [100.0, 89.0]}"),
+                Throws.InstanceOf<JsonReaderException>());
+        }
+
+        [Test]
+        public void TestMalformedPolygon()
+        {
+            var rdr = new GeoJsonReader();
+
+            // Polygon
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]{"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Poygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, A.0], [100.0, 0.0] ]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]]}"),
+                Throws.InstanceOf<JsonReaderException>());
+            Assert.That(() => rdr.Read<Polygon>("\"type\": \"Polygon\", \"coordinates\": [[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]}"),
+                Throws.InstanceOf<JsonReaderException>());
         }
     }
 }

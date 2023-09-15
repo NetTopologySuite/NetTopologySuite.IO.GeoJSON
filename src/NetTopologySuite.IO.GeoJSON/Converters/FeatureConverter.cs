@@ -101,7 +101,7 @@ namespace NetTopologySuite.IO.Converters
                         reader.Read();
                         if ((string)reader.Value != "Feature")
                         {
-                            throw new ParseException("Expected value 'Feature' not found");
+                            throw new JsonReaderException("Expected value 'Feature' not found");
                         }
 
                         read = reader.Read();
