@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Properties;
 
 namespace NetTopologySuite.IO.Converters
@@ -94,5 +95,23 @@ namespace NetTopologySuite.IO.Converters
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowForUnexpectedToken(JsonTokenType requiredNextTokenType, ref Utf8JsonReader reader)
             => throw new JsonException(string.Format(Resources.EX_UnexpectedToken, requiredNextTokenType, reader.TokenType, reader.GetString()));
+
+        /// <summary>
+        /// Parses the current JSON token value from the source as a <see cref="double"/>. Rounds a value to the <see cref="PrecisionModel"/> grid.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="precisionModel">The precision model to round to.</param>
+        /// <returns>The rounded value</returns>
+        internal static double GetDouble(this Utf8JsonReader reader, PrecisionModel precisionModel)
+            => precisionModel.MakePrecise(reader.GetDouble());
+
+        /// <summary>
+        /// Rounds a <see cref="double"/> value to the <see cref="PrecisionModel"/> grid. Writes the rounded value (as a JSON number) as an element of a JSON array.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="value">The value to write.</param>
+        /// <param name="precisionModel">The precision model to round to.</param>
+        internal static void WriteNumberValue(this Utf8JsonWriter writer, double value, PrecisionModel precisionModel)
+            => writer.WriteNumberValue(precisionModel.MakePrecise(value));
     }
 }
