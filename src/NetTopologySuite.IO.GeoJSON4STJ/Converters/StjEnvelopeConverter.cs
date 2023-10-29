@@ -1,7 +1,5 @@
 ﻿using NetTopologySuite.Geometries;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,6 +7,13 @@ namespace NetTopologySuite.IO.Converters
 {
     internal class StjEnvelopeConverter : JsonConverter<Envelope>
     {
+        private readonly PrecisionModel _precisionModel;
+
+        public StjEnvelopeConverter(PrecisionModel precisionModel)
+        {
+            _precisionModel = precisionModel;
+        }
+
         public override Envelope Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             Envelope res = null;
@@ -22,19 +27,19 @@ namespace NetTopologySuite.IO.Converters
             {
                 reader.ReadToken(JsonTokenType.StartArray);
 
-                double minX = reader.GetDouble();
+                double minX = reader.GetDouble(_precisionModel);
                 reader.Read();
-                double minY = reader.GetDouble();
+                double minY = reader.GetDouble(_precisionModel);
                 reader.Read();
-                double maxX = reader.GetDouble();
+                double maxX = reader.GetDouble(_precisionModel);
                 reader.Read();
-                double maxY = reader.GetDouble();
+                double maxY = reader.GetDouble(_precisionModel);
                 reader.Read();
 
                 if (reader.TokenType == JsonTokenType.Number)
                 {
                     maxX = maxY;
-                    maxY = reader.GetDouble();
+                    maxY = reader.GetDouble(_precisionModel);
                     reader.Read();
                     reader.Read();
                 }
@@ -59,10 +64,10 @@ namespace NetTopologySuite.IO.Converters
             }
 
             writer.WriteStartArray();
-            writer.WriteNumberValue(value.MinX);
-            writer.WriteNumberValue(value.MinY);
-            writer.WriteNumberValue(value.MaxX);
-            writer.WriteNumberValue(value.MaxY);
+            writer.WriteNumberValue(value.MinX, _precisionModel);
+            writer.WriteNumberValue(value.MinY, _precisionModel);
+            writer.WriteNumberValue(value.MaxX, _precisionModel);
+            writer.WriteNumberValue(value.MaxY, _precisionModel);
             writer.WriteEndArray();
         }
     }
