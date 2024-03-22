@@ -191,14 +191,20 @@ namespace NetTopologySuite.IO.Converters
 
         private static Point ParsePoint(ref Utf8JsonReader reader, GeometryFactory factory)
         {
-            var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
+            var (x, y, zOrNull, mOrNull) = ReadXYZM(ref reader, factory.PrecisionModel);
 
-            var seq = factory.CoordinateSequenceFactory.Create(1, zOrNull.HasValue ? 3 : 2, 0);
+            int dimension = mOrNull.HasValue ? 4 : zOrNull.HasValue ? 3 : 2;
+            int measures = mOrNull.HasValue ? 1 : 0;
+            var seq = factory.CoordinateSequenceFactory.Create(1, dimension, measures);
             seq.SetX(0, x);
             seq.SetY(0, y);
             if (zOrNull is double z)
             {
                 seq.SetZ(0, z);
+            }
+            if (mOrNull is double m)
+            {
+                seq.SetM(0, m);
             }
 
             return factory.CreatePoint(seq);
@@ -208,10 +214,11 @@ namespace NetTopologySuite.IO.Converters
         {
             ords = ords ?? new List<double>();
             bool sequenceHasZ = false;
+            bool sequenceHasM = false;
 
             // read the first coordinate to kick things off...
             {
-                var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
+                var (x, y, zOrNull, mOrNull) = ReadXYZM(ref reader, factory.PrecisionModel);
 
                 ords.Add(x);
                 ords.Add(y);
@@ -220,8 +227,13 @@ namespace NetTopologySuite.IO.Converters
                     ords.Add(z);
                     sequenceHasZ = true;
                 }
+                if (mOrNull is double m)
+                {
+                    ords.Add(m);
+                    sequenceHasM = true;
+                }
 
-                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ReadXYZ was supposed to leave us at the EndArray token just past the last ordinate value");
+                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ReadXYZM was supposed to leave us at the EndArray token just past the last ordinate value");
                 reader.ReadOrThrow();
             }
 
@@ -230,15 +242,24 @@ namespace NetTopologySuite.IO.Converters
                 reader.ReadOrThrow();
 
                 reader.AssertToken(JsonTokenType.Number);
-                var (x, y, zOrNull) = ReadXYZ(ref reader, factory.PrecisionModel);
+                var (x, y, zOrNull, mOrNull) = ReadXYZM(ref reader, factory.PrecisionModel);
 
                 if (!sequenceHasZ && zOrNull.HasValue)
                 {
                     // we've been reading XY up to this point, but we just saw an XYZ.  take a short
                     // one-time detour to weave dummy Z values into what we've already read so far,
                     // then continue reading the rest of the values.
-                    ords = ConvertXYToXYZ(ords);
+                    ords = ConvertOrdsToNewDimension(ords, 3);
                     sequenceHasZ = true;
+                }
+
+                if (!sequenceHasM && mOrNull.HasValue)
+                {
+                    // we've been reading XYZ up to this point, but we just saw an XYZM.  take a short
+                    // one-time detour to weave dummy M values into what we've already read so far,
+                    // then continue reading the rest of the values.
+                    ords = ConvertOrdsToNewDimension(ords, 4);
+                    sequenceHasM = true;
                 }
 
                 ords.Add(x);
@@ -247,15 +268,20 @@ namespace NetTopologySuite.IO.Converters
                 {
                     ords.Add(zOrNull ?? Coordinate.NullOrdinate);
                 }
+                if (sequenceHasM)
+                {
+                    ords.Add(mOrNull ?? Coordinate.NullOrdinate);
+                }
 
-                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ReadXYZ was supposed to leave us at the EndArray token just past the last ordinate value");
+                Debug.Assert(reader.TokenType == JsonTokenType.EndArray, "ReadXYZM was supposed to leave us at the EndArray token just past the last ordinate value");
                 reader.ReadOrThrow();
             }
 
             reader.AssertToken(JsonTokenType.EndArray);
 
-            int dimension = sequenceHasZ ? 3 : 2;
-            var seq = factory.CoordinateSequenceFactory.Create(ords.Count / dimension, dimension, 0);
+            int dimension = sequenceHasM ? 4 : sequenceHasZ ? 3 : 2;
+            int measures = sequenceHasM ? 1 : 0;
+            var seq = factory.CoordinateSequenceFactory.Create(ords.Count / dimension, dimension, measures);
             int ordIndex = 0;
             for (int coordIndex = 0; coordIndex < seq.Count; coordIndex++)
             {
@@ -264,6 +290,10 @@ namespace NetTopologySuite.IO.Converters
                 if (sequenceHasZ)
                 {
                     seq.SetZ(coordIndex, ords[ordIndex++]);
+                }
+                if (sequenceHasM)
+                {
+                    seq.SetM(coordIndex, ords[ordIndex++]);
                 }
             }
 
@@ -326,9 +356,9 @@ namespace NetTopologySuite.IO.Converters
             return factory.CreateMultiPolygon(polygons.ToArray());
         }
 
-        private static (double x, double y, double? zOrNull) ReadXYZ(ref Utf8JsonReader reader, PrecisionModel precisionModel)
+        private static (double x, double y, double? zOrNull, double? mOrNull) ReadXYZM(ref Utf8JsonReader reader, PrecisionModel precisionModel)
         {
-            Debug.Assert(reader.TokenType == JsonTokenType.Number, "ReadXYZ was supposed to be called with a reader positioned on the first Number token of the array.");
+            Debug.Assert(reader.TokenType == JsonTokenType.Number, "ReadXYZM was supposed to be called with a reader positioned on the first Number token of the array.");
 
             // x
             double x = precisionModel.MakePrecise(reader.GetDouble());
@@ -338,21 +368,28 @@ namespace NetTopologySuite.IO.Converters
             reader.AssertToken(JsonTokenType.Number);
             double y = precisionModel.MakePrecise(reader.GetDouble());
 
+            double? z = null;
+            double? m = null;
+
             // z?
             reader.ReadOrThrow();
             if (reader.TokenType == JsonTokenType.Number)
             {
                 // yes z
-                double z = reader.GetDouble();
-                AdvanceReaderToEndOfCurrentNumberArray(ref reader);
-                return (x, y, z);
+                z = reader.GetDouble();
+                reader.ReadOrThrow();
             }
-            else
+
+            // m?
+            if (reader.TokenType == JsonTokenType.Number)
             {
-                // no z
-                reader.AssertToken(JsonTokenType.EndArray);
-                return (x, y, null);
+                // yes m
+                m = reader.GetDouble();
+                reader.ReadOrThrow();
             }
+
+            AdvanceReaderToEndOfCurrentNumberArray(ref reader);
+            return (x, y, z, m);
         }
 
         private static void AdvanceReaderToEndOfCurrentNumberArray(ref Utf8JsonReader reader)
@@ -365,20 +402,18 @@ namespace NetTopologySuite.IO.Converters
             reader.AssertToken(JsonTokenType.EndArray);
         }
 
-        private static List<double> ConvertXYToXYZ(List<double> xys)
+        private static List<double> ConvertOrdsToNewDimension(List<double> ords, int dimension)
         {
-            Debug.Assert(xys.Count % 2 == 0, "This was only supposed to be called with XY values.");
+            Debug.Assert(ords.Count % dimension - 1 == 0, $"This was only supposed to be called with {dimension - 1}-dimensional values.");
 
-            var xyzs = new List<double>(xys.Capacity);
-            int i = 0;
-            while (i < xys.Count)
+            var newOrds = new List<double>(ords.Capacity);
+            for (int i = 0; i < dimension - 1; i++)
             {
-                xyzs.Add(xys[i++]);
-                xyzs.Add(xys[i++]);
-                xyzs.Add(Coordinate.NullOrdinate);
+                newOrds.Add( ords[i] );
             }
+            newOrds.Add(Coordinate.NullOrdinate);
 
-            return xyzs;
+            return newOrds;
         }
 
         private static Polygon ToPolygon(IReadOnlyList<CoordinateSequence> ringSequences, GeometryFactory factory)

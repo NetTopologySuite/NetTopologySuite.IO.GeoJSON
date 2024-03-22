@@ -59,6 +59,18 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
         }
 
         [Test]
+        public void TestReadPoint4D()
+        {
+            string geoJson = @"{ ""type"" : ""Point"", ""coordinates"": [102.0, 0.5, 6.2, 0.02] }";
+            var options = DefaultOptions;
+            var geom = Deserialize(geoJson, options);
+
+            Assert.That(geom != null);
+            Assert.That(geom, Is.InstanceOf(typeof(Point)));
+            Assert.That(geom.Coordinate, Is.InstanceOf(typeof(CoordinateZM)));
+        }
+
+        [Test]
         public void TestReadLineString2D()
         {
             string geoJson = @"{ ""type"" : ""LineString"", ""coordinates"": [[102.0, 0.5],[112.7, 2.1]] }";
@@ -79,6 +91,18 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(geom != null);
             Assert.That(geom, Is.InstanceOf(typeof(LineString)));
             Assert.That(geom.Coordinate, Is.InstanceOf(typeof(CoordinateZ)));
+        }
+
+        [Test]
+        public void TestReadLineString4D()
+        {
+            string geoJson = @"{ ""type"" : ""LineString"", ""coordinates"": [[102.0, 0.5, 2.45, 0.02],[112.7, 2.1, 2.34, 0.04]] }";
+            var options = DefaultOptions;
+            var geom = Deserialize(geoJson, options);
+
+            Assert.That(geom != null);
+            Assert.That(geom, Is.InstanceOf(typeof(LineString)));
+            Assert.That(geom.Coordinate, Is.InstanceOf(typeof(CoordinateZM)));
         }
 
         [Test]
