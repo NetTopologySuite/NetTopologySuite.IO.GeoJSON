@@ -51,6 +51,15 @@ namespace NetTopologySuite.IO.Converters
             reader.AssertToken(JsonTokenType.StartArray);
             reader.ReadOrThrow();
 
+            if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                reader.ReadOrThrow();
+                if (reader.TokenType == JsonTokenType.EndArray)
+                {
+                    return default;
+                }
+            }
+
             if (reader.TokenType == JsonTokenType.Number)
             {
                 return new StjParsedCoordinates(ParseCoordinateSequence(ref reader, factory));
