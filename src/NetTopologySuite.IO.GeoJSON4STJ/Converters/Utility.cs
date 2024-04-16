@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -93,6 +95,13 @@ namespace NetTopologySuite.IO.Converters
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowForUnexpectedToken(JsonTokenType requiredNextTokenType, ref Utf8JsonReader reader)
-            => throw new JsonException(string.Format(Resources.EX_UnexpectedToken, requiredNextTokenType, reader.TokenType, reader.GetString()));
+            => throw new JsonException(string.Format(Resources.EX_UnexpectedToken, requiredNextTokenType, reader.TokenType, CurrentTokenAsString(in reader)));
+
+        private static string CurrentTokenAsString(in Utf8JsonReader reader)
+        {
+            return Encoding.UTF8.GetString(reader.HasValueSequence
+                ? reader.ValueSequence.ToArray()
+                : reader.ValueSpan.ToArray());
+        }
     }
 }
