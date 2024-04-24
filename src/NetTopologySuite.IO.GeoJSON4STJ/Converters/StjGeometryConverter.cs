@@ -248,7 +248,7 @@ namespace NetTopologySuite.IO.Converters
 
         private void WritePolygon(Utf8JsonWriter writer, Polygon value, JsonSerializerOptions options)
         {
-
+            
             writer.WriteStartArray();
             WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options, orientation:_oriExterior);
             for (int i = 0; i < value.NumInteriorRings; i++)

@@ -260,7 +260,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
     }}
 }}
             ";
-
+            
             Assert.That(() => JsonSerializer.Deserialize<Feature>(serialized, DefaultOptions), Throws.InstanceOf<JsonException>());
         }
     }
