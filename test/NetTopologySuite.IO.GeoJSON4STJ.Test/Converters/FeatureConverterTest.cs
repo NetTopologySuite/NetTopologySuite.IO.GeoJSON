@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -128,6 +129,21 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             CheckEquality(value, deserialized, idPropertyName);
         }
 
+        [Test]
+        [GeoJsonIssueNumber(143)]
+        public void SkippedPropertiesShouldNotThrowWithCompleteObjectInPartialBuffer()
+        {
+            var options = DefaultOptions;
+            var node = JsonSerializer.SerializeToNode(new Feature(), options)!;
+            node["_skippedProperty"] = "irrelevant";
+            var nodes = Enumerable.Repeat(node, 500).ToArray();
+            using SingleByteReadingMemoryStream stream = new();
+            JsonSerializer.Serialize(stream, nodes, options);
+            stream.Position = 0;
+            var roundtrip = JsonSerializer.Deserialize<IFeature[]>(stream, options);
+            Assert.That(roundtrip, Has.Length.EqualTo(500));
+        }
+
         public static IEnumerable<object[]> FeatureIdTestCases
         {
             get
@@ -244,7 +260,7 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
     }}
 }}
             ";
-            
+
             Assert.That(() => JsonSerializer.Deserialize<Feature>(serialized, DefaultOptions), Throws.InstanceOf<JsonException>());
         }
     }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -67,6 +69,21 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(d.Count, Is.EqualTo(fc.Count));
             for (int i = 0; i < fc.Count; i++)
                 FeatureConverterTest.CheckEquality(fc[i], d[i]);
+        }
+
+        [Test]
+        [GeoJsonIssueNumber(143)]
+        public void SkippedPropertiesShouldNotThrowWithCompleteObjectInPartialBuffer()
+        {
+            var options = DefaultOptions;
+            var node = JsonSerializer.SerializeToNode(new FeatureCollection(), options)!;
+            node["_skippedProperty"] = "irrelevant";
+            var nodes = Enumerable.Repeat(node, 500).ToArray();
+            using SingleByteReadingMemoryStream stream = new();
+            JsonSerializer.Serialize(stream, nodes, options);
+            stream.Position = 0;
+            var roundtrip = JsonSerializer.Deserialize<FeatureCollection[]>(stream, options);
+            Assert.That(roundtrip, Has.Length.EqualTo(500));
         }
     }
 }
