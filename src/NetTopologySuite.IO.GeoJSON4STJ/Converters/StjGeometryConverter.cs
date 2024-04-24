@@ -96,7 +96,7 @@ namespace NetTopologySuite.IO.Converters
                         break;
                     default: // included "bbox" property
                         //read, but can't do anything with it (see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry)
-                        reader.Skip();
+                        reader.SkipOrThrow();
                         reader.Read();
                         break;
                 }
@@ -248,7 +248,7 @@ namespace NetTopologySuite.IO.Converters
 
         private void WritePolygon(Utf8JsonWriter writer, Polygon value, JsonSerializerOptions options)
         {
-            
+
             writer.WriteStartArray();
             WriteCoordinateSequence(writer, value.ExteriorRing.CoordinateSequence, options, orientation:_oriExterior);
             for (int i = 0; i < value.NumInteriorRings; i++)

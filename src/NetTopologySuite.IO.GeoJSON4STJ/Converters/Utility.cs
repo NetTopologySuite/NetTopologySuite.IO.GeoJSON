@@ -61,6 +61,15 @@ namespace NetTopologySuite.IO.Converters
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void SkipOrThrow(this ref Utf8JsonReader reader)
+        {
+            if (!reader.TrySkip())
+            {
+                ThrowForUnexpectedPartialJson();
+            }
+        }
+
         internal static object ObjectFromJsonNode(JsonNode node, JsonSerializerOptions serializerOptions)
         {
             switch (node)
@@ -92,6 +101,10 @@ namespace NetTopologySuite.IO.Converters
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowForUnexpectedEndOfStream()
             => throw new JsonException(Resources.EX_UnexpectedEndOfStream);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowForUnexpectedPartialJson()
+            => throw new JsonException(Resources.EX_UnexpectedPartialJson);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowForUnexpectedToken(JsonTokenType requiredNextTokenType, ref Utf8JsonReader reader)
