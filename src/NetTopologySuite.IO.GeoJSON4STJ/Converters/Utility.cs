@@ -64,6 +64,12 @@ namespace NetTopologySuite.IO.Converters
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void SkipOrThrow(this ref Utf8JsonReader reader)
         {
+            // #143: Even though JsonConverter<T> always seems to see a Utf8JsonReader positioned on
+            // a full node, that node might be contained in a larger incomplete block. For whatever
+            // reason, reader.Skip() throws JsonException immediately if the reader is in a partial
+            // block, even if the current block has plenty of data to read past it. TrySkip will do
+            // the right thing, but we should still check the return value to make sure that we get
+            // a JsonException if the reader *does* terminate abruptly (airbreather 2024-04-24).
             if (!reader.TrySkip())
             {
                 ThrowForUnexpectedPartialJson();
