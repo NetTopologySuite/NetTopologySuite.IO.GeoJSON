@@ -56,7 +56,7 @@ namespace NetTopologySuite.IO.Converters
                 reader.ReadOrThrow();
                 if (reader.TokenType == JsonTokenType.EndArray)
                 {
-                    return default;
+                    return new StjParsedCoordinates(factory.CreateMultiPolygon(new Polygon[] { factory.CreatePolygon() }));
                 }
             }
 

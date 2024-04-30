@@ -23,15 +23,15 @@ namespace NetTopologySuite.IO.GeoJSON4STJ.Test.Converters
             Assert.That(geom.IsEmpty);
         }
 
-
-        [TestCase("MultiPolygon")]
-        public void TestReadWithArrayOfEmptyCoordinatesArray(string type)
+        [TestCase]
+        public void TestMultiPolygonReadWithArrayOfEmptyCoordinatesArray()
         {
-            string geoJson = @$"{{ ""type"" : ""{type}"", ""coordinates"": [ [] ] }}";
+            string geoJson = @"{ ""type"" : ""MultiPolygon"", ""coordinates"": [ [] ] }";
             var options = DefaultOptions;
             var geom = Deserialize(geoJson, options);
 
             Assert.That(geom != null);
+            Assert.That(new MultiPolygon(new Polygon[] { new Polygon(null) }) == geom);
             Assert.That(geom.IsEmpty);
         }
 
