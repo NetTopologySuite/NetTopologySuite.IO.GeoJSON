@@ -17,10 +17,10 @@ jobs:
 
     steps:
     - name: Get source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup .NET 6.0
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
 
@@ -35,7 +35,7 @@ jobs:
       run: dotnet pack -c Release --no-build -o artifacts -p:NoWarn=NU5105
 
     - name: Upload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: NuGet Package Files (${{ matrix.os }})
         path: artifacts
@@ -52,12 +52,12 @@ jobs:
 
     steps:
     - name: Setup .NET 6.0
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 6.0
 
     - name: Download Package Files
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: NuGet Package Files (ubuntu-latest)
         path: artifacts
@@ -80,12 +80,12 @@ jobs:
 
     steps:
     - name: Setup .NET Core 6.0
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 6.0
 
     - name: Download Package Files
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: NuGet Package Files (ubuntu-latest)
         path: artifacts
