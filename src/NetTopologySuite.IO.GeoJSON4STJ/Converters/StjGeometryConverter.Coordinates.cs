@@ -8,7 +8,6 @@ namespace NetTopologySuite.IO.Converters
     {
         private void WriteCoordinateSequence(Utf8JsonWriter writer, CoordinateSequence sequence, JsonSerializerOptions options, bool multiple = true, OrientationIndex orientation = OrientationIndex.None)
         {
-            //writer.WritePropertyName("coordinates");
             if (sequence == null)
             {
                 writer.WriteNullValue();
@@ -29,15 +28,17 @@ namespace NetTopologySuite.IO.Converters
             for (int i = 0; i < sequence.Count; i++)
             {
                 writer.WriteStartArray();
-                writer.WriteNumberValue(sequence.GetX(i));
-                writer.WriteNumberValue(sequence.GetY(i));
+
+                writer.WriteNumberValue(sequence.GetX(i), _geometryFactory.PrecisionModel);
+                writer.WriteNumberValue(sequence.GetY(i), _geometryFactory.PrecisionModel);
 
                 if (hasZ)
                 {
                     double z = sequence.GetZ(i);
                     if (!double.IsNaN(z))
-                        writer.WriteNumberValue(sequence.GetZ(i));
+                        writer.WriteNumberValue(z, _geometryFactory.PrecisionModel);
                 }
+
                 writer.WriteEndArray();
 
                 if (!multiple) break;

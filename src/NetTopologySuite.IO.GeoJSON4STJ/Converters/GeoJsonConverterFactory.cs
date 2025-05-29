@@ -190,6 +190,7 @@ namespace NetTopologySuite.IO.Converters
         public override bool CanConvert(Type typeToConvert)
         {
             return GeometryTypes.Contains(typeToConvert)
+                   || typeToConvert == typeof(Envelope)
                    || typeof(IFeature).IsAssignableFrom(typeToConvert)
                    || typeToConvert == typeof(FeatureCollection)
                    || typeof(IAttributesTable).IsAssignableFrom(typeToConvert);
@@ -200,6 +201,8 @@ namespace NetTopologySuite.IO.Converters
         {
             if (GeometryTypes.Contains(typeToConvert))
                 return new StjGeometryConverter(_factory, _writeGeometryBBox, _ringOrientationOption);
+            if (typeToConvert == typeof(Envelope))
+                return new StjEnvelopeConverter(_factory.PrecisionModel);
             if (typeToConvert == typeof(FeatureCollection))
                 return new StjFeatureCollectionConverter(_writeGeometryBBox);
             if (typeof(IFeature).IsAssignableFrom(typeToConvert))
