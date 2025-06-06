@@ -65,7 +65,7 @@ namespace NetTopologySuite.IO.Converters
                 else
                 {
                     reader.ReadOrThrow();
-                    reader.Skip();
+                    reader.SkipOrThrow();
                     reader.ReadOrThrow();
                 }
             }

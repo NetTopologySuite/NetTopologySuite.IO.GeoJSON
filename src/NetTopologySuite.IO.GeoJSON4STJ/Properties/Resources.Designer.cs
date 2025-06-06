@@ -131,5 +131,14 @@ namespace NetTopologySuite.IO.Properties {
                 return ResourceManager.GetString("EX_UnexpectedToken", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JsonConverter received partial JSON. This is likely the result of a bug in the System.Text.Json library..
+        /// </summary>
+        internal static string EX_UnexpectedPartialJson {
+            get {
+                return ResourceManager.GetString("EX_UnexpectedPartialJson", resourceCulture);
+            }
+        }
     }
 }

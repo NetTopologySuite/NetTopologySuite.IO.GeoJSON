@@ -162,7 +162,7 @@ namespace NetTopologySuite.IO.Converters
 
                     default:
                         // If property name is not one of the above: skip it entirely (foreign member)
-                        reader.Skip();
+                        reader.SkipOrThrow();
                         // Advance
                         while (reader.Read())
                         {
