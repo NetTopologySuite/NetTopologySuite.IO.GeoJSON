@@ -12,7 +12,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <RootNamespace>NetTopologySuite.IO</RootNamespace>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
@@ -34,6 +34,9 @@
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="[2.0.0, 3.0.0-A)" />
     <PackageReference Include="NetTopologySuite.Features" Version="[2.1.0, 3.0.0-A)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'== 'netStandard2.0'">
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
