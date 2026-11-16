@@ -141,4 +141,7 @@
   <data name="EX_UnexpectedToken" xml:space="preserve">
     <value>Expected token is '{0}' but was '{1}' (Value '{2}').</value>
   </data>
+  <data name="EX_UnexpectedPartialJson" xml:space="preserve">
+    <value>JsonConverter received partial JSON. This is likely the result of a bug in the System.Text.Json library.</value>
+  </data>
 </root>

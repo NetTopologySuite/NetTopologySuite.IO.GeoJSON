@@ -73,98 +73,59 @@ namespace NetTopologySuite.IO.Converters
             reader.SkipComments();
 
             GeoJsonObjectType? geometryType = null;
-            StjParsedCoordinates coordinateData = default;
             Geometry[] geometries = null;
 
-            while (reader.TokenType == JsonTokenType.PropertyName)
+            // "type" may come after "coordinates", so the coordinates are streamed into plain
+            // arrays and only interpreted once the whole object has been read.
+            var coordinates = default(StjRawCoordinates);
+            try
             {
-                // Get the property name and decide what to do
-                string propertyName = reader.GetString();
-                reader.Read();
-                switch (propertyName)
+                while (reader.TokenType == JsonTokenType.PropertyName)
                 {
-                    case "type":
-                        geometryType = (GeoJsonObjectType) Enum.Parse(typeof(GeoJsonObjectType), reader.GetString());
-                        reader.ReadToken(JsonTokenType.String);
-                        break;
-                    case "geometries":
-                        geometries = ReadGeometries(ref reader, options);
-                        break;
-                    case "coordinates":
-                        coordinateData = StjParsedCoordinates.Parse(ref reader, _geometryFactory);
-                        reader.Read();
-                        break;
-                    default: // included "bbox" property
-                        //read, but can't do anything with it (see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry)
-                        reader.Skip();
-                        reader.Read();
-                        break;
+                    // Get the property name and decide what to do
+                    string propertyName = reader.GetString();
+                    reader.Read();
+                    switch (propertyName)
+                    {
+                        case "type":
+                            geometryType = (GeoJsonObjectType) Enum.Parse(typeof(GeoJsonObjectType), reader.GetString());
+                            reader.ReadToken(JsonTokenType.String);
+                            break;
+                        case "geometries":
+                            geometries = ReadGeometries(ref reader, options);
+                            break;
+                        case "coordinates":
+                            coordinates.Read(ref reader);
+                            reader.Read();
+                            break;
+                        default: // included "bbox" property
+                            //read, but can't do anything with it (see NetTopologySuite.IO.GeoJSON => NetTopologySuite.IO.Converters.GeometryConverter.ParseGeometry)
+                            reader.SkipOrThrow();
+                            reader.Read();
+                            break;
+                    }
+                    // Skip comments
+                    reader.SkipComments();
                 }
-                // Skip comments
-                reader.SkipComments();
-            }
 
-            if (geometryType != GeoJsonObjectType.GeometryCollection)
-            {
                 if (!geometryType.HasValue)
                 {
                     throw new JsonException(Resources.EX_NoGeometryTypeDefined);
                 }
 
-                var supportedTypes = coordinateData.SupportedTypes;
-                if (supportedTypes.IsEmpty)
+                if (geometryType == GeoJsonObjectType.GeometryCollection)
                 {
-                    throw new JsonException(Resources.EX_NoCoordinatesDefined);
-                }
-
-                bool geometryTypeIsCompatible = false;
-                foreach (var supportedType in supportedTypes)
-                {
-                    if (supportedType == geometryType)
-                    {
-                        geometryTypeIsCompatible = true;
-                        break;
-                    }
-                }
-
-                if (!geometryTypeIsCompatible)
-                {
-                    throw new JsonException(string.Format(Resources.EX_CoordinatesIncompatibleWithType, geometryType));
-                }
-            }
-
-            Geometry geometry;
-            switch (geometryType)
-            {
-                case GeoJsonObjectType.Point:
-                    geometry = coordinateData.ToPoint(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.LineString:
-                    geometry = coordinateData.ToLineString(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.Polygon:
-                    geometry = coordinateData.ToPolygon(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.MultiPoint:
-                    geometry = coordinateData.ToMultiPoint(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.MultiLineString:
-                    geometry = coordinateData.ToMultiLineString(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.MultiPolygon:
-                    geometry = coordinateData.ToMultiPolygon(_geometryFactory);
-                    break;
-                case GeoJsonObjectType.GeometryCollection:
                     if (geometries == null)
                         throw new JsonException(Resources.EX_GCTypeWithoutGeometries);
-                    geometry = _geometryFactory.CreateGeometryCollection(geometries ?? new Geometry[0]);
-                    break;
-                default:
-                    // satisfy the compiler, but this is impossible today (airbreather 2023-09-14)
-                    throw new JsonException();
-            }
+                    return _geometryFactory.CreateGeometryCollection(geometries);
+                }
 
-            return geometry;
+                return coordinates.ToGeometry(geometryType.Value, _geometryFactory);
+            }
+            finally
+            {
+                coordinates.Dispose();
+            }
         }
 
         private Geometry[] ReadGeometries(ref Utf8JsonReader reader, JsonSerializerOptions options)
