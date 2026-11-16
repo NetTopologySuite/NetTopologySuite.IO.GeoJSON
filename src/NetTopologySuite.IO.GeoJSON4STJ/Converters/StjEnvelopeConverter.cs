@@ -44,7 +44,7 @@ namespace NetTopologySuite.IO.Converters
                     reader.Read();
                 }
 
-                reader.ReadToken(JsonTokenType.EndArray);
+                reader.AssertToken(JsonTokenType.EndArray);
 
                 res = new Envelope(minX, maxX, minY, maxY);
             }

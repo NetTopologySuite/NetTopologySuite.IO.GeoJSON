@@ -16,6 +16,7 @@ namespace NetTopologySuite.IO.Converters
             else
             {
                 res = JsonSerializer.Deserialize<Envelope>(ref reader, options);
+                reader.Read();
             }
 
             //reader.Read(); // move away from array end
