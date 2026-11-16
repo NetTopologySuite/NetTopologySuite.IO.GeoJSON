@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+  </ItemGroup>
+
+  <!-- the baseline job sets GeoJsonStjVersion to benchmark a released package instead of this checkout -->
+  <ItemGroup Condition=" '$(GeoJsonStjVersion)' == '' ">
+    <ProjectReference Include="..\..\src\NetTopologySuite.IO.GeoJSON4STJ\NetTopologySuite.IO.GeoJSON4STJ.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(GeoJsonStjVersion)' != '' ">
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="$(GeoJsonStjVersion)" />
+  </ItemGroup>
+
+</Project>
